@@ -15,7 +15,7 @@ const Subjects = () => {
       setErrorMsg("");
       try {
         const res = await fetch(
-          "https://medha-backend.onrender.com/api/subjects",
+          `${import.meta.env.VITE_BACKEND_URL}/api/subjects`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -51,7 +51,7 @@ const Subjects = () => {
     }
     try {
       const res = await fetch(
-        "https://medha-backend.onrender.com/api/subjects",
+        `${import.meta.env.VITE_BACKEND_URL}/api/subjects`,
         {
           method: "POST",
           headers: {
@@ -81,7 +81,7 @@ const Subjects = () => {
     setSuccessMsg("");
     try {
       const res = await fetch(
-        `https://medha-backend.onrender.com/api/subjects/${subjectId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/subjects/${subjectId}`,
         {
           method: "DELETE",
           headers: {

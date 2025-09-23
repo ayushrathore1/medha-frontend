@@ -6,7 +6,7 @@ import Loader from "../components/Common/Loader";
 // Call backend login
 const loginApi = async (email, password) => {
   const response = await fetch(
-    "https://medha-backend.onrender.com/api/auth/login",
+    `${import.meta.env.VITE_BACKEND_URL}/api/auth/login`,
     {
       method: "POST",
       headers: {

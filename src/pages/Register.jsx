@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 // Register API call with backend integration (returns token too)
 const registerApi = async (name, email, password) => {
   const response = await fetch(
-    "https://medha-backend.onrender.com/api/auth/signup",
+    `${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`,
     {
       method: "POST",
       headers: {

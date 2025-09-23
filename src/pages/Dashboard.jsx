@@ -30,7 +30,7 @@ const Dashboard = () => {
       try {
         // User fetch
         const userRes = await fetch(
-          "https://medha-backend.onrender.com/api/users/me",
+          `${import.meta.env.VITE_BACKEND_URL}/api/users/me`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -46,7 +46,7 @@ const Dashboard = () => {
 
         // Subjects
         const subjRes = await fetch(
-          "https://medha-backend.onrender.com/api/subjects",
+          `${import.meta.env.VITE_BACKEND_URL}/api/subjects`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -55,9 +55,12 @@ const Dashboard = () => {
         setSubjects(Array.isArray(subjData.subjects) ? subjData.subjects : []);
 
         // Notes count
-        const notesRes = await fetch("https://medha-backend.onrender.com/api/notes", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const notesRes = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/notes`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const notesData = await notesRes.json();
         setNotesCount(
           Array.isArray(notesData.notes) ? notesData.notes.length : 0
@@ -65,7 +68,7 @@ const Dashboard = () => {
 
         // Quizzes
         const quizRes = await fetch(
-          "https://medha-backend.onrender.com/api/quizzes",
+          `${import.meta.env.VITE_BACKEND_URL}/api/quizzes`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

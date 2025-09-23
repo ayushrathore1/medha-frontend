@@ -29,9 +29,12 @@ const Profile = () => {
       setLoading(true);
       setErrMsg("");
       try {
-        const res = await fetch("http://localhost:5000/api/users/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/users/me`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = await res.json();
         if (!res.ok) {
           setErrMsg(data.message || "Failed to fetch user profile.");
@@ -76,7 +79,7 @@ const Profile = () => {
     setLoading(true);
     try {
       const res = await fetch(
-        "https://medha-backend.onrender.com/api/users/me",
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/me`,
         {
           method: "PATCH",
           headers: {

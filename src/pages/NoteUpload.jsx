@@ -31,7 +31,7 @@ const NoteUpload = () => {
       }
       formData.append("content", extractedText);
       formData.append("subject", subjectId);
-      const res = await fetch("https://medha-backend.onrender.com/api/notes", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/notes`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

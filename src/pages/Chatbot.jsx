@@ -3,7 +3,7 @@ import ChatbotWidget from "../components/Chatbot/ChatbotWidget";
 
 const sendToChatbotApi = async (input, contextMessages) => {
   const response = await fetch(
-    "https://medha-backend.onrender.com/api/chatbot/ask",
+    `${import.meta.env.VITE_BACKEND_URL}/api/chatbot/ask`,
     {
       method: "POST",
       headers: {
@@ -12,7 +12,6 @@ const sendToChatbotApi = async (input, contextMessages) => {
       body: JSON.stringify({ input, contextMessages }),
     }
   );
-
   const data = await response.json();
   if (response.ok && data.answer) return data.answer;
   throw new Error(data.error || "Failed to get answer from MEDHA AI.");
@@ -20,7 +19,7 @@ const sendToChatbotApi = async (input, contextMessages) => {
 
 const Chatbot = () => (
   <div className="min-h-screen w-full bg-white flex flex-col items-center justify-center relative overflow-hidden">
-    {/* Animated Blobs on white background */}
+    {/* Animated BG Blobs */}
     <div className="absolute inset-0 pointer-events-none z-0">
       <div className="absolute -top-20 -left-20 w-[24rem] h-[24rem] bg-blue-300 rounded-full mix-blend-multiply filter blur-2xl opacity-35 animate-blob"></div>
       <div className="absolute top-32 right-16 w-[20rem] h-[20rem] bg-purple-300 rounded-full mix-blend-multiply filter blur-2xl opacity-30 animate-blob animation-delay-2000"></div>
@@ -58,14 +57,10 @@ const Chatbot = () => (
       </div>
     </div>
     <style>{`
-      .animate-fadein {
-        animation: fadein 0.5s ease both;
-      }
-      .animate-fadein2 {
-        animation: fadein 1.1s ease both;
-      }
+      .animate-fadein { animation: fadein 0.5s ease both; }
+      .animate-fadein2 { animation: fadein 1.1s ease both; }
       @keyframes fadein {
-        0% { opacity: 0; transform: translateY(30px); }
+        0% { opacity: 0; transform: translateY(30px);}
         100% { opacity: 1; transform: none;}
       }
     `}</style>

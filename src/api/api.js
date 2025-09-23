@@ -1,14 +1,14 @@
 // src/api/api.js
+
 import axios from "axios";
 
-const BASE_URL = "https://medha-backend.onrender.com/api"; // Change if needed
+const BASE_URL = import.meta.env.VITE_BACKEND_URL + "/api";
+// For CRA: process.env.REACT_APP_BACKEND_URL + '/api'
 
-// Utility: get JWT token from localStorage
 export function getToken() {
   return localStorage.getItem("token");
 }
 
-// Axios instance with JWT
 const api = axios.create({
   baseURL: BASE_URL,
 });
@@ -27,7 +27,7 @@ api.interceptors.request.use(
 // Subjects
 export const fetchSubjects = async () => {
   const res = await api.get("/subjects");
-  return res.data.subjects; // or adjust to your backend data structure
+  return res.data.subjects;
 };
 
 // Notes
@@ -66,11 +66,7 @@ export const generateAIFlashcards = async (noteId) => {
 
 // Update flashcard
 export const updateFlashcard = async (id, { question, answer, subject }) => {
-  const res = await api.put(`/flashcards/${id}`, {
-    question,
-    answer,
-    subject,
-  });
+  const res = await api.put(`/flashcards/${id}`, { question, answer, subject });
   return res.data.flashcard;
 };
 
@@ -90,6 +86,5 @@ export const createNote = async ({ title, content, subject }) => {
   const res = await api.post("/notes/text", { title, content, subject });
   return res.data.note;
 };
-
 
 export default api;

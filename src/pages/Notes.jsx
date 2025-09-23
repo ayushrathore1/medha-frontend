@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import NoteModal from "./NoteModal";
 import TextNoteForm from "../components/Notes/TextNoteForm";
 
-const API_BASE = "https://medha-backend.onrender.com/";
+const API_BASE = `${import.meta.env.VITE_BACKEND_URL}`;
 
 const Notes = () => {
   const [notes, setNotes] = useState([]);
