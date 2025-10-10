@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Layout
 import Navbar from "./components/Navigation/Navbar";
@@ -14,35 +9,28 @@ import Dashboard from "./pages/Dashboard";
 import Chatbot from "./pages/Chatbot";
 import Flashcards from "./pages/Flashcards";
 import Quiz from "./pages/Quiz";
-// import NoteUpload from "./pages/NoteUpload"; // REMOVE
 import Feedback from "./pages/Feedback";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Subjects from "./pages/Subjects";
 import NotFound from "./pages/NotFound";
-import Welcome from "./pages/Welcome"; // Optional welcome/landing page
+import Welcome from "./pages/Welcome";
 import Notes from "./pages/Notes";
 
-// For now, using a stub; swap with your auth logic when backend ready.
-const isAuthenticated = () => {
-  // When backend/auth ready: Replace this stub
-  // e.g., return Boolean(localStorage.getItem("user"))
-  return true;
-};
-
-// Wrapper for protected routes
-const ProtectedRoute = ({ children }) =>
-  isAuthenticated() ? children : <Navigate to="/login" replace />;
+// ProtectedRoute
+import ProtectedRoute from "./ProtectedRoute";
 
 const App = () => (
   <Router>
     <Navbar />
     <Routes>
-      {/* Welcome/landing page */}
+      {/* Public routes */}
       <Route path="/" element={<Welcome />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
-      {/* Protected pages */}
+      {/* Protected routes */}
       <Route
         path="/dashboard"
         element={
@@ -75,7 +63,6 @@ const App = () => (
           </ProtectedRoute>
         }
       />
-      {/* Remove /upload */}
       <Route
         path="/feedback"
         element={
@@ -92,7 +79,6 @@ const App = () => (
           </ProtectedRoute>
         }
       />
-      {/* The all-in-one Notes page */}
       <Route
         path="/notes"
         element={
@@ -109,13 +95,8 @@ const App = () => (
           </ProtectedRoute>
         }
       />
-      
 
-      {/* Public only */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-
-      {/* 404 fallback */}
+      {/* Catch-all 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   </Router>
