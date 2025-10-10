@@ -65,3 +65,35 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+body.dark-mode {
+  background-color: #181a20 !important;
+  color: #e1e1e1 !important;
+}
+
+body.dark-mode a {
+  color: #c7bfff !important;
+}
+
+body.dark-mode a:hover {
+  color: #a099ff !important;
+}
+
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6 {
+  color: #eaeaff !important;
+}
+
+body.dark-mode button {
+  background-color: #23243a !important;
+  color: #eaeaff !important;
+  border-color: #555 !important;
+}
+
+body.dark-mode button:hover {
+  border-color: #c7bfff !important;
+}
+
+body.dark-mode nav {
+  background-color: #23243a !important;
+  color: #eaeaff !important;
+}

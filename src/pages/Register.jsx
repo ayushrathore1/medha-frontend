@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { AuthContext } from "../AuthContext"; // Adjust if your path differs
 
 // Register API call with backend integration (returns token too)
 const registerApi = async (name, email, password) => {
@@ -107,13 +108,16 @@ const RegisterForm = ({ onRegister }) => {
 const Register = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { login } = useContext(AuthContext); // <--- Context login fn
 
   const handleRegister = async (name, email, password) => {
     setLoading(true);
     try {
       const data = await registerApi(name, email, password);
-      localStorage.setItem("token", data.token); // Store the JWT after signup
-      navigate("/dashboard"); // Or navigate wherever you want after signup
+      localStorage.setItem("token", data.token); // Optionally save the JWT
+      login(data); // <- Critical: Set context immediately after registering
+      setLoading(false);
+      navigate("/dashboard");
     } catch (err) {
       setLoading(false);
       throw err;

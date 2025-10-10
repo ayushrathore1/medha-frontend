@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import LoginForm from "../components/Auth/LoginForm";
 import Loader from "../components/Common/Loader";
+import { AuthContext } from "../AuthContext"; // adjust path as needed
 
 // Call backend login
 const loginApi = async (email, password) => {
@@ -20,21 +21,23 @@ const loginApi = async (email, password) => {
   if (!response.ok) {
     throw new Error(data.message || "Invalid email or password");
   }
-  // You may want to return the token for further use
+  // You may want to return the token/userData for further use
   return data;
 };
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // <-- use context function
 
   const handleLogin = async (email, password) => {
     setLoading(true);
     try {
       const userData = await loginApi(email, password);
-      // Example: store token in localStorage for future API calls
-      localStorage.setItem("token", userData.token);
-      // Optionally: set auth context here
+      localStorage.setItem("token", userData.token); // Optionally save token if needed
+      // IMPORTANT: Call AuthContext login to set user and trigger reactivity
+      login(userData); // <-- This makes ProtectedRoute/app reactively know user is logged in
+      setLoading(false);
       navigate("/dashboard");
     } catch (err) {
       setLoading(false);
