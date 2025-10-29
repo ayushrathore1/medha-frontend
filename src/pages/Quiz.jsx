@@ -111,64 +111,119 @@ const Quiz = () => {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!token) return setError("You must be logged in to take a quiz.");
+    console.log("=== SUBJECT FETCH DEBUG START ===");
+    console.log("1. Token exists?", !!token);
+    console.log("2. Token value:", token ? token.substring(0, 20) + "..." : "NO TOKEN");
+    console.log("3. Backend URL:", BACKEND_URL);
+    console.log("4. Full API endpoint:", `${BACKEND_URL}/api/subjects`);
+    
+    if (!token) {
+      console.log("❌ NO TOKEN - Aborting fetch");
+      setError("You must be logged in to take a quiz.");
+      return;
+    }
+    
     const fetchSubjects = async () => {
+      console.log("5. ✅ Starting fetchSubjects function...");
       try {
+        console.log("6. Making axios GET request...");
         const res = await axios.get(`${BACKEND_URL}/api/subjects`, {
           headers: { Authorization: `Bearer ${token}` }
         });
+        console.log("7. ✅ Response received!");
+        console.log("8. Status code:", res.status);
+        console.log("9. Response data:", res.data);
+        console.log("10. Is response.data an array?", Array.isArray(res.data));
+        console.log("11. Number of subjects:", Array.isArray(res.data) ? res.data.length : 0);
+        
         setSubjects(Array.isArray(res.data) ? res.data : []);
+        console.log("12. ✅ Subjects state updated");
       } catch (err) {
+        console.error("=== ❌ FETCH ERROR OCCURRED ===");
+        console.error("Error type:", err.name);
+        console.error("Error message:", err.message);
+        console.error("Full error object:", err);
+        console.error("Response status:", err?.response?.status);
+        console.error("Response data:", err?.response?.data);
+        console.error("Response headers:", err?.response?.headers);
+        
         setSubjects([]);
         setError("Failed to load subjects");
-        console.error("Subjects error:", err?.response?.status, err?.response?.data);
       }
     };
+    
     fetchSubjects();
+    console.log("=== SUBJECT FETCH DEBUG END ===");
   }, [token]);
 
   useEffect(() => {
+    console.log("=== NOTES FETCH TRIGGERED ===");
+    console.log("Selected subject:", selectedSubject);
+    
     setNotes([]);
     setSelectedNote("");
-    if (!selectedSubject) return;
+    if (!selectedSubject) {
+      console.log("No subject selected, skipping notes fetch");
+      return;
+    }
+    
     const fetchNotes = async () => {
+      console.log("Fetching notes for subject:", selectedSubject);
       try {
         const res = await axios.get(
           `${BACKEND_URL}/api/notes?subject=${selectedSubject}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        console.log("Notes response:", res.data);
+        console.log("Notes count:", Array.isArray(res.data) ? res.data.length : 0);
         setNotes(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
+        console.error("Notes fetch error:", err);
+        console.error("Notes error response:", err?.response?.data);
         setNotes([]);
         setError("Failed to load notes");
-        console.error("Notes error:", err);
       }
     };
     fetchNotes();
   }, [selectedSubject, token]);
 
   const handleGenerateQuiz = async () => {
+    console.log("=== GENERATE QUIZ TRIGGERED ===");
+    console.log("Selected note ID:", selectedNote);
+    
     setQuestions([]);
     setScore(0);
     setLoading(true);
     setError("");
     setCurrent(0);
     setQuizCompleted(false);
+    
     try {
       const noteObj = notes.find(n => n._id === selectedNote);
+      console.log("Found note object:", noteObj);
+      
       const subjectName = noteObj?.subject?.name || noteObj?.subject || "";
+      console.log("Subject name for quiz:", subjectName);
+      
+      console.log("Sending request to generate AI quiz...");
       const res = await axios.post(
         `${BACKEND_URL}/api/quizzes/generate-ai`,
         { noteId: selectedNote, subject: subjectName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
+      console.log("Quiz generation response:", res.data);
       const quizQuestions = res.data?.quiz?.questions;
+      console.log("Quiz questions:", quizQuestions);
+      console.log("Number of questions:", Array.isArray(quizQuestions) ? quizQuestions.length : 0);
+      
       setQuestions(Array.isArray(quizQuestions) ? quizQuestions : []);
       setCurrent(0);
     } catch (err) {
+      console.error("Quiz generation error:", err);
+      console.error("Quiz error response:", err.response?.data);
       setQuestions([]);
       setError(err.response?.data?.message || "Could not generate quiz");
-      console.error("Quiz error:", err);
     }
     setLoading(false);
   };
