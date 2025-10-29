@@ -3,6 +3,7 @@ import axios from "axios";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://medha-backend.onrender.com";
 
+// Dropdown with array check
 function SelectDropdown({ label, options, value, onChange, optionLabel = "name", optionValue = "_id", disabled = false }) {
   return (
     <div className="mb-5">
@@ -14,7 +15,7 @@ function SelectDropdown({ label, options, value, onChange, optionLabel = "name",
         disabled={disabled}
       >
         <option value="">Select {label}</option>
-        {options.map(opt => (
+        {(Array.isArray(options) ? options : []).map(opt => (
           <option key={opt[optionValue]} value={opt[optionValue]}>
             {opt[optionLabel]}
           </option>
@@ -24,8 +25,13 @@ function SelectDropdown({ label, options, value, onChange, optionLabel = "name",
   );
 }
 
-function QuizItem({ questionObj, questionNumber, total, onAnswer }) {
+function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
   const [selected, setSelected] = useState(null);
+
+  // Defensive: handle missing options keys
+  const safeOptions = questionObj.options && typeof questionObj.options === "object"
+    ? ["A","B","C","D"].map(opt => ({ key: opt, text: questionObj.options[opt] || "" }))
+    : [];
 
   const handleSelect = idx => {
     setSelected(idx);
@@ -40,16 +46,16 @@ function QuizItem({ questionObj, questionNumber, total, onAnswer }) {
       <div className="mb-3 text-blue-500 font-semibold tracking-wide text-sm uppercase">
         Question {questionNumber + 1} <span className="text-blue-300">of</span> {total}
       </div>
-      <h3 className="text-xl font-bold text-blue-900 mb-5">{questionObj.question}</h3>
+      <h3 className="text-xl font-bold text-blue-900 mb-5">{questionObj.question || "Question unavailable."}</h3>
       <div className="flex flex-col gap-3">
-        {["A", "B", "C", "D"].map((opt, idx) => (
+        {safeOptions.map(({ key, text }, idx) => (
           <button
-            key={opt}
+            key={key}
             className={`border px-4 py-2 rounded-xl font-medium transition text-left
               ${
                 selected !== null
                   ? idx === selected
-                    ? opt === questionObj.answer
+                    ? key === questionObj.answer
                       ? "bg-green-500 text-white border-green-500"
                       : "bg-red-500 text-white border-red-500"
                     : "bg-gray-50 text-blue-900 border-blue-200 opacity-80"
@@ -58,8 +64,8 @@ function QuizItem({ questionObj, questionNumber, total, onAnswer }) {
             disabled={selected !== null}
             onClick={() => handleSelect(idx)}
           >
-            <b className="mr-2">{opt}.</b>
-            {questionObj.options[opt]}
+            <b className="mr-2">{key}.</b>
+            {text}
           </button>
         ))}
       </div>
@@ -105,18 +111,15 @@ const Quiz = () => {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!token) {
-      // Optionally, navigate("/login"); if using react-router
-      setError("You must be logged in to take a quiz.");
-      return;
-    }
+    if (!token) return setError("You must be logged in to take a quiz.");
     const fetchSubjects = async () => {
       try {
         const res = await axios.get(`${BACKEND_URL}/api/subjects`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setSubjects(res.data);
+        setSubjects(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
+        setSubjects([]);
         setError("Failed to load subjects");
         console.error("Subjects error:", err?.response?.status, err?.response?.data);
       }
@@ -134,8 +137,9 @@ const Quiz = () => {
           `${BACKEND_URL}/api/notes?subject=${selectedSubject}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setNotes(res.data);
+        setNotes(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
+        setNotes([]);
         setError("Failed to load notes");
         console.error("Notes error:", err);
       }
@@ -151,16 +155,18 @@ const Quiz = () => {
     setCurrent(0);
     setQuizCompleted(false);
     try {
-      const noteObj = notes.find((n) => n._id === selectedNote);
+      const noteObj = notes.find(n => n._id === selectedNote);
       const subjectName = noteObj?.subject?.name || noteObj?.subject || "";
       const res = await axios.post(
         `${BACKEND_URL}/api/quizzes/generate-ai`,
         { noteId: selectedNote, subject: subjectName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setQuestions(res.data.quiz.questions);
+      const quizQuestions = res.data?.quiz?.questions;
+      setQuestions(Array.isArray(quizQuestions) ? quizQuestions : []);
       setCurrent(0);
     } catch (err) {
+      setQuestions([]);
       setError(err.response?.data?.message || "Could not generate quiz");
       console.error("Quiz error:", err);
     }
@@ -168,9 +174,10 @@ const Quiz = () => {
   };
 
   const handleAnswer = (selectedIdx) => {
+    if (!questions[current]) return;
     const correctIdx = ["A", "B", "C", "D"].indexOf(questions[current].answer);
     if (selectedIdx === correctIdx) {
-      setScore((prev) => prev + 1);
+      setScore(prev => prev + 1);
     }
     setTimeout(() => {
       if (current < questions.length - 1) setCurrent(current + 1);
