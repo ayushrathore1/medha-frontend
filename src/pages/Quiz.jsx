@@ -1,197 +1,273 @@
-import React, { useState } from "react";
-import SubjectSelect from "../components/Subject/SubjectSelect";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-// DEMO SUBJECTS & QUESTIONS (replace with backend later)
-const subjects = ["Data Structures", "DBMS", "OOP"];
-const mockQuestions = {
-  "Data Structures": [
-    {
-      question: "Which data structure uses LIFO order?",
-      options: ["Queue", "Stack", "Graph", "Array"],
-      answer: "Stack",
-    },
-    {
-      question: "What is the time complexity for accessing an array element?",
-      options: ["O(1)", "O(n)", "O(log n)", "O(n log n)"],
-      answer: "O(1)",
-    },
-  ],
-  DBMS: [
-    {
-      question: "Which language is used to query databases?",
-      options: ["HTML", "CSS", "SQL", "JavaScript"],
-      answer: "SQL",
-    },
-  ],
-  OOP: [
-    {
-      question: "Which pillar is NOT a part of OOP?",
-      options: ["Encapsulation", "Polymorphism", "Abstraction", "Compilation"],
-      answer: "Compilation",
-    },
-  ],
-};
+const BACKEND_URL = "https://medha-backend.onrender.com";
 
-const Quiz = () => {
+function SelectDropdown({
+  label,
+  options,
+  value,
+  onChange,
+  optionLabel = "name",
+  optionValue = "_id",
+  disabled = false,
+}) {
+  return (
+    <div className="mb-5">
+      <label className="block mb-2 text-blue-600 font-semibold">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="border px-4 py-2 rounded-xl w-full text-blue-700 font-medium"
+        disabled={disabled}
+      >
+        <option value="">Select {label}</option>
+        {options.map((opt) => (
+          <option key={opt[optionValue]} value={opt[optionValue]}>
+            {opt[optionLabel]}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function QuizItem({ questionObj, questionNumber, total, onAnswer }) {
+  const [selected, setSelected] = useState(null);
+
+  const handleSelect = (idx) => {
+    setSelected(idx);
+    setTimeout(() => {
+      onAnswer(idx);
+      setSelected(null);
+    }, 400);
+  };
+
+  return (
+    <div className="bg-gradient-to-br from-blue-100 via-white to-blue-50 max-w-xl w-full mx-auto rounded-2xl shadow-lg p-8 mb-6 transition">
+      <div className="mb-3 text-blue-500 font-semibold tracking-wide text-sm uppercase">
+        Question {questionNumber + 1} <span className="text-blue-300">of</span>{" "}
+        {total}
+      </div>
+      <h3 className="text-xl font-bold text-blue-900 mb-5">
+        {questionObj.question}
+      </h3>
+      <div className="flex flex-col gap-3">
+        {["A", "B", "C", "D"].map((opt, idx) => (
+          <button
+            key={opt}
+            className={`border px-4 py-2 rounded-xl font-medium transition text-left
+              ${
+                selected !== null
+                  ? idx === selected
+                    ? opt === questionObj.answer
+                      ? "bg-green-500 text-white border-green-500"
+                      : "bg-red-500 text-white border-red-500"
+                    : "bg-gray-50 text-blue-900 border-blue-200 opacity-80"
+                  : "bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100"
+              }`}
+            disabled={selected !== null}
+            onClick={() => handleSelect(idx)}
+          >
+            <b className="mr-2">{opt}.</b>
+            {questionObj.options[opt]}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function QuizResult({ score, total, onRestart }) {
+  return (
+    <div className="bg-white/90 max-w-xl w-full mx-auto mt-12 rounded-2xl shadow-lg p-10 text-center">
+      <h2 className="text-3xl font-extrabold text-blue-700 mb-5">
+        Quiz Completed!
+      </h2>
+      <div className="text-blue-800 text-xl mb-4">
+        <span className="font-bold text-green-600 text-2xl">{score}</span> /{" "}
+        {total}
+      </div>
+      <div className="w-full bg-blue-100 rounded-full h-4 mb-8">
+        <div
+          className="bg-blue-600 h-4 rounded-full transition-all duration-700"
+          style={{ width: `${(score / total) * 100}%` }}
+        ></div>
+      </div>
+      <button
+        className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow hover:bg-blue-700 transition"
+        onClick={onRestart}
+      >
+        Try Another Quiz
+      </button>
+    </div>
+  );
+}
+
+const Quiz = ({ token }) => {
+  const [subjects, setSubjects] = useState([]);
+  const [notes, setNotes] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedNote, setSelectedNote] = useState("");
   const [questions, setQuestions] = useState([]);
-  const [userAnswers, setUserAnswers] = useState([]);
   const [current, setCurrent] = useState(0);
-  const [score, setScore] = useState(null);
+  const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [quizCompleted, setQuizCompleted] = useState(false);
 
-  const startQuiz = (subject) => {
-    setSelectedSubject(subject);
-    setQuestions(mockQuestions[subject] || []);
-    setUserAnswers([]);
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const res = await axios.get(`${BACKEND_URL}/api/subjects`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSubjects(res.data);
+      } catch {
+        setError("Failed to load subjects");
+      }
+    };
+    fetchSubjects();
+  }, [token]);
+
+  useEffect(() => {
+    setNotes([]);
+    setSelectedNote("");
+    if (!selectedSubject) return;
+    const fetchNotes = async () => {
+      try {
+        const res = await axios.get(
+          `${BACKEND_URL}/api/notes?subject=${selectedSubject}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setNotes(res.data);
+      } catch {
+        setError("Failed to load notes");
+      }
+    };
+    fetchNotes();
+  }, [selectedSubject, token]);
+
+  const handleGenerateQuiz = async () => {
+    setQuestions([]);
+    setScore(0);
+    setLoading(true);
+    setError("");
     setCurrent(0);
-    setScore(null);
+    setQuizCompleted(false);
+    try {
+      const noteObj = notes.find((n) => n._id === selectedNote);
+      const subjectName = noteObj?.subject?.name || noteObj?.subject || "";
+      const res = await axios.post(
+        `${BACKEND_URL}/api/quizzes/generate-ai`,
+        { noteId: selectedNote, subject: subjectName },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setQuestions(res.data.quiz.questions);
+      setCurrent(0);
+    } catch (err) {
+      setError(err.response?.data?.message || "Could not generate quiz");
+    }
+    setLoading(false);
   };
 
-  const handleOption = (option) => {
-    setUserAnswers((prev) => {
-      const updated = [...prev];
-      updated[current] = option;
-      return updated;
-    });
-  };
-
-  const handleNext = () => setCurrent((c) => c + 1);
-  const handlePrev = () => setCurrent((c) => c - 1);
-
-  const handleSubmit = () => {
-    let sc = 0;
-    questions.forEach((q, i) => {
-      if (userAnswers[i] === q.answer) sc += 1;
-    });
-    setScore(sc);
+  const handleAnswer = (selectedIdx) => {
+    const correctIdx = ["A", "B", "C", "D"].indexOf(questions[current].answer);
+    if (selectedIdx === correctIdx) {
+      setScore((prev) => prev + 1);
+    }
+    setTimeout(() => {
+      if (current < questions.length - 1) setCurrent(current + 1);
+      else setQuizCompleted(true);
+    }, 500);
   };
 
   const handleRestart = () => {
-    setSelectedSubject("");
-    setQuestions([]);
-    setUserAnswers([]);
+    setScore(0);
     setCurrent(0);
-    setScore(null);
+    setQuestions([]);
+    setSelectedSubject("");
+    setSelectedNote("");
+    setError("");
+    setNotes([]);
+    setQuizCompleted(false);
   };
 
-  // === Quiz not started yet ===
-  if (!selectedSubject)
+  if (!questions.length)
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 pt-20 pb-16 flex flex-col items-center">
-        <div className="max-w-2xl w-full">
-          <div className="bg-white/90 border border-blue-100 shadow-lg rounded-2xl p-8 mt-10">
-            <h1 className="text-4xl font-bold text-blue-700 mb-3">
-              Take a Quiz
-            </h1>
-            <p className="mb-6 text-blue-900 text-lg">
-              Test yourself! Choose a subject to begin your quiz and check your
-              progress.
-            </p>
-            <SubjectSelect
-              subjects={subjects}
-              selected={""}
-              onChange={startQuiz}
-              label="Select Subject"
-            />
-          </div>
-        </div>
-      </div>
-    );
-
-  // === Quiz Complete / Score ===
-  if (score !== null)
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 pt-20 pb-16 flex flex-col items-center">
-        <div className="bg-white/90 border border-blue-100 shadow-lg rounded-2xl p-8 mt-10 max-w-md w-full flex flex-col items-center">
-          <h2 className="text-3xl font-bold text-blue-700 mb-4">
-            Quiz Complete!
-          </h2>
-          <div className="mb-5 text-blue-900 text-lg">
-            You scored <span className="font-bold text-blue-700">{score}</span>{" "}
-            out of {questions.length}.
-          </div>
-          <div className="w-full bg-blue-200 rounded-full h-3 mb-6">
-            <div
-              className="bg-blue-600 h-3 rounded-full transition-all duration-500"
-              style={{ width: `${(score / questions.length) * 100}%` }}
-            ></div>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
+        <div className="p-10 bg-white rounded-2xl shadow-lg w-full max-w-lg">
+          <h1 className="text-3xl font-bold text-blue-700 mb-6">
+            AI Quiz Generator
+          </h1>
+          <SelectDropdown
+            label="Subject"
+            options={subjects}
+            value={selectedSubject}
+            onChange={setSelectedSubject}
+            optionLabel="name"
+            optionValue="_id"
+          />
+          <SelectDropdown
+            label="Note"
+            options={notes}
+            value={selectedNote}
+            onChange={setSelectedNote}
+            optionLabel="title"
+            optionValue="_id"
+            disabled={!selectedSubject || !notes.length}
+          />
           <button
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold shadow hover:bg-blue-700 transition"
-            onClick={handleRestart}
+            onClick={handleGenerateQuiz}
+            className="bg-blue-600 w-full py-3 rounded-xl text-white font-bold text-lg hover:bg-blue-700 transition"
+            disabled={loading || !selectedSubject || !selectedNote}
           >
-            Take Another Quiz
+            {loading ? "Generating..." : "Generate Quiz"}
           </button>
+          {error && <div className="text-red-500 mt-4">{error}</div>}
         </div>
       </div>
     );
 
-  // === Quiz in progress ===
-  const q = questions[current];
-  const selected = userAnswers[current];
+  if (quizCompleted)
+    return (
+      <QuizResult
+        score={score}
+        total={questions.length}
+        onRestart={handleRestart}
+      />
+    );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 pt-20 pb-16 flex flex-col items-center">
-      <div className="max-w-2xl w-full">
-        <div className="bg-white/90 border border-blue-100 shadow-lg rounded-2xl p-8 mt-10">
-          <h2 className="text-2xl font-bold text-blue-700 mb-1">
-            {selectedSubject} Quiz
-          </h2>
-          <div className="text-blue-800 mb-4">
-            Question <span className="font-bold">{current + 1}</span> of{" "}
-            {questions.length}
-          </div>
-          <div className="bg-blue-50/60 border border-blue-200 rounded-xl shadow p-5 mb-5">
-            <div className="font-semibold mb-3 text-blue-900">{q.question}</div>
-            <div className="grid gap-3">
-              {q.options.map((opt, i) => (
-                <label key={i} className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name={`q${current}`}
-                    value={opt}
-                    checked={selected === opt}
-                    onChange={() => handleOption(opt)}
-                    className="accent-blue-600 text-lg"
-                  />
-                  <span className="text-blue-800 text-lg">{opt}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          <div className="flex gap-4 justify-end">
-            <button
-              className="bg-blue-100 border border-blue-300 rounded-lg px-4 py-2 font-medium text-blue-700 hover:bg-blue-200 transition"
-              disabled={current === 0}
-              onClick={handlePrev}
-            >
-              Previous
-            </button>
-            <button
-              className="bg-blue-100 border border-blue-300 rounded-lg px-4 py-2 font-medium text-blue-700 hover:bg-blue-200 transition"
-              onClick={handleRestart}
-            >
-              Change Subject
-            </button>
-            {current < questions.length - 1 ? (
-              <button
-                className="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-                disabled={!selected}
-                onClick={handleNext}
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                className="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-                disabled={userAnswers.length < questions.length}
-                onClick={handleSubmit}
-              >
-                Submit Quiz
-              </button>
-            )}
-          </div>
-        </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-white">
+      <QuizItem
+        questionObj={questions[current]}
+        questionNumber={current}
+        total={questions.length}
+        onAnswer={handleAnswer}
+      />
+      <div className="flex gap-4 mt-6">
+        <button
+          className="bg-blue-100 border border-blue-300 rounded-lg px-5 py-2 font-medium text-blue-700 hover:bg-blue-200 transition"
+          disabled={current === 0}
+          onClick={() => setCurrent(current - 1)}
+        >
+          Previous
+        </button>
+        <button
+          className="bg-blue-600 text-white px-8 py-2 rounded-xl font-bold shadow hover:bg-blue-700 transition"
+          onClick={handleRestart}
+        >
+          Restart
+        </button>
+        {current < questions.length - 1 && (
+          <button
+            className="bg-blue-600 text-white px-8 py-2 rounded-xl font-bold shadow hover:bg-blue-700 transition"
+            onClick={() => setCurrent(current + 1)}
+          >
+            Next
+          </button>
+        )}
       </div>
     </div>
   );
