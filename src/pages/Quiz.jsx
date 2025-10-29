@@ -1,28 +1,20 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const BACKEND_URL = "https://medha-backend.onrender.com";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://medha-backend.onrender.com";
 
-function SelectDropdown({
-  label,
-  options,
-  value,
-  onChange,
-  optionLabel = "name",
-  optionValue = "_id",
-  disabled = false,
-}) {
+function SelectDropdown({ label, options, value, onChange, optionLabel = "name", optionValue = "_id", disabled = false }) {
   return (
     <div className="mb-5">
       <label className="block mb-2 text-blue-600 font-semibold">{label}</label>
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         className="border px-4 py-2 rounded-xl w-full text-blue-700 font-medium"
         disabled={disabled}
       >
         <option value="">Select {label}</option>
-        {options.map((opt) => (
+        {options.map(opt => (
           <option key={opt[optionValue]} value={opt[optionValue]}>
             {opt[optionLabel]}
           </option>
@@ -35,7 +27,7 @@ function SelectDropdown({
 function QuizItem({ questionObj, questionNumber, total, onAnswer }) {
   const [selected, setSelected] = useState(null);
 
-  const handleSelect = (idx) => {
+  const handleSelect = idx => {
     setSelected(idx);
     setTimeout(() => {
       onAnswer(idx);
@@ -46,12 +38,9 @@ function QuizItem({ questionObj, questionNumber, total, onAnswer }) {
   return (
     <div className="bg-gradient-to-br from-blue-100 via-white to-blue-50 max-w-xl w-full mx-auto rounded-2xl shadow-lg p-8 mb-6 transition">
       <div className="mb-3 text-blue-500 font-semibold tracking-wide text-sm uppercase">
-        Question {questionNumber + 1} <span className="text-blue-300">of</span>{" "}
-        {total}
+        Question {questionNumber + 1} <span className="text-blue-300">of</span> {total}
       </div>
-      <h3 className="text-xl font-bold text-blue-900 mb-5">
-        {questionObj.question}
-      </h3>
+      <h3 className="text-xl font-bold text-blue-900 mb-5">{questionObj.question}</h3>
       <div className="flex flex-col gap-3">
         {["A", "B", "C", "D"].map((opt, idx) => (
           <button
@@ -81,12 +70,9 @@ function QuizItem({ questionObj, questionNumber, total, onAnswer }) {
 function QuizResult({ score, total, onRestart }) {
   return (
     <div className="bg-white/90 max-w-xl w-full mx-auto mt-12 rounded-2xl shadow-lg p-10 text-center">
-      <h2 className="text-3xl font-extrabold text-blue-700 mb-5">
-        Quiz Completed!
-      </h2>
+      <h2 className="text-3xl font-extrabold text-blue-700 mb-5">Quiz Completed!</h2>
       <div className="text-blue-800 text-xl mb-4">
-        <span className="font-bold text-green-600 text-2xl">{score}</span> /{" "}
-        {total}
+        <span className="font-bold text-green-600 text-2xl">{score}</span> / {total}
       </div>
       <div className="w-full bg-blue-100 rounded-full h-4 mb-8">
         <div
@@ -104,7 +90,7 @@ function QuizResult({ score, total, onRestart }) {
   );
 }
 
-const Quiz = ({ token }) => {
+const Quiz = () => {
   const [subjects, setSubjects] = useState([]);
   const [notes, setNotes] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -116,15 +102,23 @@ const Quiz = ({ token }) => {
   const [error, setError] = useState("");
   const [quizCompleted, setQuizCompleted] = useState(false);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
+    if (!token) {
+      // Optionally, navigate("/login"); if using react-router
+      setError("You must be logged in to take a quiz.");
+      return;
+    }
     const fetchSubjects = async () => {
       try {
         const res = await axios.get(`${BACKEND_URL}/api/subjects`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }
         });
         setSubjects(res.data);
-      } catch {
+      } catch (err) {
         setError("Failed to load subjects");
+        console.error("Subjects error:", err?.response?.status, err?.response?.data);
       }
     };
     fetchSubjects();
@@ -141,8 +135,9 @@ const Quiz = ({ token }) => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setNotes(res.data);
-      } catch {
+      } catch (err) {
         setError("Failed to load notes");
+        console.error("Notes error:", err);
       }
     };
     fetchNotes();
@@ -167,6 +162,7 @@ const Quiz = ({ token }) => {
       setCurrent(0);
     } catch (err) {
       setError(err.response?.data?.message || "Could not generate quiz");
+      console.error("Quiz error:", err);
     }
     setLoading(false);
   };
@@ -193,13 +189,24 @@ const Quiz = ({ token }) => {
     setQuizCompleted(false);
   };
 
+  if (!token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
+        <div className="p-10 bg-white rounded-2xl shadow-lg w-full max-w-lg">
+          <h1 className="text-3xl font-bold text-blue-700 mb-6">AI Quiz Generator</h1>
+          <div className="text-red-500 mt-4 font-semibold">
+            You must be logged in to take a quiz.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!questions.length)
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
         <div className="p-10 bg-white rounded-2xl shadow-lg w-full max-w-lg">
-          <h1 className="text-3xl font-bold text-blue-700 mb-6">
-            AI Quiz Generator
-          </h1>
+          <h1 className="text-3xl font-bold text-blue-700 mb-6">AI Quiz Generator</h1>
           <SelectDropdown
             label="Subject"
             options={subjects}
