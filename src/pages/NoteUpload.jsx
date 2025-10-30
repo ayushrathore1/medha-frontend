@@ -28,7 +28,7 @@ const NoteUpload = () => {
       if (file) formData.append("file", file);
       formData.append("content", extractedText);
       formData.append("subject", subjectId);
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}api/notes`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/notes`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
