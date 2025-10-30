@@ -23,7 +23,7 @@ function SelectDropdown({ label, options, value, onChange, optionLabel = "name",
       </select>
     </div>
   );
-}
+} 
 
 function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
   const [selected, setSelected] = useState(null);
