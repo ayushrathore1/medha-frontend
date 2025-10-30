@@ -1,25 +1,18 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { AuthContext } from "../AuthContext"; // Adjust if your path differs
+import { AuthContext } from "../AuthContext";
 
-// Register API call with backend integration (returns token too)
 const registerApi = async (name, email, password) => {
   const response = await fetch(
     `${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
     }
   );
-
   const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || "Registration failed");
-  }
-  // Return full response (includes token!)
+  if (!response.ok) throw new Error(data.message || "Registration failed");
   return data;
 };
 
@@ -45,17 +38,17 @@ const RegisterForm = ({ onRegister }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white/80 shadow-xl border border-blue-100 rounded-2xl p-8 flex flex-col gap-4 max-w-md w-full mx-auto"
+      className="bg-[#18163a]/95 shadow-2xl border border-violet-400/15 rounded-3xl p-10 flex flex-col gap-6 max-w-md w-full mx-auto backdrop-blur-xl"
     >
-      <h2 className="text-blue-700 text-3xl font-bold mb-2 text-center">
+      <h2 className="text-3xl font-extrabold text-center mb-1 bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent tracking-tight">
         Create Account
       </h2>
       <div>
-        <label className="block font-semibold mb-1 text-blue-900">
+        <label className="block font-bold mb-1 text-violet-300">
           Full Name
         </label>
         <input
-          className="border border-blue-300 rounded-lg px-4 py-3 w-full text-blue-900 bg-white shadow-sm focus:outline-none focus:border-blue-500"
+          className="border border-violet-400/20 rounded-xl px-4 py-3 w-full bg-[#18163a]/80 text-white font-medium placeholder-violet-300 focus:border-violet-400 focus:ring-2 focus:ring-violet-400 focus:outline-none shadow"
           type="text"
           required
           value={name}
@@ -65,9 +58,9 @@ const RegisterForm = ({ onRegister }) => {
         />
       </div>
       <div>
-        <label className="block font-semibold mb-1 text-blue-900">Email</label>
+        <label className="block font-bold mb-1 text-blue-300">Email</label>
         <input
-          className="border border-blue-300 rounded-lg px-4 py-3 w-full text-blue-900 bg-white shadow-sm focus:outline-none focus:border-blue-500"
+          className="border border-violet-400/20 rounded-xl px-4 py-3 w-full bg-[#18163a]/80 text-white font-medium placeholder-blue-300 focus:border-violet-400 focus:ring-2 focus:ring-violet-400 focus:outline-none shadow"
           type="email"
           required
           value={email}
@@ -77,11 +70,9 @@ const RegisterForm = ({ onRegister }) => {
         />
       </div>
       <div>
-        <label className="block font-semibold mb-1 text-blue-900">
-          Password
-        </label>
+        <label className="block font-bold mb-1 text-blue-300">Password</label>
         <input
-          className="border border-blue-300 rounded-lg px-4 py-3 w-full text-blue-900 bg-white shadow-sm focus:outline-none focus:border-blue-500"
+          className="border border-violet-400/20 rounded-xl px-4 py-3 w-full bg-[#18163a]/80 text-white font-medium placeholder-blue-300 focus:border-violet-400 focus:ring-2 focus:ring-violet-400 focus:outline-none shadow"
           type="password"
           required
           minLength={6}
@@ -92,11 +83,13 @@ const RegisterForm = ({ onRegister }) => {
         />
       </div>
       {errorMsg && (
-        <div className="text-red-500 text-center mb-2">{errorMsg}</div>
+        <div className="text-red-400 font-bold text-center mb-1 animate-pulse">
+          {errorMsg}
+        </div>
       )}
       <button
         type="submit"
-        className="bg-blue-600 text-white font-bold text-lg py-3 rounded-lg hover:bg-blue-700 shadow transition"
+        className="bg-gradient-to-r from-violet-600 to-blue-600 font-bold text-lg py-3 rounded-xl text-white shadow-xl hover:scale-[1.04] transition-all focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:opacity-60"
         disabled={loading}
       >
         {loading ? "Registering..." : "Register"}
@@ -108,14 +101,14 @@ const RegisterForm = ({ onRegister }) => {
 const Register = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { login } = useContext(AuthContext); // <--- Context login fn
+  const { login } = useContext(AuthContext);
 
   const handleRegister = async (name, email, password) => {
     setLoading(true);
     try {
       const data = await registerApi(name, email, password);
-      localStorage.setItem("token", data.token); // Optionally save the JWT
-      login(data); // <- Critical: Set context immediately after registering
+      localStorage.setItem("token", data.token);
+      login(data);
       setLoading(false);
       navigate("/dashboard");
     } catch (err) {
@@ -125,22 +118,32 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 pt-20 pb-10 flex items-center justify-center">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-[#0a0a0a] pt-20 pb-10 flex items-center justify-center relative font-inter overflow-hidden">
+      {/* Glassy ambient blobs */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-10 left-1/3 w-2/6 h-60 bg-gradient-to-tr from-violet-500/25 to-blue-400/15 rounded-full blur-2xl opacity-20 animate-blob"></div>
+        <div className="absolute bottom-0 right-1/4 w-1/3 h-60 bg-gradient-to-l from-blue-400/18 to-fuchsia-400/9 rounded-full blur-2xl opacity-18 animate-blob animation-delay-2000"></div>
+        <style>{`
+          @keyframes blob { 0% {transform: scale(1) translate(0,0);} 33% {transform: scale(1.08) translate(34px,-20px);} 66% {transform: scale(0.93) translate(-16px,15px);} 100% {transform: scale(1) translate(0,0);} }
+          .animate-blob { animation: blob 14s infinite; }
+          .animation-delay-2000 { animation-delay: 2s; }
+        `}</style>
+      </div>
+      <div className="max-w-md w-full z-10">
         <RegisterForm onRegister={handleRegister} />
-        <div className="mt-5 text-center text-blue-800 text-base">
+        <div className="mt-6 text-center text-violet-300 font-medium">
           Already have an account?{" "}
           <Link
             to="/login"
-            className="font-semibold text-blue-600 hover:underline"
+            className="font-bold bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent hover:underline"
           >
             Login here
           </Link>
         </div>
       </div>
       {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50 transition-all">
-          <div className="text-blue-700 text-lg font-semibold px-10 py-6 bg-white rounded-2xl shadow-2xl border border-blue-100">
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 transition-all">
+          <div className="text-xl font-bold text-white px-10 py-7 bg-[#18163a]/95 rounded-3xl shadow-2xl border border-violet-400/20">
             Registering your account...
           </div>
         </div>
