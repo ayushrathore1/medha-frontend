@@ -16,7 +16,6 @@ const FeedbackForm = ({ onSubmitFeedback }) => {
       if (onSubmitFeedback) {
         await onSubmitFeedback({ name, email, message });
       } else {
-        // Replace with your API/form integration here
         await new Promise((resolve) => setTimeout(resolve, 700));
       }
       setSent(true);
@@ -29,10 +28,10 @@ const FeedbackForm = ({ onSubmitFeedback }) => {
 
   if (sent) {
     return (
-      <div className="text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="text-center bg-[#0a0a0a] rounded-3xl py-14 px-8 max-w-xl mx-auto backdrop-blur-xl border border-violet-700/20 shadow-2xl">
+        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 bg-gradient-to-br from-emerald-400/60 via-blue-400/40 to-purple-400/30 shadow-xl">
           <svg
-            className="w-8 h-8 text-green-600"
+            className="w-8 h-8 text-white"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -45,9 +44,13 @@ const FeedbackForm = ({ onSubmitFeedback }) => {
             />
           </svg>
         </div>
-        <h3 className="text-2xl font-bold text-blue-700 mb-3">Thank you!</h3>
-        <p className="text-blue-600 mb-4">
-          Your feedback helps us improve MEDHA for everyone.
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent mb-3">
+          Thank you!
+        </h3>
+        <p className="text-violet-300 mb-4">
+          Your feedback helps us improve{" "}
+          <span className="font-semibold text-blue-200">MEDHA</span> for
+          everyone.
         </p>
         <button
           onClick={() => {
@@ -56,7 +59,7 @@ const FeedbackForm = ({ onSubmitFeedback }) => {
             setEmail("");
             setMessage("");
           }}
-          className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+          className="bg-gradient-to-r from-violet-600 to-blue-600 px-5 py-2 rounded-xl text-white font-medium hover:scale-[1.04] shadow-xl transition"
         >
           Send another feedback
         </button>
@@ -65,41 +68,27 @@ const FeedbackForm = ({ onSubmitFeedback }) => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-[#0a0a0a] rounded-3xl max-w-xl mx-auto px-8 py-10 border border-violet-700/20 shadow-2xl backdrop-blur-2xl space-y-6"
+    >
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-blue-700 mb-2">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent mb-2">
           Send us your feedback
         </h2>
-        <p className="text-blue-600">We'd love to hear from you!</p>
+        <p className="text-violet-300">We'd love to hear from you!</p>
       </div>
 
       {errorMsg && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-red-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">{errorMsg}</p>
-            </div>
-          </div>
+        <div className="border border-red-300/70 bg-red-500/10 rounded-xl p-4 mb-2 text-center shadow">
+          <span className="text-sm text-red-200">{errorMsg}</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label
-            className="block text-sm font-medium text-blue-700 mb-2"
+            className="block text-sm font-medium text-violet-300 mb-2"
             htmlFor="fb-name"
           >
             Your Name
@@ -107,7 +96,7 @@ const FeedbackForm = ({ onSubmitFeedback }) => {
           <input
             id="fb-name"
             type="text"
-            className="w-full border border-blue-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-colors text-gray-900 placeholder-gray-500"
+            className="w-full bg-white/10 backdrop-blur-xl border border-violet-400/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent transition text-white placeholder-violet-300/80"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Optional"
@@ -116,7 +105,7 @@ const FeedbackForm = ({ onSubmitFeedback }) => {
 
         <div>
           <label
-            className="block text-sm font-medium text-blue-700 mb-2"
+            className="block text-sm font-medium text-blue-300 mb-2"
             htmlFor="fb-email"
           >
             Your Email
@@ -124,7 +113,7 @@ const FeedbackForm = ({ onSubmitFeedback }) => {
           <input
             id="fb-email"
             type="email"
-            className="w-full border border-blue-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-colors text-gray-900 placeholder-gray-500"
+            className="w-full bg-white/10 backdrop-blur-xl border border-blue-400/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition text-white placeholder-blue-300/80"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Optional (if you want a reply)"
@@ -134,21 +123,21 @@ const FeedbackForm = ({ onSubmitFeedback }) => {
 
       <div>
         <label
-          className="block text-sm font-medium text-blue-700 mb-2"
+          className="block text-sm font-medium text-blue-300 mb-2"
           htmlFor="fb-message"
         >
-          Message <span className="text-red-500">*</span>
+          Message <span className="text-red-400">*</span>
         </label>
         <textarea
           id="fb-message"
           rows={6}
           required
-          className="w-full border border-blue-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-colors resize-none text-gray-900 placeholder-gray-500"
+          className="w-full bg-white/10 backdrop-blur-xl border border-violet-400/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent transition resize-none text-white placeholder-violet-300/70"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Tell us about your experience, suggestions, or any issues you've encountered..."
         />
-        <p className="mt-2 text-sm text-blue-600">
+        <p className="mt-2 text-sm text-violet-300">
           {message.length}/1000 characters
         </p>
       </div>
@@ -156,7 +145,7 @@ const FeedbackForm = ({ onSubmitFeedback }) => {
       <div className="flex flex-col sm:flex-row gap-4">
         <button
           type="submit"
-          className={`flex-1 bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center ${
+          className={`flex-1 bg-gradient-to-r from-violet-600 via-blue-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-xl hover:scale-[1.03] shadow-xl transition-all duration-150 flex items-center justify-center ${
             loading ? "opacity-60 cursor-wait" : ""
           }`}
           disabled={loading}
