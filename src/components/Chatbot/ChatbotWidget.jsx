@@ -75,25 +75,29 @@ const ChatbotWidget = ({ onSendMessage }) => {
   const handleTypewriterDone = () => setTypingMessageIdx(null);
 
   return (
-    <div className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-2xl p-0 w-full sm:max-w-md mx-auto flex flex-col h-[88vh] sm:h-[34rem] border border-blue-100 relative transition-all">
+    <div className="relative w-full sm:max-w-xl mx-auto flex flex-col h-[88vh] sm:h-[34rem] border border-violet-400/20 rounded-3xl shadow-2xl bg-[#0a0a0a] backdrop-blur-xl overflow-hidden transition-all">
+      {/* Ambient gradient glow behind chat */}
+      <div className="absolute left-1/3 -top-4 w-96 h-64 rounded-full bg-gradient-to-br from-violet-500/15 via-blue-600/10 to-purple-400/10 blur-2xl pointer-events-none" />
+
       {/* Header */}
-      <div className="flex items-center justify-between px-3 sm:px-5 py-4 border-b border-blue-100">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <span className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-blue-200 text-blue-700 font-bold shadow-lg text-lg sm:text-xl">
+      <div className="flex items-center justify-between px-4 sm:px-7 py-4 border-b border-violet-400/15 bg-white/5 backdrop-blur">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-r from-violet-400 via-blue-400 to-fuchsia-400 text-white font-bold shadow text-xl">
             🤖
           </span>
-          <span className="font-bold text-blue-700 text-base sm:text-lg tracking-tight">
+          <span className="font-bold text-lg bg-gradient-to-r from-violet-400 to-blue-300 bg-clip-text text-transparent tracking-tight">
             MEDHA AI Chatbot
           </span>
         </div>
-        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold whitespace-nowrap">
+        <span className="text-xs bg-gradient-to-r from-violet-400 to-blue-400 text-white px-3 py-1 rounded-full font-semibold shadow">
           Powered by AI
         </span>
       </div>
+
       {/* Down Arrow Button */}
       {!atBottom && (
         <button
-          className="absolute right-4 bottom-20 z-10 flex items-center justify-center bg-blue-600 text-white rounded-full shadow-lg w-10 h-10 hover:bg-blue-700 transition"
+          className="absolute right-4 bottom-20 z-10 flex items-center justify-center bg-gradient-to-r from-violet-500 to-blue-600 text-white rounded-full shadow-xl w-10 h-10 hover:scale-[1.08] transition"
           onClick={scrollToEnd}
           title="Go to latest message"
         >
@@ -112,11 +116,16 @@ const ChatbotWidget = ({ onSendMessage }) => {
           </svg>
         </button>
       )}
+
       {/* Chat Area */}
       <div
         ref={chatScrollRef}
-        className="flex-1 overflow-y-auto px-2 sm:px-4 py-2 sm:py-3 scrollbar-thin scrollbar-thumb-blue-100 scrollbar-track-blue-50"
+        className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 custom-scrollbar"
         onScroll={handleScroll}
+        style={{
+          background:
+            "linear-gradient(to bottom, rgba(45,24,95,0.16) 0%, rgba(10,10,10,0.98) 70%)",
+        }}
       >
         {messages.map((msg, i) => (
           <MessageBubble
@@ -131,23 +140,24 @@ const ChatbotWidget = ({ onSendMessage }) => {
         ))}
         {loading && (
           <div className="flex items-center justify-start mb-3">
-            <span className="mr-2 flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-700 font-bold shadow">
+            <span className="mr-2 flex items-center justify-center h-8 w-8 rounded-full bg-gradient-to-r from-blue-300 via-purple-300 to-violet-400 text-white font-bold shadow">
               🤖
             </span>
-            <div className="px-3 py-1 rounded-2xl bg-blue-100 text-blue-900 animate-pulse shadow border border-blue-100 text-sm sm:text-base">
+            <div className="px-3 py-1 rounded-2xl bg-gradient-to-r from-blue-300 via-violet-300 to-purple-300 text-white animate-pulse shadow border border-blue-100 text-sm sm:text-base">
               MEDHA is typing...
             </div>
           </div>
         )}
         <div ref={chatEndRef} />
       </div>
+
       {/* Input Section */}
       <form
         onSubmit={handleSend}
-        className="flex gap-2 sm:gap-3 border-t border-blue-100 px-2 sm:px-5 py-3 sm:py-4 bg-white/80 backdrop-blur-md"
+        className="flex gap-2 sm:gap-3 border-t border-violet-400/10 px-3 sm:px-7 py-4 bg-white/5 backdrop-blur"
       >
         <input
-          className="flex-1 border-2 border-blue-200 bg-blue-50 rounded-xl px-3 sm:px-4 py-2 text-blue-900 font-medium placeholder-blue-400 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+          className="flex-1 border-2 border-violet-400/25 bg-white/10 backdrop-blur-xl rounded-xl px-4 py-3 text-white font-medium placeholder-violet-300 text-base focus:outline-none focus:ring-2 focus:ring-violet-400 transition"
           type="text"
           placeholder="Ask about your notes…"
           autoFocus
@@ -157,7 +167,7 @@ const ChatbotWidget = ({ onSendMessage }) => {
         />
         <button
           type="submit"
-          className={`bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold px-4 sm:px-5 py-2 rounded-xl shadow-lg hover:from-blue-700 hover:to-blue-800 transition disabled:opacity-50 disabled:cursor-wait text-sm sm:text-base`}
+          className={`bg-gradient-to-r from-violet-500 via-blue-500 to-purple-500 text-white font-semibold px-4 sm:px-5 py-2 rounded-xl shadow-xl hover:scale-[1.04] transition disabled:opacity-50 disabled:cursor-wait text-base`}
           disabled={loading || !input.trim()}
         >
           Send
@@ -165,15 +175,9 @@ const ChatbotWidget = ({ onSendMessage }) => {
       </form>
       <style>
         {`
-        .scrollbar-thin {
-          scrollbar-width: thin;
-        }
-        .scrollbar-thumb-blue-100::-webkit-scrollbar-thumb {
-          background-color: #bfdbfe;
-        }
-        .scrollbar-track-blue-50::-webkit-scrollbar-track {
-          background-color: #eff6ff;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px;}
+        .custom-scrollbar::-webkit-scrollbar-track { background:rgba(255,255,255,0.06);}
+        .custom-scrollbar::-webkit-scrollbar-thumb { background:rgba(155,118,255,0.22); border-radius:10px;}
         `}
       </style>
     </div>
