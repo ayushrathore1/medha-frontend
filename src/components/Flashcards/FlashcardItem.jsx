@@ -29,57 +29,43 @@ const FlashcardItem = ({
 
   const getDifficultyColor = () => {
     if (flashcard.difficulty === "easy")
-      return "bg-green-100 text-green-800 border-green-200";
+      return "bg-emerald-600/20 text-emerald-300 border border-emerald-600/20";
     if (flashcard.difficulty === "hard")
-      return "bg-red-100 text-red-800 border-red-200";
-    return "bg-blue-100 text-blue-800 border-blue-200";
+      return "bg-red-700/20 text-red-300 border border-red-700/20";
+    return "bg-blue-600/20 text-blue-300 border border-blue-600/20";
   };
 
   return (
-    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto mb-4 sm:mb-6 px-2 sm:px-0">
-      <div className="bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-2xl shadow-lg sm:shadow-xl border border-white/50 overflow-hidden hover:shadow-xl sm:hover:shadow-2xl transition-all duration-300 group">
+    <div className="w-full max-w-lg mx-auto mb-8 px-1">
+      <div className="bg-[#18163a]/90 backdrop-blur-2xl border border-violet-400/20 rounded-3xl shadow-2xl overflow-hidden hover:shadow-3xl transition-all duration-300 group">
         {editMode ? (
-          // Edit Mode - Mobile Optimized
-          <div className="p-4 sm:p-6 lg:p-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
-              <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center">
+          <div className="p-6 lg:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent flex items-center">
                 <span className="mr-2">✏️</span>
-                <span className="hidden sm:inline">Editing Flashcard</span>
-                <span className="sm:hidden">Edit Card</span>
+                Editing Flashcard
               </h3>
-              <div className="flex items-center space-x-2">
-                <span
-                  className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
-                    flashcard.isAIGenerated
-                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                      : "bg-blue-100 text-blue-800 border border-blue-200"
-                  }`}
-                >
-                  {flashcard.isAIGenerated ? (
-                    <>
-                      <span className="sm:hidden">🤖 AI</span>
-                      <span className="hidden sm:inline">🤖 AI Generated</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="sm:hidden">✍️ Manual</span>
-                      <span className="hidden sm:inline">✍️ Manual</span>
-                    </>
-                  )}
-                </span>
-              </div>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  flashcard.isAIGenerated
+                    ? "bg-gradient-to-r from-emerald-400/40 to-blue-400/30 text-white border border-emerald-400/40"
+                    : "bg-gradient-to-r from-purple-400/40 to-blue-400/20 text-white border border-purple-400/30"
+                }`}
+              >
+                {flashcard.isAIGenerated ? "🤖 AI Generated" : "✍️ Manual"}
+              </span>
             </div>
 
-            <div className="space-y-4 sm:space-y-6">
+            <div className="space-y-6">
               {/* Question Input */}
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700">
-                  Question <span className="text-red-500">*</span>
+                <label className="block text-sm font-semibold text-violet-300">
+                  Question <span className="text-red-400">*</span>
                 </label>
                 <textarea
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white border-2 border-slate-200 rounded-lg sm:rounded-xl text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 resize-none text-sm sm:text-base"
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-xl border border-violet-400/30 rounded-xl font-medium text-white placeholder-violet-300 focus:border-violet-400 focus:ring-2 focus:ring-violet-300 focus:outline-none transition-all duration-200 resize-none text-base"
                   placeholder="Enter your question here..."
                   rows={3}
                 />
@@ -87,13 +73,13 @@ const FlashcardItem = ({
 
               {/* Answer Input */}
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700">
-                  Answer <span className="text-red-500">*</span>
+                <label className="block text-sm font-semibold text-blue-300">
+                  Answer <span className="text-red-400">*</span>
                 </label>
                 <textarea
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white border-2 border-slate-200 rounded-lg sm:rounded-xl text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 resize-none text-sm sm:text-base"
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-xl border border-blue-400/30 rounded-xl font-medium text-white placeholder-blue-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-200 resize-none text-base"
                   placeholder="Enter the answer here..."
                   rows={3}
                 />
@@ -101,30 +87,30 @@ const FlashcardItem = ({
 
               {/* Subject Input */}
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-slate-700">
+                <label className="block text-sm font-semibold text-blue-300">
                   Subject
                 </label>
                 <input
                   type="text"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-white border-2 border-slate-200 rounded-lg sm:rounded-xl text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 text-sm sm:text-base"
+                  className="w-full px-4 py-3 bg-white/10 backdrop-blur-xl border border-violet-400/20 rounded-xl font-medium text-white placeholder-violet-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-200 text-base"
                   placeholder="Enter subject (optional)"
                 />
               </div>
 
               {/* Action Buttons - Mobile Stacked */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
+              <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-5">
                 <button
                   onClick={handleCancel}
-                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 border border-slate-200 rounded-lg sm:rounded-xl hover:bg-slate-200 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 transition-all duration-200"
+                  className="px-5 py-3 text-sm font-semibold text-violet-300 bg-white/10 border border-violet-400/20 rounded-xl hover:bg-violet-400/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={!question.trim() || !answer.trim()}
-                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg sm:rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-5 py-3 bg-gradient-to-r from-violet-600 to-blue-600 text-white font-bold rounded-xl hover:scale-[1.04] shadow-lg duration-150 focus:outline-none focus:ring-2 focus:ring-violet-400 border border-violet-400/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Save Changes
                 </button>
@@ -132,14 +118,13 @@ const FlashcardItem = ({
             </div>
           </div>
         ) : (
-          // View Mode - Mobile First Flip Card Design
           <div className="relative">
-            {/* Card Header - Mobile Optimized */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-3 sm:px-6 py-3 sm:py-4 border-b border-slate-200/50">
-              <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap">
+            {/* Card Header */}
+            <div className="bg-gradient-to-r from-violet-400/10 to-blue-400/10 px-6 py-4 border-b border-violet-400/15">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="flex items-center gap-3 flex-wrap">
                   <span
-                    className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor()}`}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${getDifficultyColor()}`}
                   >
                     {flashcard.difficulty === "easy"
                       ? "😊 Easy"
@@ -148,56 +133,42 @@ const FlashcardItem = ({
                         : "🤔 Learning"}
                   </span>
                   <span
-                    className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
                       flashcard.isAIGenerated
-                        ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                        : "bg-purple-100 text-purple-800 border border-purple-200"
+                        ? "bg-gradient-to-r from-emerald-400/40 to-blue-400/20 text-white border border-emerald-400/30"
+                        : "bg-gradient-to-r from-purple-400/40 to-blue-400/20 text-white border border-purple-400/30"
                     }`}
                   >
-                    {flashcard.isAIGenerated ? (
-                      <>
-                        <span className="sm:hidden">🤖</span>
-                        <span className="hidden sm:inline">🤖 AI</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="sm:hidden">✍️</span>
-                        <span className="hidden sm:inline">✍️ Manual</span>
-                      </>
-                    )}
+                    {flashcard.isAIGenerated ? "🤖 AI" : "✍️ Manual"}
                   </span>
                 </div>
                 {flashcard.subject && (
-                  <span className="px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium border border-blue-200 self-start sm:self-auto">
-                    <span className="sm:hidden">📚</span>
-                    <span className="hidden xs:inline">📚 </span>
-                    {flashcard.subject}
+                  <span className="px-3 py-1 bg-blue-500/20 text-blue-200 rounded-full text-xs font-semibold border border-blue-400/20">
+                    📚 {flashcard.subject}
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Flip Card Container - Touch Optimized */}
-            <div className="relative min-h-[180px] sm:min-h-[200px] md:min-h-[220px] perspective-1000">
+            {/* Flip Card Container */}
+            <div className="relative min-h-[200px] perspective-1000">
               <div
-                className={`relative w-full h-full transition-transform duration-700 transform-style-preserve-3d cursor-pointer ${
-                  isFlipped ? "rotate-y-180" : ""
-                }`}
+                className={`w-full h-full transition-transform duration-700 transform-style-preserve-3d cursor-pointer ${isFlipped ? "rotate-y-180" : ""}`}
                 onClick={() => setIsFlipped(!isFlipped)}
                 onTouchStart={() => setIsFlipped(!isFlipped)}
               >
                 {/* Front Side - Question */}
-                <div className="absolute inset-0 backface-hidden p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+                <div className="absolute inset-0 backface-hidden p-6 flex flex-col justify-center bg-[#161639]/80 rounded-3xl">
                   <div className="text-center">
-                    <div className="text-xs sm:text-sm font-medium text-blue-600 mb-2 sm:mb-3 uppercase tracking-wide">
+                    <div className="text-xs font-medium text-violet-300 mb-3 uppercase tracking-wide">
                       Question
                     </div>
-                    <div className="text-base sm:text-lg lg:text-xl font-semibold text-slate-800 leading-relaxed mb-4 sm:mb-6 min-h-[60px] sm:min-h-[80px] flex items-center justify-center text-center px-2">
+                    <div className="text-lg lg:text-xl font-semibold text-white leading-relaxed mb-5 flex items-center justify-center text-center px-2 min-h-[70px]">
                       {flashcard.question}
                     </div>
-                    <div className="flex items-center justify-center text-slate-400 text-xs sm:text-sm">
+                    <div className="flex justify-center text-blue-400 text-xs">
                       <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
+                        className="w-4 h-4 mr-2"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -209,26 +180,23 @@ const FlashcardItem = ({
                           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      <span className="hidden sm:inline">
-                        Click to reveal answer
-                      </span>
-                      <span className="sm:hidden">Tap for answer</span>
+                      Click/tap to reveal answer
                     </div>
                   </div>
                 </div>
 
                 {/* Back Side - Answer */}
-                <div className="absolute inset-0 backface-hidden rotate-y-180 p-4 sm:p-6 lg:p-8 flex flex-col justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
+                <div className="absolute inset-0 backface-hidden rotate-y-180 p-6 flex flex-col justify-center bg-gradient-to-br from-violet-500/10 via-blue-500/10 to-purple-400/10 rounded-3xl">
                   <div className="text-center">
-                    <div className="text-xs sm:text-sm font-medium text-green-600 mb-2 sm:mb-3 uppercase tracking-wide">
+                    <div className="text-xs font-medium text-emerald-300 mb-3 uppercase tracking-wide">
                       Answer
                     </div>
-                    <div className="text-base sm:text-lg lg:text-xl font-semibold text-slate-800 leading-relaxed mb-4 sm:mb-6 min-h-[60px] sm:min-h-[80px] flex items-center justify-center text-center px-2">
+                    <div className="text-lg lg:text-xl font-semibold text-white leading-relaxed mb-5 flex items-center justify-center text-center px-2 min-h-[70px]">
                       {flashcard.answer}
                     </div>
-                    <div className="flex items-center justify-center text-slate-400 text-xs sm:text-sm">
+                    <div className="flex justify-center text-blue-400 text-xs">
                       <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
+                        className="w-4 h-4 mr-2"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -240,86 +208,47 @@ const FlashcardItem = ({
                           d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      <span className="hidden sm:inline">
-                        Click to see question again
-                      </span>
-                      <span className="sm:hidden">Tap for question</span>
+                      Click/tap to see question
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons - Mobile First Grid Layout */}
-            <div className="px-3 sm:px-6 py-3 sm:py-4 bg-slate-50/50 border-t border-slate-200/50">
-              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-2 sm:justify-center">
-                {/* Primary Actions - Full width on mobile */}
+            {/* Actions */}
+            <div className="px-6 py-4 bg-[#18163a]/80 border-t border-violet-400/10 grid grid-cols-2 sm:flex sm:gap-3 sm:justify-center gap-2">
+              <button
+                onClick={() => setEditMode(true)}
+                className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow"
+              >
+                ✏️ Edit
+              </button>
+              <button
+                onClick={() => onDelete && onDelete(flashcard._id)}
+                className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow"
+              >
+                🗑️ Delete
+              </button>
+              {onMarkEasy && (
                 <button
-                  onClick={() => setEditMode(true)}
-                  className="flex items-center justify-center px-3 sm:px-4 py-2 bg-blue-100 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-200 hover:border-blue-300 transition-all duration-200 text-xs sm:text-sm font-medium"
+                  onClick={() => onMarkEasy(flashcard)}
+                  className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow"
                 >
-                  <svg
-                    className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                  Edit
+                  😊 Easy
                 </button>
-
+              )}
+              {onMarkDifficult && (
                 <button
-                  onClick={() => onDelete && onDelete(flashcard._id)}
-                  className="flex items-center justify-center px-3 sm:px-4 py-2 bg-red-100 text-red-700 border border-red-200 rounded-lg hover:bg-red-200 hover:border-red-300 transition-all duration-200 text-xs sm:text-sm font-medium"
+                  onClick={() => onMarkDifficult(flashcard)}
+                  className="px-4 py-2 bg-orange-400/10 hover:bg-orange-400/20 text-orange-200 border border-orange-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow"
                 >
-                  <svg
-                    className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                  Delete
+                  😰 Difficult
                 </button>
-
-                {/* Difficulty Buttons */}
-                {onMarkEasy && (
-                  <button
-                    onClick={() => onMarkEasy(flashcard)}
-                    className="flex items-center justify-center px-3 sm:px-4 py-2 bg-green-100 text-green-700 border border-green-200 rounded-lg hover:bg-green-200 hover:border-green-300 transition-all duration-200 text-xs sm:text-sm font-medium"
-                  >
-                    <span className="mr-1 sm:mr-1.5">😊</span>
-                    Easy
-                  </button>
-                )}
-
-                {onMarkDifficult && (
-                  <button
-                    onClick={() => onMarkDifficult(flashcard)}
-                    className="flex items-center justify-center px-3 sm:px-4 py-2 bg-orange-100 text-orange-700 border border-orange-200 rounded-lg hover:bg-orange-200 hover:border-orange-300 transition-all duration-200 text-xs sm:text-sm font-medium"
-                  >
-                    <span className="mr-1 sm:mr-1.5">😰</span>
-                    Difficult
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </div>
         )}
       </div>
-
       <style jsx>{`
         .perspective-1000 {
           perspective: 1000px;
@@ -332,14 +261,6 @@ const FlashcardItem = ({
         }
         .rotate-y-180 {
           transform: rotateY(180deg);
-        }
-
-        /* Enhanced touch targets for mobile */
-        @media (max-width: 640px) {
-          button {
-            min-height: 44px;
-            min-width: 44px;
-          }
         }
       `}</style>
     </div>
