@@ -1,22 +1,35 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://medha-backend.onrender.com";
+const BACKEND_URL = "https://medha-backend.onrender.com";
 
-// Dropdown with array check
-function SelectDropdown({ label, options, value, onChange, optionLabel = "name", optionValue = "_id", disabled = false }) {
+function SelectDropdown({
+  label,
+  options,
+  value,
+  onChange,
+  optionLabel = "name",
+  optionValue = "_id",
+  disabled = false,
+}) {
   return (
-    <div className="mb-5">
-      <label className="block mb-2 text-blue-600 font-semibold">{label}</label>
+    <div className="mb-7">
+      <label className="block mb-2 bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent font-bold">
+        {label}
+      </label>
       <select
         value={value}
-        onChange={e => onChange(e.target.value)}
-        className="border px-4 py-2 rounded-xl w-full text-blue-700 font-medium"
+        onChange={(e) => onChange(e.target.value)}
+        className="border border-violet-400/20 rounded-xl px-5 py-3 w-full text-white font-medium bg-[#18163a]/80 backdrop-blur-xl focus:outline-none focus:ring-2 focus:ring-violet-400 transition shadow placeholder-violet-400"
         disabled={disabled}
       >
         <option value="">Select {label}</option>
-        {(Array.isArray(options) ? options : []).map(opt => (
-          <option key={opt[optionValue]} value={opt[optionValue]}>
+        {options.map((opt) => (
+          <option
+            key={opt[optionValue]}
+            value={opt[optionValue]}
+            className="text-white bg-[#18163a]/90"
+          >
             {opt[optionLabel]}
           </option>
         ))}
@@ -25,15 +38,10 @@ function SelectDropdown({ label, options, value, onChange, optionLabel = "name",
   );
 }
 
-function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
+function QuizItem({ questionObj, questionNumber, total, onAnswer }) {
   const [selected, setSelected] = useState(null);
 
-  // Defensive: handle missing options keys
-  const safeOptions = questionObj.options && typeof questionObj.options === "object"
-    ? ["A","B","C","D"].map(opt => ({ key: opt, text: questionObj.options[opt] || "" }))
-    : [];
-
-  const handleSelect = idx => {
+  const handleSelect = (idx) => {
     setSelected(idx);
     setTimeout(() => {
       onAnswer(idx);
@@ -42,30 +50,42 @@ function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-100 via-white to-blue-50 max-w-xl w-full mx-auto rounded-2xl shadow-lg p-8 mb-6 transition">
-      <div className="mb-3 text-blue-500 font-semibold tracking-wide text-sm uppercase">
-        Question {questionNumber + 1} <span className="text-blue-300">of</span> {total}
+    <div className="bg-[#18163a]/90 backdrop-blur-2xl border border-violet-500/15 max-w-xl w-full mx-auto rounded-3xl shadow-2xl p-9 mb-6 transition font-inter">
+      <div className="mb-3 bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent font-bold tracking-wide text-base uppercase">
+        Question {questionNumber + 1}{" "}
+        <span className="text-violet-200">of</span> {total}
       </div>
-      <h3 className="text-xl font-bold text-blue-900 mb-5">{questionObj.question || "Question unavailable."}</h3>
-      <div className="flex flex-col gap-3">
-        {safeOptions.map(({ key, text }, idx) => (
+      <h3 className="text-xl font-bold text-white mb-6">
+        {questionObj.question}
+      </h3>
+      <div className="flex flex-col gap-4">
+        {["A", "B", "C", "D"].map((opt, idx) => (
           <button
-            key={key}
-            className={`border px-4 py-2 rounded-xl font-medium transition text-left
+            key={opt}
+            className={`border px-5 py-3 rounded-xl font-semibold shadow transition text-left text-base relative
               ${
                 selected !== null
                   ? idx === selected
-                    ? key === questionObj.answer
-                      ? "bg-green-500 text-white border-green-500"
-                      : "bg-red-500 text-white border-red-500"
-                    : "bg-gray-50 text-blue-900 border-blue-200 opacity-80"
-                  : "bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100"
+                    ? opt === questionObj.answer
+                      ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-emerald-400 shadow-lg animate-pulse"
+                      : "bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500 shadow-lg animate-pulse"
+                    : "bg-white/10 text-violet-300 border-violet-400/30 opacity-70"
+                  : "bg-white/10 text-white border-violet-400/20 hover:scale-[1.03] hover:bg-gradient-to-r hover:from-violet-600/10 hover:to-blue-400/10 shadow hover:text-blue-200"
               }`}
             disabled={selected !== null}
             onClick={() => handleSelect(idx)}
           >
-            <b className="mr-2">{key}.</b>
-            {text}
+            <b className="mr-3 text-xl">{opt}.</b>
+            <span>{questionObj.options[opt]}</span>
+            {selected !== null && idx === selected && (
+              <span
+                className={`absolute left-0 right-0 bottom-1 h-1 rounded-xl ${
+                  opt === questionObj.answer
+                    ? "bg-gradient-to-r from-emerald-400 to-blue-400"
+                    : "bg-gradient-to-r from-red-400 to-pink-400"
+                } opacity-90`}
+              />
+            )}
           </button>
         ))}
       </div>
@@ -75,19 +95,22 @@ function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
 
 function QuizResult({ score, total, onRestart }) {
   return (
-    <div className="bg-white/90 max-w-xl w-full mx-auto mt-12 rounded-2xl shadow-lg p-10 text-center">
-      <h2 className="text-3xl font-extrabold text-blue-700 mb-5">Quiz Completed!</h2>
-      <div className="text-blue-800 text-xl mb-4">
-        <span className="font-bold text-green-600 text-2xl">{score}</span> / {total}
+    <div className="bg-[#18163a]/90 backdrop-blur-2xl max-w-xl w-full mx-auto mt-16 rounded-3xl shadow-2xl border border-violet-500/15 p-12 text-center font-inter">
+      <h2 className="text-3xl font-extrabold mb-8 bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent tracking-tight">
+        Quiz Completed!
+      </h2>
+      <div className="text-white text-xl mb-6">
+        <span className="font-bold text-emerald-400 text-3xl">{score}</span> /{" "}
+        <span className="text-blue-300">{total}</span>
       </div>
-      <div className="w-full bg-blue-100 rounded-full h-4 mb-8">
+      <div className="w-full bg-violet-400/10 rounded-full h-5 mb-12 shadow-lg relative overflow-hidden">
         <div
-          className="bg-blue-600 h-4 rounded-full transition-all duration-700"
+          className="bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-400 h-5 rounded-full transition-all duration-700"
           style={{ width: `${(score / total) * 100}%` }}
         ></div>
       </div>
       <button
-        className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow hover:bg-blue-700 transition"
+        className="bg-gradient-to-r from-violet-600 via-blue-600 to-purple-600 text-white px-10 py-4 rounded-xl font-bold shadow-xl hover:scale-[1.04] transition-all focus:outline-none focus:ring-2 focus:ring-violet-400"
         onClick={onRestart}
       >
         Try Another Quiz
@@ -96,7 +119,7 @@ function QuizResult({ score, total, onRestart }) {
   );
 }
 
-const Quiz = () => {
+const Quiz = ({ token }) => {
   const [subjects, setSubjects] = useState([]);
   const [notes, setNotes] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -108,30 +131,17 @@ const Quiz = () => {
   const [error, setError] = useState("");
   const [quizCompleted, setQuizCompleted] = useState(false);
 
-  const token = localStorage.getItem("token");
-
   useEffect(() => {
-    if (!token) {
-      setError("You must be logged in to take a quiz.");
-      return;
-    }
-    
     const fetchSubjects = async () => {
       try {
         const res = await axios.get(`${BACKEND_URL}/api/subjects`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
-        
-        // FIX: Backend returns {subjects: [...]} not [...]
-        const subjectsData = res.data.subjects || res.data;
-        setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
-      } catch (err) {
-        setSubjects([]);
+        setSubjects(res.data);
+      } catch {
         setError("Failed to load subjects");
-        console.error("Subjects error:", err?.response?.data || err.message);
       }
     };
-    
     fetchSubjects();
   }, [token]);
 
@@ -139,21 +149,15 @@ const Quiz = () => {
     setNotes([]);
     setSelectedNote("");
     if (!selectedSubject) return;
-    
     const fetchNotes = async () => {
       try {
         const res = await axios.get(
           `${BACKEND_URL}/api/notes?subject=${selectedSubject}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        
-        // Handle both response formats: direct array or {notes: [...]}
-        const notesData = res.data.notes || res.data;
-        setNotes(Array.isArray(notesData) ? notesData : []);
-      } catch (err) {
-        setNotes([]);
+        setNotes(res.data);
+      } catch {
         setError("Failed to load notes");
-        console.error("Notes error:", err?.response?.data || err.message);
       }
     };
     fetchNotes();
@@ -166,33 +170,26 @@ const Quiz = () => {
     setError("");
     setCurrent(0);
     setQuizCompleted(false);
-    
     try {
-      const noteObj = notes.find(n => n._id === selectedNote);
+      const noteObj = notes.find((n) => n._id === selectedNote);
       const subjectName = noteObj?.subject?.name || noteObj?.subject || "";
-      
       const res = await axios.post(
         `${BACKEND_URL}/api/quizzes/generate-ai`,
         { noteId: selectedNote, subject: subjectName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      const quizQuestions = res.data?.quiz?.questions;
-      setQuestions(Array.isArray(quizQuestions) ? quizQuestions : []);
+      setQuestions(res.data.quiz.questions);
       setCurrent(0);
     } catch (err) {
-      setQuestions([]);
       setError(err.response?.data?.message || "Could not generate quiz");
-      console.error("Quiz error:", err?.response?.data || err.message);
     }
     setLoading(false);
   };
 
   const handleAnswer = (selectedIdx) => {
-    if (!questions[current]) return;
     const correctIdx = ["A", "B", "C", "D"].indexOf(questions[current].answer);
     if (selectedIdx === correctIdx) {
-      setScore(prev => prev + 1);
+      setScore((prev) => prev + 1);
     }
     setTimeout(() => {
       if (current < questions.length - 1) setCurrent(current + 1);
@@ -211,24 +208,24 @@ const Quiz = () => {
     setQuizCompleted(false);
   };
 
-  if (!token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
-        <div className="p-10 bg-white rounded-2xl shadow-lg w-full max-w-lg">
-          <h1 className="text-3xl font-bold text-blue-700 mb-6">AI Quiz Generator</h1>
-          <div className="text-red-500 mt-4 font-semibold">
-            You must be logged in to take a quiz.
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // Begin/choose quiz
   if (!questions.length)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
-        <div className="p-10 bg-white rounded-2xl shadow-lg w-full max-w-lg">
-          <h1 className="text-3xl font-bold text-blue-700 mb-6">AI Quiz Generator</h1>
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] relative font-inter overflow-hidden">
+        {/* Glassy blobs */}
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <div className="absolute top-5 left-1/4 w-72 h-64 bg-gradient-to-tr from-violet-400/21 to-blue-400/12 rounded-full blur-2xl opacity-20 animate-blob"></div>
+          <div className="absolute bottom-16 right-1/3 w-60 h-44 bg-gradient-to-r from-blue-400/12 to-purple-400/9 rounded-full blur-2xl opacity-18 animate-blob animation-delay-2000"></div>
+          <style>{`
+            @keyframes blob { 0% {transform: scale(1) translate(0,0);} 33% {transform: scale(1.08) translate(21px,-21px);} 66% {transform: scale(0.93) translate(-18px,22px);} 100% {transform: scale(1) translate(0,0);} }
+            .animate-blob { animation: blob 14s infinite; }
+            .animation-delay-2000 { animation-delay: 2s; }
+          `}</style>
+        </div>
+        <div className="p-12 bg-[#18163a]/95 rounded-3xl shadow-2xl border border-violet-400/15 w-full max-w-lg relative z-10">
+          <h1 className="text-3xl font-extrabold mb-8 bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent tracking-tight text-center">
+            AI Quiz Generator
+          </h1>
           <SelectDropdown
             label="Subject"
             options={subjects}
@@ -248,12 +245,12 @@ const Quiz = () => {
           />
           <button
             onClick={handleGenerateQuiz}
-            className="bg-blue-600 w-full py-3 rounded-xl text-white font-bold text-lg hover:bg-blue-700 transition"
+            className="bg-gradient-to-r from-violet-600 to-blue-600 w-full py-3 rounded-xl text-white font-bold text-lg shadow-xl hover:scale-[1.04] transition-all focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading || !selectedSubject || !selectedNote}
           >
             {loading ? "Generating..." : "Generate Quiz"}
           </button>
-          {error && <div className="text-red-500 mt-4">{error}</div>}
+          {error && <div className="text-red-400 font-bold mt-5">{error}</div>}
         </div>
       </div>
     );
@@ -268,30 +265,34 @@ const Quiz = () => {
     );
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] relative font-inter overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-5 left-1/4 w-60 h-44 bg-gradient-to-tr from-violet-400/16 to-blue-400/10 rounded-full blur-2xl opacity-18 animate-blob"></div>
+        <div className="absolute bottom-8 right-1/4 w-56 h-36 bg-gradient-to-r from-blue-400/13 to-purple-400/10 rounded-full blur-2xl opacity-14 animate-blob animation-delay-2000"></div>
+      </div>
       <QuizItem
         questionObj={questions[current]}
         questionNumber={current}
         total={questions.length}
         onAnswer={handleAnswer}
       />
-      <div className="flex gap-4 mt-6">
+      <div className="flex gap-6 mt-10">
         <button
-          className="bg-blue-100 border border-blue-300 rounded-lg px-5 py-2 font-medium text-blue-700 hover:bg-blue-200 transition"
+          className="bg-gradient-to-r from-violet-400/20 to-blue-400/10 border border-violet-400/25 rounded-xl px-6 py-2 font-bold text-violet-200 hover:bg-violet-400/25 transition shadow focus:outline-none"
           disabled={current === 0}
           onClick={() => setCurrent(current - 1)}
         >
           Previous
         </button>
         <button
-          className="bg-blue-600 text-white px-8 py-2 rounded-xl font-bold shadow hover:bg-blue-700 transition"
+          className="bg-gradient-to-r from-violet-600 to-blue-600 text-white px-9 py-2.5 rounded-xl font-bold shadow-xl hover:scale-[1.06] transition-all focus:outline-none"
           onClick={handleRestart}
         >
           Restart
         </button>
         {current < questions.length - 1 && (
           <button
-            className="bg-blue-600 text-white px-8 py-2 rounded-xl font-bold shadow hover:bg-blue-700 transition"
+            className="bg-gradient-to-r from-blue-600 to-violet-500 text-white px-9 py-2.5 rounded-xl font-bold shadow-xl hover:scale-[1.06] transition-all focus:outline-none"
             onClick={() => setCurrent(current + 1)}
           >
             Next
