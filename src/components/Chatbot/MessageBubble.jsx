@@ -36,16 +36,20 @@ const MessageBubble = ({ sender, text, isTyping, speed, onChar, onDone }) => (
     }`}
   >
     {sender === "ai" && (
-      <span className="mr-2 flex items-center justify-center h-8 w-8 sm:h-8 sm:w-8 rounded-full bg-blue-100 text-blue-700 font-bold shadow text-lg">
+      <span className="mr-2 flex items-center justify-center h-9 w-9 sm:h-9 sm:w-9 rounded-full bg-gradient-to-r from-violet-400 via-blue-400 to-fuchsia-400 text-white font-bold shadow-xl text-xl">
         🤖
       </span>
     )}
     <div
-      className={`px-3 sm:px-4 py-2 rounded-2xl max-w-[85vw] sm:max-w-[75%] text-sm sm:text-base shadow transition-all ${
-        sender === "user"
-          ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-sm"
-          : "bg-blue-50 text-blue-900 border border-blue-100"
-      }`}
+      className={`px-4 py-3 max-w-[85vw] sm:max-w-[77%] rounded-3xl font-inter text-[1rem] shadow-lg transition-all
+        ${
+          sender === "user"
+            ? "bg-white/10 backdrop-blur-xl border border-violet-400/30 text-white font-semibold hover:shadow-xl hover:scale-[1.03]"
+            : "bg-gradient-to-r from-violet-500/15 via-blue-500/10 to-purple-500/5 border border-violet-400/10 text-white font-medium hover:scale-[1.02]"
+        }`}
+      style={{
+        transition: "scale 0.25s cubic-bezier(.45,1.25,.32,1)",
+      }}
     >
       {sender === "ai" && isTyping ? (
         <TypewriterText
@@ -59,7 +63,7 @@ const MessageBubble = ({ sender, text, isTyping, speed, onChar, onDone }) => (
       )}
     </div>
     {sender === "user" && (
-      <span className="ml-2 flex items-center justify-center h-8 w-8 sm:h-8 sm:w-8 rounded-full bg-blue-500 text-white font-bold shadow text-lg">
+      <span className="ml-2 flex items-center justify-center h-9 w-9 sm:h-9 sm:w-9 rounded-full bg-gradient-to-r from-violet-400 via-blue-400 to-purple-400 text-white font-bold shadow text-xl">
         🧑
       </span>
     )}
