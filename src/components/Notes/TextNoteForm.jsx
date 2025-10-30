@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = "https://medha-backend.onrender.com/";
 
 const TextNoteForm = ({ subjectId, onNoteCreated, token }) => {
   const [title, setTitle] = useState("");
