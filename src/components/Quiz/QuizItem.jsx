@@ -12,33 +12,45 @@ const QuizItem = ({ questionObj, questionNumber, total, onAnswer }) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-100 via-white to-blue-50 max-w-xl w-full mx-auto rounded-2xl shadow-lg p-8 mb-6 transition">
-      <div className="mb-3 text-blue-500 font-semibold tracking-wide text-sm uppercase">
-        Question {questionNumber + 1} <span className="text-blue-300">of</span>{" "}
-        {total}
+    <div className="bg-[#18163a]/90 backdrop-blur-2xl border border-violet-500/15 max-w-xl w-full mx-auto rounded-3xl shadow-2xl p-8 mb-8 transition font-inter">
+      <div className="mb-4">
+        <span className="text-xs font-bold uppercase tracking-wide bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">
+          Question {questionNumber + 1}
+        </span>
+        <span className="text-xs ml-2 text-violet-300">of {total}</span>
       </div>
-      <h3 className="text-xl font-bold text-blue-900 mb-5">
+      <h3 className="text-xl font-bold text-white mb-7">
         {questionObj.question}
       </h3>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         {["A", "B", "C", "D"].map((opt, idx) => (
           <button
             key={opt}
-            className={`border px-4 py-2 rounded-xl font-medium transition text-left
+            className={`border px-5 py-3 rounded-xl font-semibold shadow transition text-left text-base relative
               ${
                 selected !== null
                   ? idx === selected
                     ? idx === ["A", "B", "C", "D"].indexOf(questionObj.answer)
-                      ? "bg-green-500 text-white border-green-500"
-                      : "bg-red-500 text-white border-red-500"
-                    : "bg-gray-50 text-blue-900 border-blue-200 opacity-80"
-                  : "bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100"
+                      ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-emerald-400 shadow-lg animate-pulse"
+                      : "bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500 shadow-lg animate-pulse"
+                    : "bg-white/10 text-violet-300 border-violet-400/30 opacity-70"
+                  : "bg-white/10 text-white border-violet-400/20 hover:scale-[1.03] hover:bg-gradient-to-r hover:from-violet-600/10 hover:to-blue-400/10 shadow hover:text-blue-200"
               }`}
             disabled={selected !== null}
             onClick={() => handleSelect(idx)}
           >
-            <b className="mr-2">{opt}.</b>
-            {questionObj.options[opt]}
+            <b className="mr-3 text-xl">{opt}.</b>
+            <span>{questionObj.options[opt]}</span>
+            {/* Active underline for correct/incorrect */}
+            {selected !== null && idx === selected && (
+              <span
+                className={`absolute left-0 right-0 bottom-1 h-1 rounded-xl ${
+                  idx === ["A", "B", "C", "D"].indexOf(questionObj.answer)
+                    ? "bg-gradient-to-r from-emerald-400 to-blue-400"
+                    : "bg-gradient-to-r from-red-400 to-pink-400"
+                } opacity-80`}
+              />
+            )}
           </button>
         ))}
       </div>
