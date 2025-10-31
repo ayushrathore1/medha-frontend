@@ -48,28 +48,37 @@ function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
         <span className="text-blue-500">of</span> {total}
       </div>
       <h3 className="text-2xl font-bold text-white mb-6">{questionObj.question || "Question unavailable."}</h3>
-      <div className="flex flex-col gap-4">
-        {safeOptions.map(({ key, text }, idx) => (
-          <button
-            key={key}
-            className={`border px-5 py-3 rounded-xl font-medium text-base text-left transition shadow
-              ${
-                selected !== null
-                  ? idx === selected
-                    ? key === questionObj.answer
-                      ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-emerald-400"
-                      : "bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500"
-                    : "bg-blue-900/10 text-blue-100 border-blue-400/10 opacity-75"
-                  : "bg-[#16162f]/70 text-white border-blue-400/20 hover:bg-blue-800/20 hover:text-blue-200"
-              }`}
-            disabled={selected !== null}
-            onClick={() => handleSelect(idx)}
-          >
-            <b className="mr-3">{key}.</b>
-            {text}
-          </button>
-        ))}
-      </div>
+     <div className="flex flex-col gap-4">
+  {safeOptions.map(({ key, text }, idx) => {
+    // Determine button styles
+    let btnClass = "border px-5 py-3 rounded-xl font-medium text-base text-left transition shadow";
+
+    if (selected !== null) {
+      if (idx === selected) {
+        btnClass += key === questionObj.answer
+          ? " bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-emerald-400"
+          : " bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500";
+      } else {
+        btnClass += " bg-gray-100 text-gray-400 border-blue-400/10 opacity-75";
+      }
+    } else {
+      btnClass += " bg-white text-black border-blue-400/20 hover:bg-blue-100 hover:text-blue-700";
+    }
+
+    return (
+      <button
+        key={key}
+        className={btnClass}
+        disabled={selected !== null}
+        onClick={() => handleSelect(idx)}
+      >
+        <b className="mr-3">{key}.</b>
+        {text}
+      </button>
+    );
+  })}
+</div>
+
     </div>
   );
 }
