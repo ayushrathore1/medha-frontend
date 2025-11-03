@@ -542,9 +542,34 @@ const Dashboard = () => {
             </div>
           </motion.section>
 
-          <div className="w-full flex justify-center py-32">
-            <div className="h-80 w-full max-w-3xl bg-gradient-to-r from-violet-500/20 via-blue-500/20 to-purple-500/10 rounded-3xl blur-2xl opacity-60"></div>
-          </div>
+         <div className="relative w-full min-h-screen bg-gray-950 flex items-center justify-center overflow-hidden">
+      {/* Gradient background blur */}
+      <div className="absolute inset-0 flex justify-center items-center">
+        <div className="h-80 w-full max-w-3xl bg-gradient-to-r from-violet-500/20 via-blue-500/20 to-purple-500/10 rounded-3xl blur-2xl opacity-60"></div>
+      </div>
+      
+      {/* 3D Text with Gradient - Centered depth */}
+      <div className="relative">
+        <h1 
+          className="text-9xl font-black tracking-wider bg-gradient-to-r from-violet-500 via-blue-500 to-purple-500 bg-clip-text text-transparent"
+          style={{
+            filter: `
+              drop-shadow(0 1px 0 rgba(139, 92, 246, 0.9))
+              drop-shadow(0 2px 0 rgba(139, 92, 246, 0.8))
+              drop-shadow(0 3px 0 rgba(124, 82, 230, 0.7))
+              drop-shadow(0 4px 0 rgba(109, 72, 214, 0.6))
+              drop-shadow(0 5px 0 rgba(94, 62, 198, 0.5))
+              drop-shadow(0 6px 0 rgba(79, 52, 182, 0.4))
+              drop-shadow(0 8px 0 rgba(64, 42, 166, 0.3))
+              drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6))
+              drop-shadow(0 0 40px rgba(139, 92, 246, 0.6))
+            `
+          }}
+        >
+          MEDHA
+        </h1>
+      </div>
+    </div>
 
           <Footer />
         </motion.div>
