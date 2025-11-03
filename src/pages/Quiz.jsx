@@ -1,21 +1,30 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://medha-backend.onrender.com";
+const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL || "https://medha-backend.onrender.com";
 
 // Glassy select dropdown
-function SelectDropdown({ label, options, value, onChange, optionLabel = "name", optionValue = "_id", disabled = false }) {
+function SelectDropdown({
+  label,
+  options,
+  value,
+  onChange,
+  optionLabel = "name",
+  optionValue = "_id",
+  disabled = false,
+}) {
   return (
     <div className="mb-7">
       <label className="block mb-2 text-blue-200 font-semibold">{label}</label>
       <select
         value={value}
-        onChange={e => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         className="w-full px-5 py-3 rounded-xl bg-[#18192f]/80 text-white font-medium placeholder-blue-200 border border-blue-400/20 focus:border-blue-400 focus:ring-2 focus:ring-blue-400 outline-none transition shadow"
         disabled={disabled}
       >
         <option value="">Select {label}</option>
-        {(Array.isArray(options) ? options : []).map(opt => (
+        {(Array.isArray(options) ? options : []).map((opt) => (
           <option key={opt[optionValue]} value={opt[optionValue]}>
             {opt[optionLabel]}
           </option>
@@ -23,17 +32,21 @@ function SelectDropdown({ label, options, value, onChange, optionLabel = "name",
       </select>
     </div>
   );
-} 
+}
 
 function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
   const [selected, setSelected] = useState(null);
 
   // Defensive: handle missing options keys
-  const safeOptions = questionObj.options && typeof questionObj.options === "object"
-    ? ["A","B","C","D"].map(opt => ({ key: opt, text: questionObj.options[opt] || "" }))
-    : [];
+  const safeOptions =
+    questionObj.options && typeof questionObj.options === "object"
+      ? ["A", "B", "C", "D"].map((opt) => ({
+          key: opt,
+          text: questionObj.options[opt] || "",
+        }))
+      : [];
 
-  const handleSelect = idx => {
+  const handleSelect = (idx) => {
     setSelected(idx);
     setTimeout(() => {
       onAnswer(idx);
@@ -44,41 +57,44 @@ function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
   return (
     <div className="bg-[#18192f]/90 backdrop-blur-xl border border-blue-800/10 max-w-xl w-full mx-auto rounded-2xl shadow-2xl p-10 mb-7 transition">
       <div className="mb-4 text-blue-400 font-semibold tracking-wide text-sm uppercase">
-        Question {questionNumber + 1}{" "}
-        <span className="text-blue-500">of</span> {total}
+        Question {questionNumber + 1} <span className="text-blue-500">of</span>{" "}
+        {total}
       </div>
-      <h3 className="text-2xl font-bold text-white mb-6">{questionObj.question || "Question unavailable."}</h3>
-     <div className="flex flex-col gap-4">
-  {safeOptions.map(({ key, text }, idx) => {
-    // Determine button styles
-    let btnClass = "border px-5 py-3 rounded-xl font-medium text-base text-left transition shadow";
-
-    if (selected !== null) {
-      if (idx === selected) {
-        btnClass += key === questionObj.answer
-          ? " bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-emerald-400"
-          : " bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500";
-      } else {
-        btnClass += " bg-gray-100 text-gray-400 border-blue-400/10 opacity-75";
-      }
-    } else {
-      btnClass += " bg-white text-black border-blue-400/20 hover:bg-blue-100 hover:text-blue-700";
-    }
-
-    return (
-      <button
-        key={key}
-        className={btnClass}
-        disabled={selected !== null}
-        onClick={() => handleSelect(idx)}
-      >
-        <b className="mr-3">{key}.</b>
-        {text}
-      </button>
-    );
-  })}
-</div>
-
+      <h3 className="text-2xl font-bold text-white mb-6">
+        {questionObj.question || "Question unavailable."}
+      </h3>
+      <div className="flex flex-col gap-4">
+        {safeOptions.map(({ key, text }, idx) => {
+          // Determine button styles
+          let btnClass =
+            "border px-5 py-3 rounded-xl font-medium text-base text-left transition shadow";
+          if (selected !== null) {
+            if (idx === selected) {
+              btnClass +=
+                key === questionObj.answer
+                  ? " bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-emerald-400"
+                  : " bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500";
+            } else {
+              btnClass +=
+                " bg-gray-100 text-gray-400 border-blue-400/10 opacity-75";
+            }
+          } else {
+            btnClass +=
+              " bg-white text-black border-blue-400/20 hover:bg-blue-100 hover:text-blue-700";
+          }
+          return (
+            <button
+              key={key}
+              className={btnClass}
+              disabled={selected !== null}
+              onClick={() => handleSelect(idx)}
+            >
+              <b className="mr-3">{key}.</b>
+              {text}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -86,9 +102,12 @@ function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
 function QuizResult({ score, total, onRestart }) {
   return (
     <div className="bg-[#18192f]/95 max-w-xl w-full mx-auto mt-16 rounded-2xl shadow-2xl border border-blue-800/10 p-12 text-center backdrop-blur-xl">
-      <h2 className="text-3xl font-extrabold bg-gradient-to-r from-blue-300 to-blue-400 bg-clip-text text-transparent mb-6">Quiz Completed!</h2>
+      <h2 className="text-3xl font-extrabold bg-gradient-to-r from-blue-300 to-blue-400 bg-clip-text text-transparent mb-6">
+        Quiz Completed!
+      </h2>
       <div className="text-white text-xl mb-6">
-        <span className="font-bold text-emerald-400 text-3xl">{score}</span> / <span className="text-blue-200">{total}</span>
+        <span className="font-bold text-emerald-400 text-3xl">{score}</span> /{" "}
+        <span className="text-blue-200">{total}</span>
       </div>
       <div className="w-full bg-blue-800/10 rounded-full h-6 mb-10 shadow-inner relative overflow-hidden">
         <div
@@ -117,6 +136,7 @@ const Quiz = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [topicName, setTopicName] = useState(""); // NEW: For topic-based quiz
 
   const token = localStorage.getItem("token");
 
@@ -128,7 +148,7 @@ const Quiz = () => {
     const fetchSubjects = async () => {
       try {
         const res = await axios.get(`${BACKEND_URL}/api/subjects`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         const subjectsData = res.data.subjects || res.data;
         setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
@@ -171,7 +191,7 @@ const Quiz = () => {
     setQuizCompleted(false);
 
     try {
-      const noteObj = notes.find(n => n._id === selectedNote);
+      const noteObj = notes.find((n) => n._id === selectedNote);
       const subjectName = noteObj?.subject?.name || noteObj?.subject || "";
       const res = await axios.post(
         `${BACKEND_URL}/api/quizzes/generate-ai`,
@@ -189,11 +209,39 @@ const Quiz = () => {
     setLoading(false);
   };
 
+  // NEW: Handler for quiz by topic
+  const handleGenerateQuizByTopic = async () => {
+    setQuestions([]);
+    setScore(0);
+    setLoading(true);
+    setError("");
+    setCurrent(0);
+    setQuizCompleted(false);
+
+    try {
+      const res = await axios.post(
+        `${BACKEND_URL}/api/quizzes/generate-topic-ai`,
+        { topic: topicName, subject: selectedSubject },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const quizQuestions = res.data?.quiz?.questions;
+      setQuestions(Array.isArray(quizQuestions) ? quizQuestions : []);
+      setCurrent(0);
+    } catch (err) {
+      setQuestions([]);
+      setError(
+        err.response?.data?.message || "Could not generate quiz for topic"
+      );
+      console.error("Quiz topic error:", err?.response?.data || err.message);
+    }
+    setLoading(false);
+  };
+
   const handleAnswer = (selectedIdx) => {
     if (!questions[current]) return;
     const correctIdx = ["A", "B", "C", "D"].indexOf(questions[current].answer);
     if (selectedIdx === correctIdx) {
-      setScore(prev => prev + 1);
+      setScore((prev) => prev + 1);
     }
     setTimeout(() => {
       if (current < questions.length - 1) setCurrent(current + 1);
@@ -207,6 +255,7 @@ const Quiz = () => {
     setQuestions([]);
     setSelectedSubject("");
     setSelectedNote("");
+    setTopicName("");
     setError("");
     setNotes([]);
     setQuizCompleted(false);
@@ -217,8 +266,12 @@ const Quiz = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#10101a] pt-20">
         <div className="p-12 bg-[#18192f]/95 rounded-2xl shadow-2xl border border-blue-800/10 w-full max-w-lg">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-300 to-blue-400 bg-clip-text text-transparent mb-8">AI Quiz Generator</h1>
-          <div className="text-red-300 mt-4 font-bold">You must be logged in to take a quiz.</div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-300 to-blue-400 bg-clip-text text-transparent mb-8">
+            AI Quiz Generator
+          </h1>
+          <div className="text-red-300 mt-4 font-bold">
+            You must be logged in to take a quiz.
+          </div>
         </div>
       </div>
     );
@@ -230,7 +283,9 @@ const Quiz = () => {
         {/* Subtle glass blob */}
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-2/5 h-40 bg-gradient-to-r from-blue-500/10 to-transparent rounded-full blur-2xl opacity-10"></div>
         <div className="p-12 bg-[#18192f]/95 rounded-2xl shadow-2xl border border-blue-800/10 w-full max-w-lg z-10">
-          <h1 className="text-3xl font-extrabold bg-gradient-to-r from-blue-300 to-blue-400 bg-clip-text text-transparent mb-8">AI Quiz Generator</h1>
+          <h1 className="text-3xl font-extrabold bg-gradient-to-r from-blue-300 to-blue-400 bg-clip-text text-transparent mb-8">
+            AI Quiz Generator
+          </h1>
           <SelectDropdown
             label="Subject"
             options={subjects}
@@ -248,12 +303,29 @@ const Quiz = () => {
             optionValue="_id"
             disabled={!selectedSubject || !notes.length}
           />
+          {/* --- Topic-based Quiz Generator UI --- */}
+          <input
+            type="text"
+            placeholder="Or enter topic (e.g. Binary Trees)"
+            className="w-full px-5 py-3 mb-4 rounded-xl bg-[#18192f]/80 text-white font-medium placeholder-blue-200 border border-blue-400/20 focus:border-blue-400 focus:ring-2 focus:ring-blue-400 outline-none transition shadow"
+            value={topicName}
+            onChange={(e) => setTopicName(e.target.value)}
+            maxLength={64}
+            autoComplete="off"
+          />
+          <button
+            onClick={handleGenerateQuizByTopic}
+            className="bg-gradient-to-r from-emerald-500 via-blue-400 to-indigo-500 w-full py-3 rounded-xl text-white font-bold text-lg shadow-xl hover:scale-[1.03] transition focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed mb-2"
+            disabled={loading || !topicName}
+          >
+            {loading ? "Generating..." : "Generate Quiz by Topic"}
+          </button>
           <button
             onClick={handleGenerateQuiz}
             className="bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 w-full py-3 rounded-xl text-white font-bold text-lg shadow-xl hover:scale-[1.03] transition focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={loading || !selectedSubject || !selectedNote}
           >
-            {loading ? "Generating..." : "Generate Quiz"}
+            {loading ? "Generating..." : "Generate Quiz from Note"}
           </button>
           {error && <div className="text-red-400 mt-4 font-bold">{error}</div>}
         </div>
