@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 const QuizItem = ({ questionObj, questionNumber, total, onAnswer }) => {
   const [selected, setSelected] = useState(null);
-
+  
   const handleSelect = (idx) => {
     setSelected(idx);
     setTimeout(() => {
@@ -10,7 +10,7 @@ const QuizItem = ({ questionObj, questionNumber, total, onAnswer }) => {
       setSelected(null);
     }, 500);
   };
-
+  
   return (
     <div className="bg-[#18163a]/90 backdrop-blur-2xl border border-violet-500/15 max-w-xl w-full mx-auto rounded-3xl shadow-2xl p-8 mb-8 transition font-inter">
       <div className="mb-4">
@@ -33,15 +33,14 @@ const QuizItem = ({ questionObj, questionNumber, total, onAnswer }) => {
                     ? idx === ["A", "B", "C", "D"].indexOf(questionObj.answer)
                       ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-emerald-400 shadow-lg animate-pulse"
                       : "bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500 shadow-lg animate-pulse"
-                    : "bg-[#0f0e2a] text-gray-400 border-violet-400/30 opacity-70"
-                  : "bg-[#1e1c42] text-gray-100 border-violet-400/30 hover:scale-[1.03] hover:bg-gradient-to-r hover:from-violet-600/30 hover:to-blue-400/30 hover:border-violet-400/50 shadow hover:text-white"
+                    : "bg-[#0f0e2a] text-gray-300 border-violet-400/30 opacity-70"
+                  : "bg-[#1e1c42] text-white border-violet-400/30 hover:scale-[1.03] hover:bg-gradient-to-r hover:from-violet-600/30 hover:to-blue-400/30 hover:border-violet-400/50 shadow"
               }`}
             disabled={selected !== null}
             onClick={() => handleSelect(idx)}
           >
             <b className="mr-3 text-xl">{opt}.</b>
             <span>{questionObj.options[opt]}</span>
-            {/* Active underline for correct/incorrect */}
             {selected !== null && idx === selected && (
               <span
                 className={`absolute left-0 right-0 bottom-1 h-1 rounded-xl ${
