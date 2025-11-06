@@ -33,8 +33,8 @@ const QuizItem = ({ questionObj, questionNumber, total, onAnswer }) => {
                     ? idx === ["A", "B", "C", "D"].indexOf(questionObj.answer)
                       ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-emerald-400 shadow-lg animate-pulse"
                       : "bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500 shadow-lg animate-pulse"
-                    : "bg-white/10 text-violet-300 border-violet-400/30 opacity-70"
-                  : "bg-white/10 text-white border-violet-400/20 hover:scale-[1.03] hover:bg-gradient-to-r hover:from-violet-600/10 hover:to-blue-400/10 shadow hover:text-blue-200"
+                    : "bg-[#0f0e2a] text-gray-400 border-violet-400/30 opacity-70"
+                  : "bg-[#1e1c42] text-gray-100 border-violet-400/30 hover:scale-[1.03] hover:bg-gradient-to-r hover:from-violet-600/30 hover:to-blue-400/30 hover:border-violet-400/50 shadow hover:text-white"
               }`}
             disabled={selected !== null}
             onClick={() => handleSelect(idx)}
