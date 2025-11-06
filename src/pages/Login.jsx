@@ -59,16 +59,20 @@ const Login = () => {
           .animation-delay-2000 { animation-delay: 2s; }
         `}</style>
       </div>
-      <div className="w-full flex flex-col items-center justify-center pt-24 px-6">
-        <div className="max-w-md w-full z-10">
+
+      {/* Main content */}
+      <div className="w-full flex flex-col items-center justify-center pt-24 px-6 z-10">
+        <div className="max-w-md w-full">
           <LoginForm onLogin={handleLogin} errorMsg={errorMsg} />
         </div>
-        {loading && (
-          <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-            <Loader size={10} colorClass="border-violet-500" />
-          </div>
-        )}
       </div>
+
+      {/* Loading overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
+          <Loader size={10} colorClass="border-violet-500" />
+        </div>
+      )}
     </div>
   );
 };
