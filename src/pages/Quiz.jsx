@@ -76,11 +76,11 @@ function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
                   : " bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500";
             } else {
               btnClass +=
-                " bg-gray-100 text-gray-400 border-blue-400/10 opacity-75";
+                " bg-[#0f0e2a] text-gray-300 border-blue-400/10 opacity-75";
             }
           } else {
             btnClass +=
-              " bg-white text-black border-blue-400/20 hover:bg-blue-100 hover:text-blue-700";
+              " bg-[#1e1c42] text-white border-blue-400/30 hover:bg-gradient-to-r hover:from-blue-600/40 hover:to-purple-600/40 hover:border-blue-400/50";
           }
           return (
             <button
