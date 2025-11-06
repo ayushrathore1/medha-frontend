@@ -1,21 +1,21 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const LoginForm = ({ onLogin }) => {
+const LoginForm = ({ onLogin, errorMsg }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [localError, setLocalError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg("");
+    setLocalError("");
     setLoading(true);
     try {
       await onLogin(email, password);
     } catch (error) {
-      setErrorMsg(error.message || "Login failed!");
+      setLocalError(error.message || "Login failed!");
     } finally {
       setLoading(false);
     }
@@ -24,29 +24,36 @@ const LoginForm = ({ onLogin }) => {
   const handleForgotPassword = () => {
     navigate("/forgot-password");
   };
+
   const handleRegister = () => {
     navigate("/register");
   };
 
+  // Use errorMsg from props (from parent Login.jsx) or local error state
+  const displayError = errorMsg || localError;
+
   return (
-    <div className="relative w-full min-h-screen flex items-center justify-center bg-[#0a0a0a]">
-      {/* Ambient gradient glow behind form */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-32 w-96 h-96 rounded-full bg-gradient-to-br from-violet-500/25 via-blue-600/20 to-purple-400/10 blur-3xl pointer-events-none" />
+    <div className="relative w-full">
+      {/* Ambient gradient glow behind form - FULL WIDTH */}
+      <div className="absolute inset-0 w-full h-full rounded-3xl bg-gradient-to-br from-violet-500/25 via-blue-600/20 to-purple-400/10 blur-3xl pointer-events-none -z-10" />
+
       {/* Glassy form */}
       <form
-        className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl shadow-2xl px-8 py-10 max-w-md w-full mx-auto"
+        className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl shadow-2xl px-8 py-10 w-full mx-auto"
         onSubmit={handleSubmit}
       >
         <h2 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent tracking-tight">
           Sign in to MEDHA
         </h2>
 
-        {errorMsg && (
-          <div className="mb-4 text-red-400 font-medium text-center text-sm backdrop-blur">
-            {errorMsg}
+        {/* Error message display */}
+        {displayError && (
+          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-xl text-red-300 font-medium text-center text-sm backdrop-blur">
+            {displayError}
           </div>
         )}
 
+        {/* Email input */}
         <div className="mb-4">
           <label
             className="block text-violet-300 font-semibold mb-2"
@@ -63,9 +70,11 @@ const LoginForm = ({ onLogin }) => {
             value={email}
             required
             onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
           />
         </div>
 
+        {/* Password input */}
         <div className="mb-6">
           <label
             className="block text-violet-300 font-semibold mb-2"
@@ -82,9 +91,11 @@ const LoginForm = ({ onLogin }) => {
             value={password}
             required
             onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
           />
         </div>
 
+        {/* Sign In button */}
         <button
           type="submit"
           className={`w-full backdrop-blur-xl bg-violet-500/90 text-white font-semibold py-3 rounded-2xl border border-violet-400/30 shadow-lg hover:bg-violet-600/90 hover:scale-[1.03] transition-all duration-150 ${
@@ -95,13 +106,14 @@ const LoginForm = ({ onLogin }) => {
           {loading ? "Signing in..." : "Sign In"}
         </button>
 
+        {/* Footer links */}
         <div className="flex items-center justify-between mt-5">
           <button
             type="button"
             className="text-violet-300 font-semibold hover:underline text-sm hover:text-white transition"
             onClick={handleRegister}
             disabled={loading}
-            style={{ background: "none", border: "none", cursor: "pointer" }}
+            style={{ background: "none", border: "none", cursor: loading ? "wait" : "pointer" }}
           >
             New User?
           </button>
@@ -110,7 +122,7 @@ const LoginForm = ({ onLogin }) => {
             className="text-blue-300 font-medium hover:underline text-sm hover:text-white transition"
             onClick={handleForgotPassword}
             disabled={loading}
-            style={{ background: "none", border: "none", cursor: "pointer" }}
+            style={{ background: "none", border: "none", cursor: loading ? "wait" : "pointer" }}
           >
             Forgot Password?
           </button>
