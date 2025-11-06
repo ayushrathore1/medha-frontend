@@ -13,7 +13,7 @@ const FlashcardItem = ({
   const [subject, setSubject] = useState(flashcard.subject);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // Reset flip state whenever flashcard changes
+  // Reset flip state when flashcard changes
   useEffect(() => {
     setIsFlipped(false);
   }, [flashcard._id]);
@@ -38,21 +38,6 @@ const FlashcardItem = ({
     if (flashcard.difficulty === "hard")
       return "bg-red-700/20 text-red-300 border border-red-700/20";
     return "bg-blue-600/20 text-blue-300 border border-blue-600/20";
-  };
-
-  // Handle flip with proper event stopping for mobile
-  const handleFlip = (e) => {
-    // Prevent event bubbling to avoid conflicts
-    if (e) {
-      e.stopPropagation();
-    }
-    setIsFlipped(!isFlipped);
-  };
-
-  // Prevent action button clicks from triggering flip
-  const handleActionClick = (e, callback) => {
-    e.stopPropagation();
-    if (callback) callback();
   };
 
   return (
@@ -171,15 +156,16 @@ const FlashcardItem = ({
             </div>
 
             {/* Flip Card Container */}
-            <div className="relative min-h-[200px] perspective-1000">
+            <div 
+              className="relative min-h-[200px] perspective-1000 cursor-pointer"
+              onClick={() => setIsFlipped(!isFlipped)}
+            >
               <div
-                className={`w-full h-full transition-transform duration-700 transform-style-preserve-3d cursor-pointer select-none ${isFlipped ? "rotate-y-180" : ""}`}
-                onClick={handleFlip}
-                onTouchEnd={handleFlip}
+                className={`w-full h-full transition-transform duration-700 transform-style-preserve-3d ${isFlipped ? "rotate-y-180" : ""}`}
               >
                 {/* Front Side - Question */}
                 <div className="absolute inset-0 backface-hidden p-6 flex flex-col justify-center bg-[#161639]/80 rounded-3xl">
-                  <div className="text-center pointer-events-none">
+                  <div className="text-center">
                     <div className="text-xs font-medium text-violet-300 mb-3 uppercase tracking-wide">
                       Question
                     </div>
@@ -207,7 +193,7 @@ const FlashcardItem = ({
 
                 {/* Back Side - Answer */}
                 <div className="absolute inset-0 backface-hidden rotate-y-180 p-6 flex flex-col justify-center bg-gradient-to-br from-violet-500/10 via-blue-500/10 to-purple-400/10 rounded-3xl">
-                  <div className="text-center pointer-events-none">
+                  <div className="text-center">
                     <div className="text-xs font-medium text-emerald-300 mb-3 uppercase tracking-wide">
                       Answer
                     </div>
@@ -235,36 +221,44 @@ const FlashcardItem = ({
               </div>
             </div>
 
-            {/* Actions - Improved mobile touch targets */}
-            <div className="px-4 py-4 bg-[#18163a]/80 border-t border-violet-400/10 grid grid-cols-2 sm:flex sm:gap-3 sm:justify-center gap-2">
+            {/* Actions */}
+            <div className="px-6 py-4 bg-[#18163a]/80 border-t border-violet-400/10 grid grid-cols-2 sm:flex sm:gap-3 sm:justify-center gap-2">
               <button
-                onClick={(e) => handleActionClick(e, () => setEditMode(true))}
-                onTouchEnd={(e) => handleActionClick(e, () => setEditMode(true))}
-                className="px-4 py-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow touch-manipulation"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditMode(true);
+                }}
+                className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow"
               >
                 ✏️ Edit
               </button>
               <button
-                onClick={(e) => handleActionClick(e, () => onDelete && onDelete(flashcard._id))}
-                onTouchEnd={(e) => handleActionClick(e, () => onDelete && onDelete(flashcard._id))}
-                className="px-4 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow touch-manipulation"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete && onDelete(flashcard._id);
+                }}
+                className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow"
               >
                 🗑️ Delete
               </button>
               {onMarkEasy && (
                 <button
-                  onClick={(e) => handleActionClick(e, () => onMarkEasy(flashcard))}
-                  onTouchEnd={(e) => handleActionClick(e, () => onMarkEasy(flashcard))}
-                  className="px-4 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow touch-manipulation"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMarkEasy(flashcard);
+                  }}
+                  className="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow"
                 >
                   😊 Easy
                 </button>
               )}
               {onMarkDifficult && (
                 <button
-                  onClick={(e) => handleActionClick(e, () => onMarkDifficult(flashcard))}
-                  onTouchEnd={(e) => handleActionClick(e, () => onMarkDifficult(flashcard))}
-                  className="px-4 py-3 bg-orange-400/10 hover:bg-orange-400/20 text-orange-200 border border-orange-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow touch-manipulation"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMarkDifficult(flashcard);
+                  }}
+                  className="px-4 py-2 bg-orange-400/10 hover:bg-orange-400/20 text-orange-200 border border-orange-400/20 rounded-xl font-semibold hover:scale-[1.06] transition shadow"
                 >
                   😰 Difficult
                 </button>
@@ -282,18 +276,9 @@ const FlashcardItem = ({
         }
         .backface-hidden {
           backface-visibility: hidden;
-          -webkit-backface-visibility: hidden;
         }
         .rotate-y-180 {
           transform: rotateY(180deg);
-        }
-        .touch-manipulation {
-          touch-action: manipulation;
-          -webkit-tap-highlight-color: transparent;
-        }
-        .select-none {
-          user-select: none;
-          -webkit-user-select: none;
         }
       `}</style>
     </div>
