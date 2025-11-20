@@ -12,10 +12,7 @@
   "dependencies": {
     "axios": "^1.12.2",
     "framer-motion": "^12.23.24",
-<<<<<<< HEAD
     "lucide-react": "^0.554.0",
-=======
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.1",
