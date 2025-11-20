@@ -92,7 +92,7 @@ const Dashboard = () => {
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left Column: Stats & Subjects */}
+          {/* Left Column: Stats, Plan, Todos, Subjects */}
           <div className="lg:col-span-2 space-y-8">
             {/* Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -123,6 +123,18 @@ const Dashboard = () => {
                   <p className="text-2xl font-bold">{stats.accuracy}%</p>
                 </div>
               </Card>
+            </div>
+
+            {/* Daily Plan & Todo Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               {/* Daily Plan Widget */}
+               <div className="h-full">
+                  <DailyPlanWidget />
+               </div>
+               {/* To-Do List */}
+               <div className="h-full">
+                  <TodoList />
+               </div>
             </div>
 
             {/* Subject Manager */}
@@ -168,10 +180,10 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* Right Column: Tools & Todo */}
+          {/* Right Column: Tools Only */}
           <div className="space-y-8">
             {/* Unified Widget Card */}
-            <Card className="space-y-6">
+            <Card className="space-y-6 sticky top-24">
               <LiveClock />
               <div className="border-t border-gray-700 pt-4">
                 <CalendarWidget />
@@ -180,16 +192,6 @@ const Dashboard = () => {
                 <StudyTimer />
               </div>
             </Card>
-
-            {/* Daily Plan Widget */}
-            <div className="h-[300px]">
-              <DailyPlanWidget />
-            </div>
-
-            {/* To-Do List */}
-            <div className="h-[400px]">
-              <TodoList />
-            </div>
           </div>
 
         </div>
