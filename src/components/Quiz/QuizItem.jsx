@@ -1,71 +1,95 @@
-import React, { useState } from "react";
+import React from "react";
 
-const QuizItem = ({ questionObj, questionNumber, total, onAnswer }) => {
-  const [selected, setSelected] = useState(null);
-<<<<<<< HEAD
+const QuizItem = ({ 
+  question, 
+  options, 
+  selectedAnswer, 
+  correctAnswer,
+  onSelectAnswer, 
+  showResult 
+}) => {
+  // Normalize options to array format
+  const normalizedOptions = React.useMemo(() => {
+    if (!options) return [];
+    
+    // If options is already an array
+    if (Array.isArray(options)) {
+      return options.map((opt, index) => ({
+        key: String.fromCharCode(65 + index), // A, B, C, D
+        text: opt
+      }));
+    }
+    
+    // If options is an object like {A: "text", B: "text"}
+    if (typeof options === 'object') {
+      return Object.entries(options).map(([key, text]) => ({
+        key: key.toUpperCase(),
+        text
+      }));
+    }
+    
+    return [];
+  }, [options]);
 
-=======
-  
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-  const handleSelect = (idx) => {
-    setSelected(idx);
-    setTimeout(() => {
-      onAnswer(idx);
-      setSelected(null);
-    }, 500);
-  };
-  
   return (
-    <div className="bg-[#18163a]/90 backdrop-blur-2xl border border-violet-500/15 max-w-xl w-full mx-auto rounded-3xl shadow-2xl p-8 mb-8 transition font-inter">
-      <div className="mb-4">
-        <span className="text-xs font-bold uppercase tracking-wide bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">
-          Question {questionNumber + 1}
-        </span>
-        <span className="text-xs ml-2 text-violet-300">of {total}</span>
-      </div>
-      <h3 className="text-xl font-bold text-white mb-7">
-        {questionObj.question}
+    <div
+      className="p-6 rounded-2xl border-2 shadow-lg"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        borderColor: "var(--accent-secondary)",
+      }}
+    >
+      <h3 className="text-xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>
+        {question}
       </h3>
-      <div className="flex flex-col gap-4">
-        {["A", "B", "C", "D"].map((opt, idx) => (
-          <button
-            key={opt}
-            className={`border px-5 py-3 rounded-xl font-semibold shadow transition text-left text-base relative
-              ${
-                selected !== null
-                  ? idx === selected
-                    ? idx === ["A", "B", "C", "D"].indexOf(questionObj.answer)
-                      ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-emerald-400 shadow-lg animate-pulse"
-                      : "bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500 shadow-lg animate-pulse"
-<<<<<<< HEAD
-                    : "bg-white/10 text-violet-300 border-violet-400/30 opacity-70"
-                  : "bg-white/10 text-white border-violet-400/20 hover:scale-[1.03] hover:bg-gradient-to-r hover:from-violet-600/10 hover:to-blue-400/10 shadow hover:text-blue-200"
-=======
-                    : "bg-[#0f0e2a] text-gray-300 border-violet-400/30 opacity-70"
-                  : "bg-[#1e1c42] text-white border-violet-400/30 hover:scale-[1.03] hover:bg-gradient-to-r hover:from-violet-600/30 hover:to-blue-400/30 hover:border-violet-400/50 shadow"
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-              }`}
-            disabled={selected !== null}
-            onClick={() => handleSelect(idx)}
-          >
-            <b className="mr-3 text-xl">{opt}.</b>
-            <span>{questionObj.options[opt]}</span>
-<<<<<<< HEAD
-            {/* Active underline for correct/incorrect */}
-=======
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-            {selected !== null && idx === selected && (
-              <span
-                className={`absolute left-0 right-0 bottom-1 h-1 rounded-xl ${
-                  idx === ["A", "B", "C", "D"].indexOf(questionObj.answer)
-                    ? "bg-gradient-to-r from-emerald-400 to-blue-400"
-                    : "bg-gradient-to-r from-red-400 to-pink-400"
-                } opacity-80`}
-              />
-            )}
-          </button>
-        ))}
-      </div>
+
+      {normalizedOptions.length === 0 ? (
+        <div className="text-center py-8" style={{ color: "var(--text-secondary)" }}>
+          No options available
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {normalizedOptions.map(({ key, text }) => {
+            const isSelected = selectedAnswer === key;
+            const isCorrectAnswer = correctAnswer === key;
+            
+            const showCorrect = showResult && isCorrectAnswer;
+            const showWrong = showResult && isSelected && !isCorrectAnswer;
+
+            return (
+              <button
+                key={key}
+                onClick={() => !showResult && onSelectAnswer && onSelectAnswer(key)}
+                disabled={showResult}
+                className={`w-full px-5 py-4 rounded-xl border-2 font-medium text-left transition-all ${
+                  showResult ? "cursor-not-allowed" : "cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                }`}
+                style={{
+                  backgroundColor: showCorrect
+                    ? "#d1fae5"
+                    : showWrong
+                    ? "#fee2e2"
+                    : isSelected
+                    ? "var(--accent-secondary)"
+                    : "var(--bg-primary)",
+                  borderColor: showCorrect
+                    ? "#10b981"
+                    : showWrong
+                    ? "#ef4444"
+                    : isSelected
+                    ? "var(--action-primary)"
+                    : "var(--accent-secondary)",
+                  color: showCorrect || showWrong ? "#1f2937" : "var(--text-primary)",
+                }}
+              >
+                <span className="font-bold mr-2">{key}.</span> {text}
+                {showCorrect && <span className="ml-2 text-green-600">✓</span>}
+                {showWrong && <span className="ml-2 text-red-600">✗</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

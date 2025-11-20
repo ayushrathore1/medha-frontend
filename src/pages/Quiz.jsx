@@ -1,621 +1,436 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-<<<<<<< HEAD
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
-=======
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
+import QuizItem from "../components/Quiz/QuizItem";
 
-const BACKEND_URL =
-  import.meta.env.VITE_BACKEND_URL || "https://medha-backend.onrender.com";
-
-<<<<<<< HEAD
-// Select dropdown using design system
-=======
-// Glassy select dropdown
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-function SelectDropdown({
-  label,
-  options,
-  value,
-  onChange,
-  optionLabel = "name",
-  optionValue = "_id",
-  disabled = false,
-}) {
-  return (
-<<<<<<< HEAD
-    <div className="mb-6">
-      <label className="block mb-2 font-semibold" style={{ color: "var(--text-primary)" }}>
-        {label}
-      </label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-3 rounded-xl font-medium border-2 focus:outline-none focus:ring-2 transition"
-        style={{
-          backgroundColor: "var(--bg-primary)",
-          borderColor: "var(--accent-secondary)",
-          color: "var(--text-primary)",
-        }}
-=======
-    <div className="mb-7">
-      <label className="block mb-2 text-blue-200 font-semibold">{label}</label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-5 py-3 rounded-xl bg-[#18192f]/80 text-white font-medium placeholder-blue-200 border border-blue-400/20 focus:border-blue-400 focus:ring-2 focus:ring-blue-400 outline-none transition shadow"
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-        disabled={disabled}
-      >
-        <option value="">Select {label}</option>
-        {(Array.isArray(options) ? options : []).map((opt) => (
-          <option key={opt[optionValue]} value={opt[optionValue]}>
-            {opt[optionLabel]}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
-  const [selected, setSelected] = useState(null);
-
-  // Defensive: handle missing options keys
-  const safeOptions =
-    questionObj.options && typeof questionObj.options === "object"
-      ? ["A", "B", "C", "D"].map((opt) => ({
-          key: opt,
-          text: questionObj.options[opt] || "",
-        }))
-      : [];
-
-  const handleSelect = (idx) => {
-    setSelected(idx);
-    setTimeout(() => {
-      onAnswer(idx);
-      setSelected(null);
-    }, 400);
-  };
-
-  return (
-<<<<<<< HEAD
-    <Card className="max-w-2xl w-full mx-auto mb-6">
-      <div className="mb-4 font-semibold text-sm uppercase tracking-wide" style={{ color: "var(--action-primary)" }}>
-        Question {questionNumber + 1} <span style={{ color: "var(--text-secondary)" }}>of</span>{" "}
-        {total}
-      </div>
-      <h3 className="text-2xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>
-        {questionObj.question || "Question unavailable."}
-      </h3>
-      <div className="flex flex-col gap-3">
-        {safeOptions.map(({ key, text }, idx) => {
-          // Determine button styles
-          let btnClass =
-            "border-2 px-5 py-3 rounded-xl font-medium text-base text-left transition shadow-sm";
-=======
-    <div className="bg-[#18192f]/90 backdrop-blur-xl border border-blue-800/10 max-w-xl w-full mx-auto rounded-2xl shadow-2xl p-10 mb-7 transition">
-      <div className="mb-4 text-blue-400 font-semibold tracking-wide text-sm uppercase">
-        Question {questionNumber + 1} <span className="text-blue-500">of</span>{" "}
-        {total}
-      </div>
-      <h3 className="text-2xl font-bold text-white mb-6">
-        {questionObj.question || "Question unavailable."}
-      </h3>
-      <div className="flex flex-col gap-4">
-        {safeOptions.map(({ key, text }, idx) => {
-          // Determine button styles
-          let btnClass =
-            "border px-5 py-3 rounded-xl font-medium text-base text-left transition shadow";
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-          if (selected !== null) {
-            if (idx === selected) {
-              btnClass +=
-                key === questionObj.answer
-<<<<<<< HEAD
-                  ? " bg-emerald-100 text-emerald-700 border-emerald-400 font-bold"
-                  : " bg-red-100 text-red-700 border-red-400 font-bold";
-            } else {
-              btnClass +=
-                " bg-gray-100 text-gray-400 border-gray-200 opacity-60";
-            }
-          } else {
-            btnClass +=
-              " border-gray-300 hover:bg-indigo-50 hover:border-indigo-400 hover:text-indigo-700";
-=======
-                  ? " bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-emerald-400"
-                  : " bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500";
-            } else {
-              btnClass +=
-                " bg-[#0f0e2a] text-gray-300 border-blue-400/10 opacity-75";
-            }
-          } else {
-            btnClass +=
-              " bg-[#1e1c42] text-white border-blue-400/30 hover:bg-gradient-to-r hover:from-blue-600/40 hover:to-purple-600/40 hover:border-blue-400/50";
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-          }
-          return (
-            <button
-              key={key}
-              className={btnClass}
-<<<<<<< HEAD
-              style={{ 
-                backgroundColor: selected === null ? "var(--bg-primary)" : undefined,
-                color: selected === null ? "var(--text-primary)" : undefined 
-              }}
-=======
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-              disabled={selected !== null}
-              onClick={() => handleSelect(idx)}
-            >
-              <b className="mr-3">{key}.</b>
-              {text}
-            </button>
-          );
-        })}
-      </div>
-<<<<<<< HEAD
-    </Card>
-=======
-    </div>
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-  );
-}
-
-function QuizResult({ score, total, onRestart }) {
-<<<<<<< HEAD
-  const percentage = (score / total) * 100;
-  
-  return (
-    <Card className="max-w-xl w-full mx-auto mt-16 text-center">
-      <h2 className="text-3xl font-extrabold mb-6" style={{ color: "var(--action-primary)" }}>
-        Quiz Completed! 🎉
-      </h2>
-      <div className="text-xl mb-6" style={{ color: "var(--text-primary)" }}>
-        <span className="font-bold text-4xl" style={{ color: "var(--accent-primary)" }}>
-          {score}
-        </span>{" "}
-        / <span style={{ color: "var(--text-secondary)" }}>{total}</span>
-      </div>
-      <div 
-        className="w-full rounded-full h-6 mb-10 shadow-inner relative overflow-hidden"
-        style={{ backgroundColor: "var(--bg-secondary)" }}
-      >
-        <div
-          className="h-6 rounded-full transition-all duration-700"
-          style={{ 
-            width: `${percentage}%`,
-            background: `linear-gradient(to right, var(--accent-primary), var(--accent-secondary))` 
-          }}
-        ></div>
-      </div>
-      <p className="mb-8 text-lg" style={{ color: "var(--text-secondary)" }}>
-        You scored {percentage.toFixed(0)}%!
-      </p>
-      <Button onClick={onRestart} size="large">
-        Try Another Quiz
-      </Button>
-    </Card>
-=======
-  return (
-    <div className="bg-[#18192f]/95 max-w-xl w-full mx-auto mt-16 rounded-2xl shadow-2xl border border-blue-800/10 p-12 text-center backdrop-blur-xl">
-      <h2 className="text-3xl font-extrabold bg-gradient-to-r from-blue-300 to-blue-400 bg-clip-text text-transparent mb-6">
-        Quiz Completed!
-      </h2>
-      <div className="text-white text-xl mb-6">
-        <span className="font-bold text-emerald-400 text-3xl">{score}</span> /{" "}
-        <span className="text-blue-200">{total}</span>
-      </div>
-      <div className="w-full bg-blue-800/10 rounded-full h-6 mb-10 shadow-inner relative overflow-hidden">
-        <div
-          className="bg-gradient-to-r from-emerald-400 via-blue-400 to-blue-500 h-6 rounded-full transition-all duration-700"
-          style={{ width: `${(score / total) * 100}%` }}
-        ></div>
-      </div>
-      <button
-        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-9 py-3 rounded-xl font-bold shadow-xl hover:scale-[1.04] transition focus:outline-none focus:ring-2 focus:ring-blue-400"
-        onClick={onRestart}
-      >
-        Try Another Quiz
-      </button>
-    </div>
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-  );
-}
+/* --- SubjectSelect is defined here for clarity and reliability --- */
+const SubjectSelect = ({ subjects, selectedSubject, onChange }) => (
+  <div className="w-full">
+    <label htmlFor="subject" className="block mb-2 font-medium">
+      Select Subject
+    </label>
+    <select
+      id="subject"
+      value={selectedSubject}
+      onChange={e => onChange(e.target.value)}
+      className="w-full px-5 py-3 rounded-xl border-2 font-medium focus:outline-none focus:ring-2"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        borderColor: "var(--accent-secondary)",
+        color: "var(--text-primary)"
+      }}
+    >
+      <option value="">-- Select a subject --</option>
+      {subjects.map((subj) => (
+        <option key={subj._id} value={subj.name}>
+          {subj.name}
+        </option>
+      ))}
+    </select>
+  </div>
+);
 
 const Quiz = () => {
   const [subjects, setSubjects] = useState([]);
-  const [notes, setNotes] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
-  const [selectedNote, setSelectedNote] = useState("");
-  const [questions, setQuestions] = useState([]);
-  const [current, setCurrent] = useState(0);
-  const [score, setScore] = useState(0);
+  const [topic, setTopic] = useState("");
+  const [generationMode, setGenerationMode] = useState("subject");
+  const [quiz, setQuiz] = useState(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [score, setScore] = useState(0);
   const [error, setError] = useState("");
-  const [quizCompleted, setQuizCompleted] = useState(false);
-<<<<<<< HEAD
-  const [topicName, setTopicName] = useState(""); // For topic-based quiz
-=======
-  const [topicName, setTopicName] = useState(""); // NEW: For topic-based quiz
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!token) {
-      setError("You must be logged in to take a quiz.");
+    fetchSubjects();
+  }, []);
+
+  const fetchSubjects = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Authentication required. Please log in.");
+        return;
+      }
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/subjects`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          timeout: 10000,
+        }
+      );
+      console.log("Subjects response:", response.data);
+
+      if (response.data && Array.isArray(response.data.subjects)) {
+        setSubjects(response.data.subjects);
+      } else {
+        setSubjects([]);
+        setError("No subjects found.");
+      }
+    } catch (error) {
+      console.error("Error fetching subjects:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Failed to fetch subjects.";
+      setError(errorMsg);
+      setSubjects([]);
+    }
+  };
+
+  const handleStartQuiz = async () => {
+    if (generationMode === "subject" && !selectedSubject) {
+      setError("Please select a subject");
       return;
     }
-    const fetchSubjects = async () => {
-      try {
-        const res = await axios.get(`${BACKEND_URL}/api/subjects`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const subjectsData = res.data.subjects || res.data;
-        setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
-      } catch (err) {
-        setSubjects([]);
-        setError("Failed to load subjects");
-        console.error("Subjects error:", err?.response?.data || err.message);
-      }
-    };
-    fetchSubjects();
-  }, [token]);
+    if (generationMode === "topic" && !topic.trim()) {
+      setError("Please enter a topic");
+      return;
+    }
 
-  useEffect(() => {
-    setNotes([]);
-    setSelectedNote("");
-    if (!selectedSubject) return;
-    const fetchNotes = async () => {
-      try {
-        const res = await axios.get(
-          `${BACKEND_URL}/api/notes?subject=${selectedSubject}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const notesData = res.data.notes || res.data;
-        setNotes(Array.isArray(notesData) ? notesData : []);
-      } catch (err) {
-        setNotes([]);
-        setError("Failed to load notes");
-        console.error("Notes error:", err?.response?.data || err.message);
-      }
-    };
-    fetchNotes();
-  }, [selectedSubject, token]);
-
-  const handleGenerateQuiz = async () => {
-    setQuestions([]);
-    setScore(0);
     setLoading(true);
     setError("");
-    setCurrent(0);
-    setQuizCompleted(false);
 
     try {
-      const noteObj = notes.find((n) => n._id === selectedNote);
-      const subjectName = noteObj?.subject?.name || noteObj?.subject || "";
-      const res = await axios.post(
-        `${BACKEND_URL}/api/quizzes/generate-ai`,
-        { noteId: selectedNote, subject: subjectName },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const quizQuestions = res.data?.quiz?.questions;
-      setQuestions(Array.isArray(quizQuestions) ? quizQuestions : []);
-      setCurrent(0);
-    } catch (err) {
-      setQuestions([]);
-      setError(err.response?.data?.message || "Could not generate quiz");
-      console.error("Quiz error:", err?.response?.data || err.message);
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("Authentication required");
+      }
+
+      let endpoint, payload;
+
+      if (generationMode === "topic") {
+        endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-topic-ai`;
+        payload = { topic: topic.trim() };
+        console.log("Generating topic-based quiz:", payload);
+      } else {
+        endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-ai`;
+
+        // Try to fetch a note for the selected subject
+        try {
+          const notesRes = await axios.get(
+            `${import.meta.env.VITE_BACKEND_URL}/api/notes?subject=${selectedSubject}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+              timeout: 10000
+            }
+          );
+
+          if (notesRes.data?.notes?.length > 0) {
+            payload = {
+              noteId: notesRes.data.notes[0]._id,
+              subject: selectedSubject
+            };
+            console.log("Generating quiz from note:", payload);
+          } else {
+            // Fallback: topic mode with subject name
+            endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-topic-ai`;
+            payload = { topic: selectedSubject };
+          }
+        } catch (noteError) {
+          console.error("Error fetching notes:", noteError);
+          endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-topic-ai`;
+          payload = { topic: selectedSubject };
+        }
+      }
+
+      console.log("Sending request to:", endpoint);
+      console.log("Payload:", payload);
+
+      const response = await axios.post(endpoint, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 60000 // 60 seconds for AI generation
+      });
+
+      console.log("Quiz response:", response.data);
+
+      const quizData = response.data.quiz || response.data;
+
+      if (!quizData || !quizData.questions || quizData.questions.length === 0) {
+        throw new Error("Invalid quiz data received from server");
+      }
+
+      setQuiz(quizData);
+      setCurrentQuestion(0);
+      setSelectedAnswers({});
+      setShowResults(false);
+      setScore(0);
+      setError("");
+    } catch (error) {
+      console.error("Error generating quiz:", error);
+
+      let errorMsg = "Failed to generate quiz. ";
+
+      if (error.response) {
+        errorMsg += error.response.data?.message || error.response.data?.error || `Server error: ${error.response.status}`;
+      } else if (error.request) {
+        errorMsg += "No response from server. Please check your connection.";
+      } else {
+        errorMsg += error.message || "Unknown error occurred.";
+      }
+
+      setError(errorMsg);
+
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        setError("Session expired. Please log in again.");
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-<<<<<<< HEAD
-  // Handler for quiz by topic
-=======
-  // NEW: Handler for quiz by topic
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-  const handleGenerateQuizByTopic = async () => {
-    setQuestions([]);
-    setScore(0);
-    setLoading(true);
-    setError("");
-    setCurrent(0);
-    setQuizCompleted(false);
-
-    try {
-      const res = await axios.post(
-        `${BACKEND_URL}/api/quizzes/generate-topic-ai`,
-        { topic: topicName, subject: selectedSubject },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const quizQuestions = res.data?.quiz?.questions;
-      setQuestions(Array.isArray(quizQuestions) ? quizQuestions : []);
-      setCurrent(0);
-    } catch (err) {
-      setQuestions([]);
-      setError(
-        err.response?.data?.message || "Could not generate quiz for topic"
-      );
-      console.error("Quiz topic error:", err?.response?.data || err.message);
-    }
-    setLoading(false);
+  const handleSelectAnswer = (answer) => {
+    setSelectedAnswers({ ...selectedAnswers, [currentQuestion]: answer });
   };
 
-  const handleAnswer = (selectedIdx) => {
-    if (!questions[current]) return;
-    const correctIdx = ["A", "B", "C", "D"].indexOf(questions[current].answer);
-    if (selectedIdx === correctIdx) {
-      setScore((prev) => prev + 1);
+  const handleNext = () => {
+    if (currentQuestion < quiz.questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
     }
-    setTimeout(() => {
-      if (current < questions.length - 1) setCurrent(current + 1);
-      else setQuizCompleted(true);
-    }, 500);
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+    }
+  };
+
+  const handleSubmit = () => {
+    let correctCount = 0;
+    quiz.questions.forEach((q, index) => {
+      const correctAnswer = q.correctAnswer || q.answer;
+      if (selectedAnswers[index] === correctAnswer) {
+        correctCount++;
+      }
+    });
+    setScore(correctCount);
+    setShowResults(true);
   };
 
   const handleRestart = () => {
+    setQuiz(null);
+    setCurrentQuestion(0);
+    setSelectedAnswers({});
+    setShowResults(false);
     setScore(0);
-    setCurrent(0);
-    setQuestions([]);
-    setSelectedSubject("");
-    setSelectedNote("");
-    setTopicName("");
     setError("");
-    setNotes([]);
-    setQuizCompleted(false);
+    setSelectedSubject("");
+    setTopic("");
   };
 
-<<<<<<< HEAD
-  if (!token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-20 px-4">
-        <Card className="w-full max-w-lg">
-          <h1 className="text-3xl font-bold mb-6" style={{ color: "var(--action-primary)" }}>
-            🧠 AI Quiz Generator
-          </h1>
-          <div className="text-red-500 font-bold">
-            You must be logged in to take a quiz.
-          </div>
-        </Card>
-      </div>
-    );
+  if (loading) {
+    return <Loader fullScreen message="Generating your quiz..." />;
   }
 
-  if (!questions.length)
+  if (!quiz) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20 px-4">
-        <Card className="w-full max-w-lg">
-          <h1 className="text-3xl font-extrabold mb-8" style={{ color: "var(--action-primary)" }}>
-            🧠 AI Quiz Generator
+      <div className="min-h-screen w-full p-6">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-4xl font-extrabold mb-8" style={{ color: "var(--text-primary)" }}>
+            Ready to test your knowledge?
           </h1>
-          <SelectDropdown
-            label="Subject"
-            options={subjects}
-            value={selectedSubject}
-            onChange={setSelectedSubject}
-            optionLabel="name"
-            optionValue="_id"
-          />
-          <SelectDropdown
-            label="Note"
-            options={notes}
-            value={selectedNote}
-            onChange={setSelectedNote}
-            optionLabel="title"
-            optionValue="_id"
-            disabled={!selectedSubject || !notes.length}
-          />
-          
-          {/* Topic-based Quiz Generator */}
-          <div className="mb-6">
-            <label className="block mb-2 font-semibold" style={{ color: "var(--text-primary)" }}>
-              Or Enter Topic
-            </label>
-            <input
-              type="text"
-              placeholder="e.g., Binary Trees, React Hooks"
-              className="w-full px-4 py-3 rounded-xl font-medium border-2 focus:outline-none focus:ring-2 transition"
-              style={{
-                backgroundColor: "var(--bg-primary)",
-                borderColor: "var(--accent-secondary)",
-                color: "var(--text-primary)",
-              }}
-              value={topicName}
-              onChange={(e) => setTopicName(e.target.value)}
-              maxLength={64}
-              autoComplete="off"
-            />
-          </div>
+          <p className="mb-8 text-lg" style={{ color: "var(--text-secondary)" }}>
+            Choose how you want to generate your quiz
+          </p>
 
-          <Button
-            onClick={handleGenerateQuizByTopic}
-            disabled={loading || !topicName}
-            loading={loading}
-            fullWidth
-            className="mb-3"
-            variant="success"
-          >
-            Generate Quiz by Topic
-          </Button>
-          
-          <Button
-            onClick={handleGenerateQuiz}
-            disabled={loading || !selectedSubject || !selectedNote}
-            loading={loading}
-            fullWidth
-            variant="primary"
-          >
-            Generate Quiz from Note
-          </Button>
-          
           {error && (
-            <div className="mt-6 p-4 rounded-xl border-2" style={{ 
-              backgroundColor: "#fef2f2", 
-              borderColor: "#fca5a5",
-              color: "#dc2626" 
-            }}>
-              <p className="font-bold">{error}</p>
+            <div
+              className="mb-6 p-4 rounded-xl border-2 border-red-500 bg-red-50"
+              style={{ color: "#dc2626" }}
+            >
+              <strong>Error:</strong> {error}
             </div>
           )}
-        </Card>
-=======
-  // BLUR + GLASS
-  if (!token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#10101a] pt-20">
-        <div className="p-12 bg-[#18192f]/95 rounded-2xl shadow-2xl border border-blue-800/10 w-full max-w-lg">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-300 to-blue-400 bg-clip-text text-transparent mb-8">
-            AI Quiz Generator
-          </h1>
-          <div className="text-red-300 mt-4 font-bold">
-            You must be logged in to take a quiz.
-          </div>
+
+          <Card className="p-8">
+            <div className="flex justify-center gap-4 mb-8">
+              <Button
+                variant={generationMode === "subject" ? "primary" : "outline"}
+                onClick={() => {
+                  setGenerationMode("subject");
+                  setError("");
+                }}
+              >
+                Select Subject
+              </Button>
+              <Button
+                variant={generationMode === "topic" ? "primary" : "outline"}
+                onClick={() => {
+                  setGenerationMode("topic");
+                  setError("");
+                }}
+              >
+                Enter Topic
+              </Button>
+            </div>
+
+            <div className="max-w-md mx-auto space-y-6">
+              {generationMode === "subject" ? (
+                <>
+                  <SubjectSelect
+                    subjects={subjects}
+                    selectedSubject={selectedSubject}
+                    onChange={(value) => {
+                      setSelectedSubject(value);
+                      setError("");
+                    }}
+                  />
+                  {subjects.length === 0 && !error && (
+                    <p className="text-center text-sm" style={{ color: "var(--text-secondary)" }}>
+                      No subjects found. Try entering a custom topic instead.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Enter any topic (e.g., 'React Hooks', 'Thermodynamics')"
+                    value={topic}
+                    onChange={(e) => {
+                      setTopic(e.target.value);
+                      setError("");
+                    }}
+                    className="w-full px-5 py-3 rounded-xl border-2 font-medium focus:outline-none focus:ring-2"
+                    style={{
+                      backgroundColor: "var(--bg-primary)",
+                      borderColor: "var(--accent-secondary)",
+                      color: "var(--text-primary)",
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && topic.trim()) {
+                        handleStartQuiz();
+                      }
+                    }}
+                  />
+                </div>
+              )}
+
+              <Button
+                onClick={handleStartQuiz}
+                disabled={loading || (generationMode === "subject" ? !selectedSubject : !topic.trim())}
+                loading={loading}
+                fullWidth
+                size="large"
+              >
+                {loading ? "Generating Quiz..." : "Start Quiz"}
+              </Button>
+            </div>
+          </Card>
         </div>
       </div>
     );
   }
 
-  if (!questions.length)
+  if (showResults) {
+    const percentage = Math.round((score / quiz.questions.length) * 100);
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#10101a] pt-20 relative">
-        {/* Subtle glass blob */}
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-2/5 h-40 bg-gradient-to-r from-blue-500/10 to-transparent rounded-full blur-2xl opacity-10"></div>
-        <div className="p-12 bg-[#18192f]/95 rounded-2xl shadow-2xl border border-blue-800/10 w-full max-w-lg z-10">
-          <h1 className="text-3xl font-extrabold bg-gradient-to-r from-blue-300 to-blue-400 bg-clip-text text-transparent mb-8">
-            AI Quiz Generator
+      <div className="min-h-screen w-full p-6">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-4xl font-extrabold mb-8" style={{ color: "var(--text-primary)" }}>
+            Quiz Results
           </h1>
-          <SelectDropdown
-            label="Subject"
-            options={subjects}
-            value={selectedSubject}
-            onChange={setSelectedSubject}
-            optionLabel="name"
-            optionValue="_id"
-          />
-          <SelectDropdown
-            label="Note"
-            options={notes}
-            value={selectedNote}
-            onChange={setSelectedNote}
-            optionLabel="title"
-            optionValue="_id"
-            disabled={!selectedSubject || !notes.length}
-          />
-          {/* --- Topic-based Quiz Generator UI --- */}
-          <input
-            type="text"
-            placeholder="Or enter topic (e.g. Binary Trees)"
-            className="w-full px-5 py-3 mb-4 rounded-xl bg-[#18192f]/80 text-white font-medium placeholder-blue-200 border border-blue-400/20 focus:border-blue-400 focus:ring-2 focus:ring-blue-400 outline-none transition shadow"
-            value={topicName}
-            onChange={(e) => setTopicName(e.target.value)}
-            maxLength={64}
-            autoComplete="off"
-          />
-          <button
-            onClick={handleGenerateQuizByTopic}
-            className="bg-gradient-to-r from-emerald-500 via-blue-400 to-indigo-500 w-full py-3 rounded-xl text-white font-bold text-lg shadow-xl hover:scale-[1.03] transition focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed mb-2"
-            disabled={loading || !topicName}
-          >
-            {loading ? "Generating..." : "Generate Quiz by Topic"}
-          </button>
-          <button
-            onClick={handleGenerateQuiz}
-            className="bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 w-full py-3 rounded-xl text-white font-bold text-lg shadow-xl hover:scale-[1.03] transition focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60 disabled:cursor-not-allowed"
-            disabled={loading || !selectedSubject || !selectedNote}
-          >
-            {loading ? "Generating..." : "Generate Quiz from Note"}
-          </button>
-          {error && <div className="text-red-400 mt-4 font-bold">{error}</div>}
+
+          <Card className="text-center p-8">
+            <div
+              className="text-6xl font-extrabold mb-4"
+              style={{
+                color: percentage >= 70 ? "#10b981" : percentage >= 50 ? "#f59e0b" : "#ef4444"
+              }}
+            >
+              {percentage}%
+            </div>
+            <div className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
+              {score} / {quiz.questions.length} Correct
+            </div>
+            <p className="text-lg mb-8" style={{ color: "var(--text-secondary)" }}>
+              {percentage >= 70 ? "Excellent work! 🎉" : percentage >= 50 ? "Good effort! Keep it up! 👍" : "Keep practicing! You'll improve! 💪"}
+            </p>
+            <div className="flex gap-4">
+              <Button onClick={handleRestart} variant="primary" fullWidth>
+                Take Another Quiz
+              </Button>
+              <Button onClick={() => setShowResults(false)} variant="outline" fullWidth>
+                Review Answers
+              </Button>
+            </div>
+          </Card>
         </div>
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
       </div>
     );
+  }
 
-  if (quizCompleted)
-    return (
-<<<<<<< HEAD
-      <div className="min-h-screen flex items-center justify-center pt-20 px-4">
-        <QuizResult
-          score={score}
-          total={questions.length}
-          onRestart={handleRestart}
+  const question = quiz.questions[currentQuestion];
+  const answeredCount = Object.keys(selectedAnswers).length;
+
+  return (
+    <div className="min-h-screen w-full p-6">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-extrabold" style={{ color: "var(--text-primary)" }}>
+            Quiz
+          </h1>
+          <div style={{ color: "var(--text-secondary)" }}>
+            Question {currentQuestion + 1} of {quiz.questions.length}
+          </div>
+        </div>
+
+        <QuizItem
+          question={question.question || question.text}
+          options={question.options}
+          selectedAnswer={selectedAnswers[currentQuestion]}
+          correctAnswer={question.correctAnswer || question.answer}
+          onSelectAnswer={handleSelectAnswer}
+          showResult={showResults}
         />
-      </div>
-    );
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center pt-20 px-4 pb-10">
-=======
-      <QuizResult
-        score={score}
-        total={questions.length}
-        onRestart={handleRestart}
-      />
-    );
+        <Card className="mt-6 p-4">
+          <div className="flex justify-between items-center">
+            <Button
+              onClick={handlePrevious}
+              disabled={currentQuestion === 0}
+              variant="outline"
+            >
+              ← Previous
+            </Button>
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#10101a] pt-20 relative">
-      {/* Subtle glass blobs on left/right */}
-      <div className="absolute left-0 top-1/4 w-64 h-[180px] bg-gradient-to-tr from-blue-300/16 to-transparent rounded-full blur-2xl opacity-8"></div>
-      <div className="absolute right-0 bottom-10 w-72 h-36 bg-gradient-to-l from-blue-400/12 to-fuchsia-400/8 rounded-full blur-2xl opacity-7"></div>
+            {currentQuestion === quiz.questions.length - 1 ? (
+              <Button
+                onClick={handleSubmit}
+                variant="success"
+                disabled={Object.keys(selectedAnswers).length !== quiz.questions.length}
+              >
+                Submit Quiz ({answeredCount}/{quiz.questions.length})
+              </Button>
+            ) : (
+              <Button onClick={handleNext} variant="primary">
+                Next →
+              </Button>
+            )}
+          </div>
 
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-      <QuizItem
-        questionObj={questions[current]}
-        questionNumber={current}
-        total={questions.length}
-        onAnswer={handleAnswer}
-      />
-<<<<<<< HEAD
-      <div className="flex gap-4 mt-6">
-        <Button
-          variant="ghost"
-          disabled={current === 0}
-          onClick={() => setCurrent(current - 1)}
-        >
-          ← Previous
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={handleRestart}
-        >
-          🔄 Restart
-        </Button>
-        {current < questions.length - 1 && (
-          <Button
-            variant="primary"
-            onClick={() => setCurrent(current + 1)}
-          >
-            Next →
-          </Button>
-=======
-      <div className="flex gap-7 mt-8">
-        <button
-          className="bg-blue-800/20 border border-blue-400/20 rounded-lg px-6 py-2 font-bold text-blue-100 hover:bg-blue-800/40 transition"
-          disabled={current === 0}
-          onClick={() => setCurrent(current - 1)}
-        >
-          Previous
-        </button>
-        <button
-          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-10 py-2.5 rounded-xl font-bold shadow-xl hover:scale-[1.05] transition focus:outline-none"
-          onClick={handleRestart}
-        >
-          Restart
-        </button>
-        {current < questions.length - 1 && (
-          <button
-            className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-10 py-2.5 rounded-xl font-bold shadow-xl hover:scale-[1.05] transition focus:outline-none"
-            onClick={() => setCurrent(current + 1)}
-          >
-            Next
-          </button>
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-        )}
+          {/* Progress bar */}
+          <div className="mt-4">
+            <div className="flex justify-between text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
+              <span>Progress</span>
+              <span>{answeredCount}/{quiz.questions.length} answered</span>
+            </div>
+            <div className="w-full h-2 rounded-full" style={{ backgroundColor: "var(--bg-secondary)" }}>
+              <div
+                className="h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${((currentQuestion + 1) / quiz.questions.length) * 100}%`,
+                  background: `linear-gradient(to right, var(--action-primary), var(--accent-secondary))`,
+                }}
+              />
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );

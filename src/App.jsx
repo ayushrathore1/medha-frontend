@@ -1,10 +1,6 @@
 import React from "react";
-<<<<<<< HEAD
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-=======
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
 
 // Layout
 import MainLayout from "./components/Layout";
@@ -27,7 +23,6 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
 // Providers
-<<<<<<< HEAD
 import { AuthProvider } from "./AuthProvider";
 // ProtectedRoute
 import ProtectedRoute from "./ProtectedRoute";
@@ -121,97 +116,4 @@ const App = () => {
   );
 };
 
-=======
-
-import { AuthProvider } from "./AuthProvider";
-
-// ProtectedRoute
-import ProtectedRoute from "./ProtectedRoute";
-
-const App = () => (
- 
-    <AuthProvider>
-      <Router>
-        <Navbar />
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Welcome />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-
-          {/* Protected routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/chatbot"
-            element={
-              <ProtectedRoute>
-                <Chatbot />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/flashcards"
-            element={
-              <ProtectedRoute>
-                <Flashcards />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/quiz"
-            element={
-              <ProtectedRoute>
-                <Quiz />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/feedback"
-            element={
-              <ProtectedRoute>
-                <Feedback />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/notes"
-            element={
-              <ProtectedRoute>
-                <Notes />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/subjects"
-            element={
-              <ProtectedRoute>
-                <Subjects />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Catch-all 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
-    </AuthProvider>
-
-);
-
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
 export default App;

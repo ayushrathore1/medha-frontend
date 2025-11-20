@@ -1,95 +1,65 @@
-import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import Loader from "../components/Common/Loader";
-import { AuthContext } from "../AuthContext";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import Card from "../components/Common/Card";
+import Button from "../components/Common/Button";
 import LoginForm from "../components/Auth/LoginForm";
-
-const loginApi = async (email, password) => {
-  const response = await fetch(
-    `${import.meta.env.VITE_BACKEND_URL}/api/auth/login`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    }
-  );
-  const data = await response.json();
-  if (!response.ok)
-    throw new Error(data.message || "Invalid email or password");
-  return data;
-};
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
 
-  const handleLogin = async (email, password) => {
+  const handleLogin = async ({ email, password }) => {
     setLoading(true);
-    setErrorMsg("");
+    setError("");
+    
     try {
-      const userData = await loginApi(email, password);
-      localStorage.setItem("token", userData.token);
-      login(userData);
-      setLoading(false);
-      navigate("/dashboard");
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        navigate("/dashboard");
+      } else {
+        setError(data.message || "Login failed");
+      }
     } catch (err) {
+      setError("Network error. Please try again.");
+    } finally {
       setLoading(false);
-      setErrorMsg(err.message);
     }
   };
 
   return (
-<<<<<<< HEAD
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
-      {/* Background is handled by MainLayout or global styles usually. 
-          If this page is standalone, we might need a background wrapper.
-          Assuming MainLayout wraps App, but Login might be a separate route.
-          If Login is inside MainLayout, we are good.
-          If not, we can add a simple background here or assume global body background.
-      */}
-      <div className="w-full flex flex-col items-center justify-center pt-24 px-6 z-10">
-        <div className="max-w-md w-full">
-          <LoginForm onLogin={handleLogin} errorMsg={errorMsg} loading={loading} />
-=======
-    <div className="min-h-screen flex flex-col items-center justify-center relative bg-[#0a0a0a] font-inter overflow-hidden">
-      {/* Ambient glass gradient blobs */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/3 w-2/6 h-72 bg-gradient-to-br from-violet-500/30 to-blue-400/15 rounded-full blur-2xl opacity-35 animate-blob"></div>
-        <div className="absolute bottom-0 right-1/4 w-1/3 h-60 bg-gradient-to-l from-blue-400/25 to-fuchsia-400/12 rounded-full blur-2xl opacity-30 animate-blob animation-delay-2000"></div>
-        <style>{`
-          @keyframes blob {
-            0% { transform: scale(1) translate(0,0);}
-            33% { transform: scale(1.08) translate(34px,-20px);}
-            66% { transform: scale(0.93) translate(-16px,15px);}
-            100% { transform: scale(1) translate(0,0);}
-          }
-          .animate-blob { animation: blob 14s infinite; }
-          .animation-delay-2000 { animation-delay: 2s; }
-        `}</style>
-      </div>
+    <div className="min-h-screen w-full flex items-center justify-center px-4">
+      <Card className="max-w-md w-full">
+        <h2 className="text-3xl font-extrabold text-center mb-2 tracking-tight" style={{ color: "var(--action-primary)" }}>
+          Welcome Back
+        </h2>
+        <p className="text-center mb-8" style={{ color: "var(--text-secondary)" }}>
+          Sign in to continue to MEDHA
+        </p>
 
-      {/* Main content */}
-      <div className="w-full flex flex-col items-center justify-center pt-24 px-6 z-10">
-        <div className="max-w-md w-full">
-          <LoginForm onLogin={handleLogin} errorMsg={errorMsg} />
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
-        </div>
-        {loading && <Loader fullScreen />}
-      </div>
-<<<<<<< HEAD
-=======
+        <LoginForm onSubmit={handleLogin} loading={loading} error={error} />
 
-      {/* Loading overlay */}
-      {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-          <Loader size={10} colorClass="border-violet-500" />
+        <div className="mt-6 text-center space-y-3">
+          <Link to="/forgot-password" className="block font-medium" style={{ color: "var(--action-primary)" }}>
+            Forgot your password?
+          </Link>
+          <div style={{ color: "var(--text-secondary)" }}>
+            Don't have an account?{" "}
+            <Link to="/register" className="font-semibold" style={{ color: "var(--action-primary)" }}>
+              Sign up
+            </Link>
+          </div>
         </div>
-      )}
->>>>>>> 955bdb36399c7acde998407e68198e6f31b0151e
+      </Card>
     </div>
   );
 };
