@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import LoginForm from "../components/Auth/LoginForm";
+import { AuthContext } from "../AuthContext";
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleLogin = async ({ email, password }) => {
     setLoading(true);
@@ -25,6 +27,7 @@ const Login = () => {
       if (response.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
+        login(data.user);
         navigate("/dashboard");
       } else {
         setError(data.message || "Login failed");
