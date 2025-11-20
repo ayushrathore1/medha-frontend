@@ -2,44 +2,55 @@ import React, { useState } from "react";
 
 const QuizItem = ({ questionObj, questionNumber, total, onAnswer }) => {
   const [selected, setSelected] = useState(null);
-  const [answered, setAnswered] = useState(false);
 
-  const handleSelect = (option, idx) => {
-    if (answered) return;
+  const handleSelect = (idx) => {
     setSelected(idx);
-    setAnswered(true);
     setTimeout(() => {
-      onAnswer(idx, idx === questionObj.correctOption);
+      onAnswer(idx);
       setSelected(null);
-      setAnswered(false);
-    }, 800); // Delay before moving to next question
+    }, 500);
   };
 
   return (
-    <div className="bg-white max-w-xl w-full mx-auto rounded-xl shadow-lg p-8 mb-4">
-      <div className="mb-4 text-blue-600 font-semibold">
-        Question {questionNumber + 1} of {total}
+    <div className="bg-[#18163a]/90 backdrop-blur-2xl border border-violet-500/15 max-w-xl w-full mx-auto rounded-3xl shadow-2xl p-8 mb-8 transition font-inter">
+      <div className="mb-4">
+        <span className="text-xs font-bold uppercase tracking-wide bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">
+          Question {questionNumber + 1}
+        </span>
+        <span className="text-xs ml-2 text-violet-300">of {total}</span>
       </div>
-      <h3 className="text-lg font-bold text-blue-800 mb-3">
+      <h3 className="text-xl font-bold text-white mb-7">
         {questionObj.question}
       </h3>
-      <div className="flex flex-col gap-2">
-        {questionObj.options.map((option, idx) => (
+      <div className="flex flex-col gap-4">
+        {["A", "B", "C", "D"].map((opt, idx) => (
           <button
-            key={idx}
-            className={`text-left border px-4 py-2 rounded-lg
-                ${
-                  selected === idx
-                    ? idx === questionObj.correctOption
-                      ? "bg-green-400 text-white border-green-500"
-                      : "bg-red-500 text-white border-red-500"
-                    : "bg-blue-50 text-blue-900 border-blue-200 hover:bg-blue-100"
-                }
-                font-medium transition`}
-            disabled={answered}
-            onClick={() => handleSelect(option, idx)}
+            key={opt}
+            className={`border px-5 py-3 rounded-xl font-semibold shadow transition text-left text-base relative
+              ${
+                selected !== null
+                  ? idx === selected
+                    ? idx === ["A", "B", "C", "D"].indexOf(questionObj.answer)
+                      ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white border-emerald-400 shadow-lg animate-pulse"
+                      : "bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500 shadow-lg animate-pulse"
+                    : "bg-white/10 text-violet-300 border-violet-400/30 opacity-70"
+                  : "bg-white/10 text-white border-violet-400/20 hover:scale-[1.03] hover:bg-gradient-to-r hover:from-violet-600/10 hover:to-blue-400/10 shadow hover:text-blue-200"
+              }`}
+            disabled={selected !== null}
+            onClick={() => handleSelect(idx)}
           >
-            {option}
+            <b className="mr-3 text-xl">{opt}.</b>
+            <span>{questionObj.options[opt]}</span>
+            {/* Active underline for correct/incorrect */}
+            {selected !== null && idx === selected && (
+              <span
+                className={`absolute left-0 right-0 bottom-1 h-1 rounded-xl ${
+                  idx === ["A", "B", "C", "D"].indexOf(questionObj.answer)
+                    ? "bg-gradient-to-r from-emerald-400 to-blue-400"
+                    : "bg-gradient-to-r from-red-400 to-pink-400"
+                } opacity-80`}
+              />
+            )}
           </button>
         ))}
       </div>

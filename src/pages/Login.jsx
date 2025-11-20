@@ -1,10 +1,9 @@
 import React, { useState, useContext } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import LoginForm from "../components/Auth/LoginForm";
+import { useNavigate } from "react-router-dom";
 import Loader from "../components/Common/Loader";
-import { AuthContext } from "../AuthContext"; // adjust path as needed
+import { AuthContext } from "../AuthContext";
+import LoginForm from "../components/Auth/LoginForm";
 
-// Call backend login
 const loginApi = async (email, password) => {
   const response = await fetch(
     `${import.meta.env.VITE_BACKEND_URL}/api/auth/login`,
@@ -16,64 +15,47 @@ const loginApi = async (email, password) => {
       body: JSON.stringify({ email, password }),
     }
   );
-
   const data = await response.json();
-  if (!response.ok) {
+  if (!response.ok)
     throw new Error(data.message || "Invalid email or password");
-  }
-  // You may want to return the token/userData for further use
   return data;
 };
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext); // <-- use context function
+  const { login } = useContext(AuthContext);
 
   const handleLogin = async (email, password) => {
     setLoading(true);
+    setErrorMsg("");
     try {
       const userData = await loginApi(email, password);
-      localStorage.setItem("token", userData.token); // Optionally save token if needed
-      // IMPORTANT: Call AuthContext login to set user and trigger reactivity
-      login(userData); // <-- This makes ProtectedRoute/app reactively know user is logged in
+      localStorage.setItem("token", userData.token);
+      login(userData);
       setLoading(false);
       navigate("/dashboard");
     } catch (err) {
       setLoading(false);
-      throw err; // Show error in LoginForm
+      setErrorMsg(err.message);
     }
   };
 
   return (
-    <div
-      className="pt-20 px-4 sm:px-12 min-h-screen flex flex-col items-center justify-center relative"
-      style={{
-        backgroundImage: `url(https://ik.imagekit.io/ayushrathore1/login-bg.png?updatedAt=1758343971513)`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      {/* Background overlay for better form readability */}
-      <div className="absolute inset-0 bg-blue-50 bg-opacity-90"></div>
-      <div className="max-w-md w-full relative z-10">
-        <LoginForm onLogin={handleLogin} />
-        <div className="mt-4 text-center text-blue-800 text-sm">
-          Don&apos;t have an account?{" "}
-          <Link
-            to="/register"
-            className="font-semibold text-blue-600 hover:underline"
-          >
-            Sign up here
-          </Link>
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+      {/* Background is handled by MainLayout or global styles usually. 
+          If this page is standalone, we might need a background wrapper.
+          Assuming MainLayout wraps App, but Login might be a separate route.
+          If Login is inside MainLayout, we are good.
+          If not, we can add a simple background here or assume global body background.
+      */}
+      <div className="w-full flex flex-col items-center justify-center pt-24 px-6 z-10">
+        <div className="max-w-md w-full">
+          <LoginForm onLogin={handleLogin} errorMsg={errorMsg} loading={loading} />
         </div>
+        {loading && <Loader fullScreen />}
       </div>
-      {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
-          <Loader size={8} />
-        </div>
-      )}
     </div>
   );
 };

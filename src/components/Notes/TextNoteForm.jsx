@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import Button from "../Common/Button";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = `${import.meta.env.VITE_BACKEND_URL}`;
 
 const TextNoteForm = ({ subjectId, onNoteCreated, token }) => {
   const [title, setTitle] = useState("");
@@ -36,16 +37,24 @@ const TextNoteForm = ({ subjectId, onNoteCreated, token }) => {
   };
 
   return (
-    <form onSubmit={handleSave} className="space-y-4">
+    <form
+      onSubmit={handleSave}
+      className="space-y-5"
+    >
       {/* Title Input */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-slate-600">
+        <label className="block text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
           Note Title (Optional)
         </label>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full px-4 py-3 bg-white/80 border-2 border-slate-200 rounded-xl text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 hover:border-slate-300 shadow-sm"
+          className="w-full px-4 py-3 border-2 rounded-xl font-medium focus:outline-none focus:ring-2 transition-all duration-200 shadow-sm"
+          style={{
+            backgroundColor: "var(--bg-primary)",
+            borderColor: "var(--accent-secondary)",
+            color: "var(--text-primary)",
+          }}
           placeholder="Enter a descriptive title..."
           type="text"
         />
@@ -53,14 +62,19 @@ const TextNoteForm = ({ subjectId, onNoteCreated, token }) => {
 
       {/* Content Textarea */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-slate-600">
+        <label className="block text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
           Note Content <span className="text-red-500">*</span>
         </label>
         <div className="relative">
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full px-4 py-3 bg-white/80 border-2 border-slate-200 rounded-xl text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all duration-200 hover:border-slate-300 shadow-sm resize-y min-h-[140px] leading-relaxed"
+            className="w-full px-4 py-3 border-2 rounded-xl font-medium focus:outline-none focus:ring-2 transition-all duration-200 shadow-sm resize-y min-h-[140px] leading-relaxed"
+            style={{
+              backgroundColor: "var(--bg-primary)",
+              borderColor: "var(--accent-secondary)",
+              color: "var(--text-primary)",
+            }}
             placeholder="Start typing your note here... 
 
 You can paste content from anywhere or write directly. This supports:
@@ -71,92 +85,82 @@ You can paste content from anywhere or write directly. This supports:
             required
             rows={6}
           />
-
           {/* Character Counter */}
-          <div className="absolute bottom-3 right-3 text-xs text-slate-400 bg-white/80 px-2 py-1 rounded-md">
-            {content.length} characters
+          <div 
+            className="absolute bottom-3 right-3 text-xs px-2 py-1 rounded-xl shadow-sm"
+            style={{ 
+              backgroundColor: "var(--bg-secondary)",
+              color: "var(--text-secondary)"
+            }}
+          >
+            {content.length} chars
           </div>
         </div>
-
         {/* Helper Text */}
-        <p className="text-xs text-slate-500 flex items-center">
+        <p className="text-xs flex items-center" style={{ color: "var(--text-secondary)" }}>
           <span className="mr-1">💡</span>
-          Tip: You can paste content directly from documents, websites, or other
-          sources
+          Tip: Paste from docs/sites, or write new notes here.
         </p>
       </div>
 
       {/* Action Buttons */}
       <div className="flex items-center justify-between pt-2">
-        <div className="flex items-center space-x-2 text-xs text-slate-500">
+        <div className="flex items-center space-x-2 text-xs font-medium">
           {!subjectId && (
-            <span className="flex items-center text-amber-600">
+            <span className="flex items-center text-amber-500 font-bold">
               <span className="mr-1">⚠️</span>
               Select a subject first
             </span>
           )}
           {content.trim() && (
-            <span className="flex items-center text-green-600">
+            <span className="flex items-center text-emerald-500 font-bold">
               <span className="mr-1">✓</span>
               Ready to save
             </span>
           )}
         </div>
-
         <div className="flex space-x-3">
-          {/* Clear Button */}
           {(title || content) && (
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={() => {
                 setTitle("");
                 setContent("");
               }}
-              className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 border border-slate-200 rounded-lg hover:bg-slate-200 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-1 transition-all duration-200"
               disabled={saving}
             >
               Clear
-            </button>
+            </Button>
           )}
-
           {/* Save Button */}
-          <button
+          <Button
             type="submit"
             disabled={saving || !content.trim() || !subjectId}
-            className="relative px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-lg flex items-center space-x-2 min-w-[140px] justify-center"
+            loading={saving}
+            icon={<span>💾</span>}
           >
-            {saving ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Saving...</span>
-              </>
-            ) : (
-              <>
-                <span>💾</span>
-                <span>Save Note</span>
-              </>
-            )}
-          </button>
+            Save Note
+          </Button>
         </div>
       </div>
 
       {/* Form Status Indicators */}
-      <div className="flex items-center justify-between text-xs">
-        <div className="flex items-center space-x-4 text-slate-500">
-          <span className="flex items-center">
+      <div className="flex items-center justify-between text-xs" style={{ color: "var(--text-secondary)" }}>
+        <div className="flex items-center gap-5">
+          <span className="flex items-center font-semibold">
             <span className="mr-1">📝</span>
             Text Note
           </span>
           {title && (
-            <span className="flex items-center">
+            <span className="flex items-center font-semibold">
               <span className="mr-1">🏷️</span>
               Has Title
             </span>
           )}
         </div>
-
         {content.length > 1000 && (
-          <span className="text-blue-600 flex items-center">
+          <span className="flex items-center font-semibold">
             <span className="mr-1">📄</span>
             Long Note ({Math.ceil(content.length / 1000)}k+ chars)
           </span>

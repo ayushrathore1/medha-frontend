@@ -1,6 +1,6 @@
-
-import React, { useState } from "react";
+import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const navItems = [
   { path: "/dashboard", label: "Dashboard" },
@@ -11,177 +11,131 @@ const navItems = [
   { path: "/feedback", label: "Feedback" },
 ];
 
+const linkVariants = {
+  inactive: { scale: 1, color: "var(--text-secondary)" },
+  hover: {
+    scale: 1.07,
+    color: "var(--action-primary)",
+    transition: { type: "spring", stiffness: 320 },
+  },
+  active: {
+    scale: 1.12,
+    color: "var(--action-primary)",
+    transition: { type: "spring", stiffness: 320 },
+  },
+};
+
+const underlineVariants = {
+  hidden: { scaleX: 0 },
+  visible: { scaleX: 1, transition: { type: "spring", stiffness: 230 } },
+};
+
 const Navbar = ({ user, onLogout }) => {
-  const [menuOpen, setMenuOpen] = useState(false);
+
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
     navigate("/");
-    setMenuOpen(false);
+
   };
 
   const handleProfileClick = () => {
     navigate("/profile");
-    setMenuOpen(false);
+
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-30 backdrop-blur-md bg-white bg-opacity-70 border-b border-blue-100 shadow transition-all">
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 flex items-center justify-between h-16 relative">
+    <motion.nav
+      initial={{ y: -32, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
+      className="fixed top-0 left-0 w-full z-30 backdrop-blur-xl bg-[var(--bg-primary)]/80 border-b border-[var(--accent-secondary)]/20 shadow-sm transition-all"
+    >
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between h-16 relative">
         {/* Logo Section */}
         <div
-          className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity"
+          className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
           onClick={handleLogoClick}
         >
           <img
             src="https://ik.imagekit.io/ayushrathore1/logo.png?updatedAt=1758343718570"
             alt="MEDHA logo"
-            className="w-9 h-9 sm:w-10 sm:h-10 mr-2 rounded-lg shadow-sm bg-white"
+            className="w-10 h-10 rounded-xl shadow-md bg-white"
             draggable="false"
           />
-          <span className="text-lg sm:text-xl font-extrabold text-blue-700 tracking-tight">
+          <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-[var(--action-primary)] via-[var(--accent-secondary)] to-[var(--accent-primary)] bg-clip-text text-transparent">
             MEDHA
           </span>
         </div>
 
-        {/* Desktop Nav */}
-        <div className="hidden md:flex gap-2 lg:gap-5 items-center">
+        {/* Desktop Nav with animated underline */}
+        <div className="hidden md:flex gap-2 lg:gap-7 items-center">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              className={({ isActive }) =>
-                `font-medium px-2 py-1 rounded-lg transition-all duration-150 ${
-                  isActive
-                    ? "bg-gradient-to-r from-blue-100 to-blue-200 shadow text-blue-700 font-semibold"
-                    : "text-blue-900/80 hover:bg-blue-50 hover:text-blue-700"
-                }`
-              }
+              style={{ position: "relative", display: "inline-block" }}
+              className="font-medium px-4 py-2 rounded-xl transition-all duration-200"
             >
-              {item.label}
+              {({ isActive }) => (
+                <motion.span
+                  initial="inactive"
+                  animate={isActive ? "active" : "inactive"}
+                  whileHover="hover"
+                  variants={linkVariants}
+                  className="relative block"
+                >
+                  {item.label}
+                  {isActive && (
+                    <motion.span
+                      initial="hidden"
+                      animate="visible"
+                      exit="hidden"
+                      variants={underlineVariants}
+                      className="absolute left-0 right-0 -bottom-2 h-1 bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)] rounded-xl shadow"
+                    />
+                  )}
+                </motion.span>
+              )}
             </NavLink>
           ))}
-          {/* Profile & Logout */}
+
+          {/* Profile avatar */}
           <button
             onClick={handleProfileClick}
-            className="ml-1 flex items-center justify-center h-10 w-10 rounded-full border border-blue-200 bg-blue-50 hover:bg-blue-200 shadow transition"
+            className="ml-2 h-11 w-11 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 hover:bg-white/80 shadow-sm transition overflow-hidden flex items-center justify-center"
             title="Profile"
           >
-            <img
-              alt="Profile"
-              src="https://ik.imagekit.io/ayushrathore1/user.png?updatedAt=1758550298840"
-              className="h-8 w-8 rounded-full object-cover"
-              onError={(e) => {
-                e.target.src =
-                  "https://ik.imagekit.io/ayushrathore1/profile_default.png";
-              }}
-            />
+            {user?.avatar || user?.profilePic ? (
+              <img
+                alt="Profile"
+                src={user.avatar || user.profilePic}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src =
+                    "https://ik.imagekit.io/ayushrathore1/image(1).png?updatedAt=1761828486524";
+                }}
+                draggable="false"
+              />
+            ) : (
+              <div className="h-full w-full rounded-full flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-[var(--action-primary)] to-[var(--accent-secondary)]">
+                {user?.name?.[0]?.toUpperCase() || "U"}
+              </div>
+            )}
           </button>
+
           {user && (
             <button
               onClick={onLogout}
-              className="ml-2 bg-blue-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-blue-700 transition-shadow shadow"
+              className="ml-3 bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-secondary)] text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg hover:opacity-90 transition-all shadow-md"
             >
               Logout
             </button>
           )}
         </div>
-
-        {/* Mobile Hamburger */}
-        <button
-          className="md:hidden flex items-center justify-center p-2 rounded-lg border border-blue-100 hover:bg-blue-50"
-          onClick={() => setMenuOpen((o) => !o)}
-        >
-          <span className="sr-only">Open Menu</span>
-          <svg
-            className="w-7 h-7 text-blue-700"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
-
-        {/* Mobile Drawer */}
-        {menuOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm flex flex-col md:hidden"
-            onClick={() => setMenuOpen(false)}
-          >
-            <div
-              className="w-4/5 max-w-xs bg-white h-full shadow-2xl flex flex-col pt-6 pb-4 px-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setMenuOpen(false)}
-                className="self-end mb-5 p-1 rounded hover:bg-blue-50"
-              >
-                <span className="sr-only">Close menu</span>
-                <svg
-                  className="w-8 h-8 text-blue-700"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `block font-medium text-lg px-3 py-2 rounded-lg mb-1 ${
-                      isActive
-                        ? "bg-gradient-to-r from-blue-100 to-blue-200 shadow text-blue-700 font-semibold"
-                        : "text-blue-900/90 hover:bg-blue-50 hover:text-blue-700"
-                    }`
-                  }
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-              {/* Profile & Logout */}
-              <div className="mt-4 flex items-center gap-3">
-                <button
-                  onClick={handleProfileClick}
-                  className="flex items-center justify-center h-10 w-10 rounded-full border border-blue-200 bg-blue-50 hover:bg-blue-200 shadow transition"
-                  title="Profile"
-                >
-                  <img
-                    alt="Profile"
-                    src="https://ik.imagekit.io/ayushrathore1/user.png?updatedAt=1758550298840"
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                </button>
-                {user && (
-                  <button
-                    onClick={onLogout}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-shadow shadow"
-                  >
-                    Logout
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-      {/* Subtle shadow */}
-      <div className="absolute left-0 right-0 bottom-0 h-1 bg-gradient-to-r from-blue-100 via-transparent to-blue-100 opacity-80 pointer-events-none" />
-    </nav>
+    </motion.nav>
   );
 };
 

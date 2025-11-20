@@ -7,10 +7,14 @@ import {
   generateAIFlashcards,
   updateFlashcard,
   deleteFlashcard,
-  createSubject, // <-- make sure this exists in api.js
-  createNote, // <-- same for notes
+  createSubject,
+  createNote,
 } from "../api/api";
 import FlashcardList from "../components/Flashcards/FlashcardList";
+import Card from "../components/Common/Card";
+import Button from "../components/Common/Button";
+import Loader from "../components/Common/Loader";
+import { Plus, Sparkles } from "lucide-react";
 
 const Flashcards = () => {
   const [subjects, setSubjects] = useState([]);
@@ -30,7 +34,6 @@ const Flashcards = () => {
   const [newNote, setNewNote] = useState({ title: "", content: "" });
   const [loading, setLoading] = useState(false);
 
-  // Fetch subjects on mount
   useEffect(() => {
     (async () => {
       try {
@@ -42,7 +45,6 @@ const Flashcards = () => {
     })();
   }, []);
 
-  // Fetch notes when subject changes
   useEffect(() => {
     if (selectedSubject) {
       (async () => {
@@ -62,7 +64,6 @@ const Flashcards = () => {
     }
   }, [selectedSubject]);
 
-  // Fetch flashcards when note changes
   useEffect(() => {
     if (selectedNote) {
       (async () => {
@@ -80,7 +81,6 @@ const Flashcards = () => {
     }
   }, [selectedNote]);
 
-  // Manual create flashcard
   const handleManualCreate = useCallback(
     async (e) => {
       e.preventDefault();
@@ -106,7 +106,6 @@ const Flashcards = () => {
     [manualCard, selectedNote, selectedSubject, subjects]
   );
 
-  // Handle AI generate flashcards
   const handleAIGenerate = useCallback(async () => {
     setLoading(true);
     try {
@@ -118,7 +117,6 @@ const Flashcards = () => {
     }
   }, [selectedNote]);
 
-  // Handle flashcard update
   const handleUpdate = useCallback(
     async (id, question, answer, subject) => {
       setLoading(true);
@@ -133,7 +131,6 @@ const Flashcards = () => {
     [selectedNote]
   );
 
-  // Handle flashcard delete
   const handleDelete = useCallback(
     async (id) => {
       setLoading(true);
@@ -148,7 +145,6 @@ const Flashcards = () => {
     [selectedNote]
   );
 
-  // Create subject handler
   const handleCreateSubject = useCallback(
     async (e) => {
       e.preventDefault();
@@ -169,7 +165,6 @@ const Flashcards = () => {
     [newSubject]
   );
 
-  // Create note handler
   const handleCreateNote = useCallback(
     async (e) => {
       e.preventDefault();
@@ -192,20 +187,30 @@ const Flashcards = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex flex-col items-center pb-16 relative">
-      {/* Spacer for sticky header */}
-      <div style={{ height: "80px" }} />
+    <div className="min-h-screen pt-20 pb-16 px-4">
+      <div className="w-full max-w-4xl mx-auto">
+        {/* Header */}
+        <Card className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+                🎴 Flashcards
+              </h1>
+              <p style={{ color: "var(--text-secondary)" }}>
+                Study smarter with AI-generated flashcards
+              </p>
+            </div>
+          </div>
+        </Card>
 
-      {/* Main Card Section */}
-      <div className="w-full max-w-4xl mx-auto px-4 py-4">
-        {/* Onboarding UI if no data */}
+        {/* Onboarding UI */}
         {(!subjects.length || !notes.length) && (
-          <div className="flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm rounded-2xl p-10 mt-6 border border-blue-200 shadow-lg">
+          <Card className="text-center mb-8">
             <div className="text-7xl mb-4">🎴</div>
-            <h3 className="text-2xl font-bold text-blue-700 mb-2">
+            <h3 className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
               Get Started
             </h3>
-            <p className="text-blue-700 mb-2 text-center">
+            <p className="mb-6" style={{ color: "var(--text-secondary)" }}>
               Welcome to your Flashcards dashboard!
               <br />
               Start by creating a subject and adding your first note.
@@ -213,108 +218,123 @@ const Flashcards = () => {
               Once you have notes, you can create flashcards manually or let AI
               generate them!
             </p>
-            <div className="flex gap-4 mt-5">
-              <button
+            <div className="flex gap-4 justify-center">
+              <Button
                 onClick={() => setShowSubjectModal(true)}
-                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-bold shadow"
+                icon={<Plus size={20} />}
               >
-                + Add New Subject
-              </button>
+                Add New Subject
+              </Button>
               {subjects.length > 0 && (
-                <button
+                <Button
                   onClick={() => setShowNoteModal(true)}
-                  className="px-5 py-2 bg-purple-600 hover:bg-purple-700 rounded-xl text-white font-bold shadow"
                   disabled={!selectedSubject}
+                  variant="secondary"
+                  icon={<Plus size={20} />}
                 >
-                  + Add New Note
-                </button>
+                  Add New Note
+                </Button>
               )}
             </div>
-          </div>
+          </Card>
         )}
 
-        {/* Subject and Note Pickers */}
-        <div className="flex flex-col md:flex-row gap-6 mt-8 mb-6 justify-center items-center">
-          <div className="flex flex-col">
-            <label className="font-semibold mb-1 text-blue-800">
-              Select Subject
-            </label>
-            <div className="flex gap-2">
-              <select
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                value={selectedSubject}
-                className="px-4 py-2 rounded-xl bg-blue-100 text-blue-800 border border-blue-200 focus:ring-2 focus:ring-blue-300 font-medium"
-              >
-                <option value="">Choose Subject</option>
-                {subjects.map((s) => (
-                  <option key={s._id} value={s._id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={() => setShowSubjectModal(true)}
-                className="px-4 bg-green-100 text-green-900 font-semibold rounded-xl border border-green-200 hover:bg-green-200 transition shadow"
-              >
-                + Add
-              </button>
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <label className="font-semibold mb-1 text-blue-800">
-              Select Note
-            </label>
-            <div className="flex gap-2">
-              <select
-                onChange={(e) => setSelectedNote(e.target.value)}
-                value={selectedNote}
-                disabled={!selectedSubject}
-                className="px-4 py-2 rounded-xl bg-purple-100 text-purple-800 border border-purple-200 focus:ring-2 focus:ring-purple-300 font-medium"
-              >
-                <option value="">Choose Note</option>
-                {notes.map((n) => (
-                  <option key={n._id} value={n._id}>
-                    {n.title}
-                  </option>
-                ))}
-              </select>
-              {selectedSubject && (
-                <button
-                  onClick={() => setShowNoteModal(true)}
-                  className="px-4 bg-indigo-900 text-white font-semibold rounded-xl border border-indigo-200 hover:bg-indigo-200 transition shadow"
+        {/* Subject / Note Pickers */}
+        <Card className="mb-8">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1">
+              <label className="block font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
+                Select Subject
+              </label>
+              <div className="flex gap-3">
+                <select
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                  value={selectedSubject}
+                  className="flex-1 px-4 py-2 rounded-xl font-medium border-2 focus:outline-none focus:ring-2 transition"
+                  style={{
+                    backgroundColor: "var(--bg-primary)",
+                    borderColor: "var(--accent-secondary)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  <option value="">Choose Subject</option>
+                  {subjects.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  onClick={() => setShowSubjectModal(true)}
+                  variant="success"
+                  size="small"
                 >
                   + Add
-                </button>
-              )}
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1">
+              <label className="block font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
+                Select Note
+              </label>
+              <div className="flex gap-3">
+                <select
+                  onChange={(e) => setSelectedNote(e.target.value)}
+                  value={selectedNote}
+                  disabled={!selectedSubject}
+                  className="flex-1 px-4 py-2 rounded-xl font-medium border-2 focus:outline-none focus:ring-2 transition disabled:opacity-50"
+                  style={{
+                    backgroundColor: "var(--bg-primary)",
+                    borderColor: "var(--accent-secondary)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  <option value="">Choose Note</option>
+                  {notes.map((n) => (
+                    <option key={n._id} value={n._id}>
+                      {n.title}
+                    </option>
+                  ))}
+                </select>
+                {selectedSubject && (
+                  <Button
+                    onClick={() => setShowNoteModal(true)}
+                    variant="primary"
+                    size="small"
+                  >
+                    + Add
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        </Card>
 
-        {/* Create/Generate buttons */}
-        <div className="flex flex-col md:flex-row gap-4 justify-center items-center mb-10">
-          <button
+        {/* Create/Generate Buttons */}
+        <div className="flex flex-col md:flex-row gap-4 justify-center mb-10">
+          <Button
             onClick={() => setShowManualModal(true)}
             disabled={!selectedNote}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-semibold shadow-lg transition"
+            icon={<span>✍️</span>}
+            size="large"
           >
-            ✍️ Create Flashcard Manually
-          </button>
-          <button
+            Create Flashcard Manually
+          </Button>
+          <Button
             onClick={handleAIGenerate}
             disabled={!selectedNote}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-800 rounded-xl text-white font-semibold shadow-lg transition"
+            variant="secondary"
+            icon={<Sparkles size={20} />}
+            size="large"
           >
-            🤖 Generate AI Flashcards
-          </button>
+            Generate AI Flashcards
+          </Button>
         </div>
 
         {/* Flashcard List or Loader */}
         <div className="w-full flex justify-center items-center">
           {loading ? (
-            <div className="flex flex-col items-center space-y-4 text-blue-700 font-semibold mt-8">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <p>Loading...</p>
-            </div>
+            <Loader />
           ) : selectedNote ? (
             <div className="w-full">
               <FlashcardList
@@ -324,165 +344,188 @@ const Flashcards = () => {
               />
             </div>
           ) : (
-            <div className="text-blue-600 text-lg mt-8 text-center">
-              Select a note to view its flashcards.
-            </div>
+            <Card className="text-center">
+              <p style={{ color: "var(--text-secondary)" }}>
+                Select a note to view its flashcards.
+              </p>
+            </Card>
           )}
         </div>
       </div>
 
-      {/* Create Subject Modal */}
+      {/* Modals */}
       {showSubjectModal && (
-        <div className="fixed inset-0 z-30 bg-black/30 flex items-center justify-center">
-          <form
-            className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full"
-            onSubmit={handleCreateSubject}
-          >
-            <h3 className="text-2xl text-blue-700 mb-4 font-bold">
-              Create New Subject
-            </h3>
-            <input
-              type="text"
-              placeholder="Subject Name"
-              value={newSubject.name}
-              onChange={(e) =>
-                setNewSubject({ ...newSubject, name: e.target.value })
-              }
-              className="mb-3 px-4 py-2 w-full bg-blue-50 text-blue-900 rounded border border-blue-200"
-              required
-            />
-            <input
-              type="text"
-              placeholder="Description"
-              value={newSubject.description}
-              onChange={(e) =>
-                setNewSubject({ ...newSubject, description: e.target.value })
-              }
-              className="mb-3 px-4 py-2 w-full bg-blue-50 text-blue-900 rounded border border-blue-200"
-            />
-            <div className="flex justify-end gap-2 mt-3">
-              <button
-                type="submit"
-                className="bg-blue-600 px-4 py-2 rounded text-white font-bold"
-              >
-                Create
-              </button>
-              <button
-                type="button"
-                className="bg-gray-400 px-4 py-2 rounded text-white"
-                onClick={() => setShowSubjectModal(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+        <div className="fixed inset-0 z-30 bg-black/40 flex items-center justify-center p-4">
+          <Card className="max-w-sm w-full">
+            <form onSubmit={handleCreateSubject}>
+              <h3 className="text-2xl font-bold mb-4" style={{ color: "var(--action-primary)" }}>
+                Create New Subject
+              </h3>
+              <input
+                type="text"
+                placeholder="Subject Name"
+                value={newSubject.name}
+                onChange={(e) =>
+                  setNewSubject({ ...newSubject, name: e.target.value })
+                }
+                className="mb-3 px-4 py-2 w-full rounded-xl border-2 focus:outline-none focus:ring-2 transition"
+                style={{
+                  backgroundColor: "var(--bg-primary)",
+                  borderColor: "var(--accent-secondary)",
+                  color: "var(--text-primary)",
+                }}
+                required
+              />
+              <input
+                type="text"
+                placeholder="Description (optional)"
+                value={newSubject.description}
+                onChange={(e) =>
+                  setNewSubject({ ...newSubject, description: e.target.value })
+                }
+                className="mb-4 px-4 py-2 w-full rounded-xl border-2 focus:outline-none focus:ring-2 transition"
+                style={{
+                  backgroundColor: "var(--bg-primary)",
+                  borderColor: "var(--accent-secondary)",
+                  color: "var(--text-primary)",
+                }}
+              />
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowSubjectModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  Create
+                </Button>
+              </div>
+            </form>
+          </Card>
         </div>
       )}
 
-      {/* Create Note Modal */}
       {showNoteModal && (
-        <div className="fixed inset-0 z-30 bg-black/30 flex items-center justify-center">
-          <form
-            className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full"
-            onSubmit={handleCreateNote}
-          >
-            <h3 className="text-2xl text-purple-700 mb-4 font-bold">
-              Create New Note
-            </h3>
-            <input
-              type="text"
-              placeholder="Note Title"
-              value={newNote.title}
-              onChange={(e) =>
-                setNewNote({ ...newNote, title: e.target.value })
-              }
-              className="mb-3 px-4 py-2 w-full bg-purple-50 text-purple-900 rounded border border-purple-200"
-              required
-            />
-            <textarea
-              placeholder="Note Content"
-              value={newNote.content}
-              onChange={(e) =>
-                setNewNote({ ...newNote, content: e.target.value })
-              }
-              className="mb-3 px-4 py-2 w-full bg-purple-50 text-purple-900 rounded border border-purple-200"
-              required
-              rows={3}
-            />
-            <div className="flex justify-end gap-2 mt-3">
-              <button
-                type="submit"
-                className="bg-purple-600 px-4 py-2 rounded text-white font-bold"
-              >
-                Create
-              </button>
-              <button
-                type="button"
-                className="bg-gray-400 px-4 py-2 rounded text-white"
-                onClick={() => setShowNoteModal(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+        <div className="fixed inset-0 z-30 bg-black/40 flex items-center justify-center p-4">
+          <Card className="max-w-sm w-full">
+            <form onSubmit={handleCreateNote}>
+              <h3 className="text-2xl font-bold mb-4" style={{ color: "var(--action-primary)" }}>
+                Create New Note
+              </h3>
+              <input
+                type="text"
+                placeholder="Note Title"
+                value={newNote.title}
+                onChange={(e) =>
+                  setNewNote({ ...newNote, title: e.target.value })
+                }
+                className="mb-3 px-4 py-2 w-full rounded-xl border-2 focus:outline-none focus:ring-2 transition"
+                style={{
+                  backgroundColor: "var(--bg-primary)",
+                  borderColor: "var(--accent-secondary)",
+                  color: "var(--text-primary)",
+                }}
+                required
+              />
+              <textarea
+                placeholder="Note Content"
+                value={newNote.content}
+                onChange={(e) =>
+                  setNewNote({ ...newNote, content: e.target.value })
+                }
+                className="mb-4 px-4 py-2 w-full rounded-xl border-2 focus:outline-none focus:ring-2 transition"
+                style={{
+                  backgroundColor: "var(--bg-primary)",
+                  borderColor: "var(--accent-secondary)",
+                  color: "var(--text-primary)",
+                }}
+                required
+                rows={4}
+              />
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowNoteModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  Create
+                </Button>
+              </div>
+            </form>
+          </Card>
         </div>
       )}
 
-      {/* Manual Flashcard Modal */}
       {showManualModal && (
-        <div className="fixed inset-0 z-30 bg-black/30 flex items-center justify-center">
-          <form
-            className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm w-full"
-            onSubmit={handleManualCreate}
-          >
-            <h3 className="text-2xl text-blue-800 mb-4 font-bold">
-              Create Flashcard
-            </h3>
-            <input
-              type="text"
-              placeholder="Question"
-              value={manualCard.question}
-              onChange={(e) =>
-                setManualCard({ ...manualCard, question: e.target.value })
-              }
-              required
-              className="mb-3 px-4 py-2 w-full bg-blue-50 text-blue-900 rounded border border-blue-200"
-            />
-            <input
-              type="text"
-              placeholder="Answer"
-              value={manualCard.answer}
-              onChange={(e) =>
-                setManualCard({ ...manualCard, answer: e.target.value })
-              }
-              required
-              className="mb-3 px-4 py-2 w-full bg-blue-50 text-blue-900 rounded border border-blue-200"
-            />
-            <input
-              type="text"
-              placeholder="Subject (optional)"
-              value={manualCard.subject}
-              onChange={(e) =>
-                setManualCard({ ...manualCard, subject: e.target.value })
-              }
-              className="mb-3 px-4 py-2 w-full bg-blue-50 text-blue-900 rounded border border-blue-200"
-            />
-            <div className="flex justify-end gap-2 mt-3">
-              <button
-                type="submit"
-                className="bg-blue-600 px-4 py-2 rounded text-white font-bold"
-              >
-                Create
-              </button>
-              <button
-                type="button"
-                className="bg-gray-400 px-4 py-2 rounded text-white"
-                onClick={() => setShowManualModal(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+        <div className="fixed inset-0 z-30 bg-black/40 flex items-center justify-center p-4">
+          <Card className="max-w-sm w-full">
+            <form onSubmit={handleManualCreate}>
+              <h3 className="text-2xl font-bold mb-4" style={{ color: "var(--action-primary)" }}>
+                Create Flashcard
+              </h3>
+              <input
+                type="text"
+                placeholder="Question"
+                value={manualCard.question}
+                onChange={(e) =>
+                  setManualCard({ ...manualCard, question: e.target.value })
+                }
+                required
+                className="mb-3 px-4 py-2 w-full rounded-xl border-2 focus:outline-none focus:ring-2 transition"
+                style={{
+                  backgroundColor: "var(--bg-primary)",
+                  borderColor: "var(--accent-secondary)",
+                  color: "var(--text-primary)",
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Answer"
+                value={manualCard.answer}
+                onChange={(e) =>
+                  setManualCard({ ...manualCard, answer: e.target.value })
+                }
+                required
+                className="mb-3 px-4 py-2 w-full rounded-xl border-2 focus:outline-none focus:ring-2 transition"
+                style={{
+                  backgroundColor: "var(--bg-primary)",
+                  borderColor: "var(--accent-secondary)",
+                  color: "var(--text-primary)",
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Subject (optional)"
+                value={manualCard.subject}
+                onChange={(e) =>
+                  setManualCard({ ...manualCard, subject: e.target.value })
+                }
+                className="mb-4 px-4 py-2 w-full rounded-xl border-2 focus:outline-none focus:ring-2 transition"
+                style={{
+                  backgroundColor: "var(--bg-primary)",
+                  borderColor: "var(--accent-secondary)",
+                  color: "var(--text-primary)",
+                }}
+              />
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowManualModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  Create
+                </Button>
+              </div>
+            </form>
+          </Card>
         </div>
       )}
     </div>

@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import MessageBubble from "./MessageBubble";
+import Button from "../Common/Button";
 
 const ChatbotWidget = ({ onSendMessage }) => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     {
       sender: "ai",
-      text: "Hi! I’m MEDHA AI. Ask me anything about your uploaded notes.",
+      text: "Hi! I'm MEDHA AI. Ask me anything about your uploaded notes.",
     },
   ]);
   const [loading, setLoading] = useState(false);
@@ -54,7 +55,7 @@ const ChatbotWidget = ({ onSendMessage }) => {
         ...msgs,
         {
           sender: "ai",
-          text: "Sorry, I couldn’t get a response.",
+          text: "Sorry, I couldn't get a response.",
           isAnimated: false,
         },
       ]);
@@ -75,25 +76,16 @@ const ChatbotWidget = ({ onSendMessage }) => {
   const handleTypewriterDone = () => setTypingMessageIdx(null);
 
   return (
-    <div className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-2xl p-0 w-full sm:max-w-md mx-auto flex flex-col h-[88vh] sm:h-[34rem] border border-blue-100 relative transition-all">
-      {/* Header */}
-      <div className="flex items-center justify-between px-3 sm:px-5 py-4 border-b border-blue-100">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <span className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-blue-200 text-blue-700 font-bold shadow-lg text-lg sm:text-xl">
-            🤖
-          </span>
-          <span className="font-bold text-blue-700 text-base sm:text-lg tracking-tight">
-            MEDHA AI Chatbot
-          </span>
-        </div>
-        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold whitespace-nowrap">
-          Powered by AI
-        </span>
-      </div>
+    <div className="relative w-full flex flex-col h-full border-2 rounded-2xl shadow-lg overflow-hidden transition-all" style={{
+      backgroundColor: "var(--bg-primary)",
+      borderColor: "var(--accent-secondary)"
+    }}>
+
       {/* Down Arrow Button */}
       {!atBottom && (
         <button
-          className="absolute right-4 bottom-20 z-10 flex items-center justify-center bg-blue-600 text-white rounded-full shadow-lg w-10 h-10 hover:bg-blue-700 transition"
+          className="absolute right-4 bottom-20 z-10 flex items-center justify-center text-white rounded-full shadow-xl w-10 h-10 hover:scale-[1.08] transition"
+          style={{ backgroundColor: "var(--action-primary)" }}
           onClick={scrollToEnd}
           title="Go to latest message"
         >
@@ -112,10 +104,11 @@ const ChatbotWidget = ({ onSendMessage }) => {
           </svg>
         </button>
       )}
+
       {/* Chat Area */}
       <div
         ref={chatScrollRef}
-        className="flex-1 overflow-y-auto px-2 sm:px-4 py-2 sm:py-3 scrollbar-thin scrollbar-thumb-blue-100 scrollbar-track-blue-50"
+        className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 custom-scrollbar"
         onScroll={handleScroll}
       >
         {messages.map((msg, i) => (
@@ -131,23 +124,33 @@ const ChatbotWidget = ({ onSendMessage }) => {
         ))}
         {loading && (
           <div className="flex items-center justify-start mb-3">
-            <span className="mr-2 flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-700 font-bold shadow">
+            <span className="mr-2 flex items-center justify-center h-8 w-8 rounded-full text-white font-bold shadow" style={{ background: `linear-gradient(to right, var(--accent-primary), var(--accent-secondary))` }}>
               🤖
             </span>
-            <div className="px-3 py-1 rounded-2xl bg-blue-100 text-blue-900 animate-pulse shadow border border-blue-100 text-sm sm:text-base">
+            <div className="px-3 py-1 rounded-2xl text-white animate-pulse shadow border text-sm sm:text-base" style={{ 
+              background: `linear-gradient(to right, var(--accent-primary), var(--accent-secondary))`,
+              borderColor: "var(--accent-secondary)"
+            }}>
               MEDHA is typing...
             </div>
           </div>
         )}
         <div ref={chatEndRef} />
       </div>
+
       {/* Input Section */}
       <form
         onSubmit={handleSend}
-        className="flex gap-2 sm:gap-3 border-t border-blue-100 px-2 sm:px-5 py-3 sm:py-4 bg-white/80 backdrop-blur-md"
+        className="flex gap-2 sm:gap-3 border-t px-3 sm:px-5 py-4"
+        style={{ borderColor: "var(--accent-secondary)" }}
       >
         <input
-          className="flex-1 border-2 border-blue-200 bg-blue-50 rounded-xl px-3 sm:px-4 py-2 text-blue-900 font-medium placeholder-blue-400 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+          className="flex-1 border-2 rounded-xl px-4 py-3 font-medium text-base focus:outline-none focus:ring-2 transition"
+          style={{
+            backgroundColor: "var(--bg-primary)",
+            borderColor: "var(--accent-secondary)",
+            color: "var(--text-primary)",
+          }}
           type="text"
           placeholder="Ask about your notes…"
           autoFocus
@@ -155,25 +158,19 @@ const ChatbotWidget = ({ onSendMessage }) => {
           disabled={loading}
           onChange={(e) => setInput(e.target.value)}
         />
-        <button
+        <Button
           type="submit"
-          className={`bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold px-4 sm:px-5 py-2 rounded-xl shadow-lg hover:from-blue-700 hover:to-blue-800 transition disabled:opacity-50 disabled:cursor-wait text-sm sm:text-base`}
           disabled={loading || !input.trim()}
+          loading={loading}
         >
           Send
-        </button>
+        </Button>
       </form>
       <style>
         {`
-        .scrollbar-thin {
-          scrollbar-width: thin;
-        }
-        .scrollbar-thumb-blue-100::-webkit-scrollbar-thumb {
-          background-color: #bfdbfe;
-        }
-        .scrollbar-track-blue-50::-webkit-scrollbar-track {
-          background-color: #eff6ff;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px;}
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--bg-secondary);}
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--accent-secondary); border-radius:10px;}
         `}
       </style>
     </div>

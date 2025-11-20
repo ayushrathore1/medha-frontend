@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Plus, Trash2, BookOpen } from "lucide-react";
 import SubjectSelect from "../components/Subject/SubjectSelect";
+import Button from "../components/Common/Button";
+import Card from "../components/Common/Card";
+import Loader from "../components/Common/Loader";
 
 const Subjects = () => {
   const [subjects, setSubjects] = useState([]);
@@ -7,6 +12,7 @@ const Subjects = () => {
   const [selected, setSelected] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
 
   // Fetch subjects on mount
@@ -28,9 +34,10 @@ const Subjects = () => {
           return;
         }
         setSubjects(data.subjects);
-      } catch (err) {
-        console.error(err);
+      } catch {
         setErrorMsg("Server error.");
+      } finally {
+        setLoading(false);
       }
     }
     fetchSubjects();
@@ -69,9 +76,8 @@ const Subjects = () => {
       setSubjects((prev) => [...prev, data.subject]);
       setSuccessMsg(`Added "${data.subject.name}"`);
       setNewSubject("");
-      setTimeout(() => setSuccessMsg(""), 1500);
-    } catch (err) {
-      console.error(err);
+      setTimeout(() => setSuccessMsg(""), 1700);
+    } catch {
       setErrorMsg("Server error.");
     }
   };
@@ -96,88 +102,112 @@ const Subjects = () => {
       }
       setSubjects(subjects.filter((subj) => subj._id !== subjectId));
       setSuccessMsg("Subject deleted!");
-      setTimeout(() => setSuccessMsg(""), 1500);
-    } catch (err) {
-      console.error(err);
+      setTimeout(() => setSuccessMsg(""), 1300);
+    } catch {
       setErrorMsg("Server error.");
     }
   };
 
+  if (loading) return <Loader fullScreen />;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 pt-20 pb-10 flex flex-col items-center">
-      <div className="max-w-2xl w-full">
-        <div className="bg-white/90 border border-blue-100 rounded-2xl shadow-2xl p-10 mt-10">
-          <h1 className="text-4xl font-bold text-blue-700 text-center mb-5">
-            Subjects
-          </h1>
-          <p className="text-lg text-blue-900 text-center mb-8">
-            Manage all your subjects here. Add new subjects, or select one to
-            see its details.
-          </p>
-          <form className="flex gap-4 mb-5" onSubmit={handleAddSubject}>
+    <div className="min-h-screen pt-20 pb-10 flex flex-col items-center relative overflow-hidden px-4">
+      <div className="max-w-2xl w-full z-10">
+        <Card className="p-8 md:p-10 shadow-xl">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--action-primary)]/10 text-[var(--action-primary)] mb-4">
+              <BookOpen size={32} />
+            </div>
+            <h1 className="text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
+              Manage Subjects
+            </h1>
+            <p className="text-[var(--text-secondary)] mt-2">
+              Add new subjects or manage existing ones.
+            </p>
+          </div>
+
+          <form className="flex gap-3 mb-8" onSubmit={handleAddSubject}>
             <input
               type="text"
-              className="border border-blue-300 rounded-lg px-4 py-3 w-full text-blue-900 bg-blue-50/60 shadow-inner focus:outline-none focus:border-blue-400 text-lg transition"
-              placeholder="Add new subject (e.g., Computer Networks)"
+              className="flex-1 border border-[var(--accent-secondary)]/30 rounded-xl px-4 py-3 bg-white/50 text-[var(--text-primary)] placeholder-gray-400 font-medium focus:border-[var(--action-primary)] focus:ring-2 focus:ring-[var(--action-primary)] focus:outline-none transition shadow-sm"
+              placeholder="Add new subject (e.g., DSA, DBMS)"
               value={newSubject}
               onChange={(e) => setNewSubject(e.target.value)}
             />
-            <button
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold shadow hover:bg-blue-700 transition"
+            <Button
               type="submit"
+              variant="primary"
+              className="shadow-lg hover:shadow-xl"
+              icon={<Plus size={20} />}
             >
               Add
-            </button>
+            </Button>
           </form>
+
           {errorMsg && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 mb-3 rounded text-center font-semibold">
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-50 text-red-500 px-5 py-3 mb-6 rounded-xl border border-red-100 text-center font-medium"
+            >
               {errorMsg}
-            </div>
+            </motion.div>
           )}
           {successMsg && (
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 mb-3 rounded text-center font-semibold">
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-emerald-50 text-emerald-600 px-5 py-3 mb-6 rounded-xl border border-emerald-100 text-center font-medium"
+            >
               {successMsg}
-            </div>
+            </motion.div>
           )}
-          <div className="mb-8 mt-6">
+
+          <div className="mb-8">
             <SubjectSelect
-              subjects={subjects.map((s) => s.name)}
+              subjects={subjects}
               selected={selected}
               onChange={setSelected}
-              label="Select a subject"
+              label="Select a subject to filter (optional)"
             />
           </div>
-          <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-6 shadow-inner">
-            <h2 className="text-xl text-blue-800 font-bold mb-3">
-              All Subjects:
+
+          <div className="bg-[var(--bg-secondary)]/50 border border-[var(--accent-secondary)]/20 rounded-2xl p-6">
+            <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+              All Subjects <span className="text-xs font-normal text-[var(--text-secondary)] bg-[var(--accent-secondary)]/10 px-2 py-0.5 rounded-full">{subjects.length}</span>
             </h2>
-            <ul className="list-disc pl-8 text-blue-900 text-lg">
-              {subjects.length === 0 && <li>No subjects yet.</li>}
+            <ul className="space-y-2">
+              {subjects.length === 0 && (
+                <li className="text-[var(--text-secondary)] text-center py-4 italic">No subjects yet. Add one above!</li>
+              )}
               {subjects.map((subj) => (
-                <li
+                <motion.li
+                  layout
                   key={subj._id}
-                  className="flex items-center justify-between pr-2"
+                  className="flex items-center justify-between p-3 bg-white rounded-xl border border-[var(--accent-secondary)]/10 shadow-sm hover:shadow-md transition-all"
                 >
                   <span
-                    className={
+                    className={`font-medium ${
                       selected === subj.name
-                        ? "font-bold text-blue-700 underline underline-offset-4"
-                        : ""
-                    }
+                        ? "text-[var(--action-primary)] font-bold"
+                        : "text-[var(--text-primary)]"
+                    }`}
                   >
                     {subj.name}
                   </span>
-                  <button
-                    className="ml-4 bg-red-500 text-white font-bold px-4 py-1 rounded transition hover:bg-red-600"
+                  <Button
+                    variant="danger"
+                    size="small"
+                    className="!p-2 opacity-80 hover:opacity-100"
                     onClick={() => handleDeleteSubject(subj._id)}
                   >
-                    Delete
-                  </button>
-                </li>
+                    <Trash2 size={16} />
+                  </Button>
+                </motion.li>
               ))}
             </ul>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

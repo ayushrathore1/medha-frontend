@@ -1,80 +1,110 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Button from "../Common/Button";
+import Card from "../Common/Card";
 
-const LoginForm = ({ onLogin }) => {
+const LoginForm = ({ onLogin, loading, errorMsg }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = async (e) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setErrorMsg("");
-    setLoading(true);
-    try {
-      // Replace with your API call:
-      await onLogin(email, password); // Parent handler
-    } catch (error) {
-      setErrorMsg(error.message || "Login failed!");
-    } finally {
-      setLoading(false);
-    }
+    onLogin(email, password);
+  };
+
+  const handleForgotPassword = () => {
+    navigate("/forgot-password");
+  };
+  const handleRegister = () => {
+    navigate("/register");
   };
 
   return (
-    <form
-      className="bg-white rounded-xl shadow-md px-8 py-10 max-w-md w-full mx-auto"
-      onSubmit={handleSubmit}
-    >
-      <h2 className="text-2xl font-bold mb-6 text-blue-700 text-center">
-        Sign in to MEDHA
-      </h2>
+    <div className="relative w-full flex items-center justify-center">
+      <Card className="w-full max-w-md p-8 md:p-10 !bg-white/60 !backdrop-blur-xl border-[var(--accent-secondary)]/20 shadow-2xl">
+        <h2 className="text-3xl font-extrabold mb-8 text-center text-[var(--text-primary)] tracking-tight">
+          Sign in to <span className="text-[var(--action-primary)]">MEDHA</span>
+        </h2>
 
-      {errorMsg && (
-        <div className="mb-4 text-red-500 text-center text-sm">{errorMsg}</div>
-      )}
+        {errorMsg && (
+          <div className="mb-6 p-3 rounded-lg bg-red-50 text-red-500 font-medium text-center text-sm border border-red-100">
+            {errorMsg}
+          </div>
+        )}
 
-      <div className="mb-4">
-        <label className="block text-blue-900 font-medium mb-2" htmlFor="email">
-          Email Address
-        </label>
-        <input
-          className="w-full border border-blue-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 placeholder-gray-500"
-          type="email"
-          id="email"
-          placeholder="your@email.com"
-          autoComplete="email"
-          value={email}
-          required
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label
+              className="block text-[var(--text-secondary)] font-bold mb-2 text-sm uppercase tracking-wide"
+              htmlFor="email"
+            >
+              Email Address
+            </label>
+            <input
+              className="w-full bg-white/50 text-[var(--text-primary)] border border-[var(--accent-secondary)]/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--action-primary)] focus:border-transparent transition placeholder-gray-400 font-medium"
+              type="email"
+              id="email"
+              placeholder="your@email.com"
+              autoComplete="email"
+              value={email}
+              required
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-      <div className="mb-6">
-        <label className="block text-blue-900 font-medium mb-2" htmlFor="password">
-          Password
-        </label>
-        <input
-          className="w-full border border-blue-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 placeholder-gray-500"
-          type="password"
-          id="password"
-          placeholder="••••••••"
-          autoComplete="current-password"
-          value={password}
-          required
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
+          <div>
+            <label
+              className="block text-[var(--text-secondary)] font-bold mb-2 text-sm uppercase tracking-wide"
+              htmlFor="password"
+            >
+              Password
+            </label>
+            <input
+              className="w-full bg-white/50 text-[var(--text-primary)] border border-[var(--accent-secondary)]/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--action-primary)] focus:border-transparent transition placeholder-gray-400 font-medium"
+              type="password"
+              id="password"
+              placeholder="••••••••"
+              autoComplete="current-password"
+              value={password}
+              required
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
-      <button
-        type="submit"
-        className={`w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition ${
-          loading ? "opacity-60 cursor-wait" : ""
-        }`}
-        disabled={loading}
-      >
-        {loading ? "Signing in..." : "Sign In"}
-      </button>
-    </form>
+          <Button
+            type="submit"
+            variant="primary"
+            size="large"
+            className="w-full mt-4 shadow-lg hover:shadow-xl"
+            loading={loading}
+            disabled={loading}
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </Button>
+
+          <div className="flex items-center justify-between mt-6 pt-4 border-t border-[var(--accent-secondary)]/10">
+            <button
+              type="button"
+              className="text-[var(--text-secondary)] font-semibold hover:text-[var(--action-primary)] text-sm transition"
+              onClick={handleRegister}
+              disabled={loading}
+            >
+              Create Account
+            </button>
+            <button
+              type="button"
+              className="text-[var(--text-secondary)] font-semibold hover:text-[var(--action-primary)] text-sm transition"
+              onClick={handleForgotPassword}
+              disabled={loading}
+            >
+              Forgot Password?
+            </button>
+          </div>
+        </form>
+      </Card>
+    </div>
   );
 };
 

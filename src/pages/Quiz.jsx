@@ -1,197 +1,426 @@
-import React, { useState } from "react";
-import SubjectSelect from "../components/Subject/SubjectSelect";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import Card from "../components/Common/Card";
+import Button from "../components/Common/Button";
+import Loader from "../components/Common/Loader";
 
-// DEMO SUBJECTS & QUESTIONS (replace with backend later)
-const subjects = ["Data Structures", "DBMS", "OOP"];
-const mockQuestions = {
-  "Data Structures": [
-    {
-      question: "Which data structure uses LIFO order?",
-      options: ["Queue", "Stack", "Graph", "Array"],
-      answer: "Stack",
-    },
-    {
-      question: "What is the time complexity for accessing an array element?",
-      options: ["O(1)", "O(n)", "O(log n)", "O(n log n)"],
-      answer: "O(1)",
-    },
-  ],
-  DBMS: [
-    {
-      question: "Which language is used to query databases?",
-      options: ["HTML", "CSS", "SQL", "JavaScript"],
-      answer: "SQL",
-    },
-  ],
-  OOP: [
-    {
-      question: "Which pillar is NOT a part of OOP?",
-      options: ["Encapsulation", "Polymorphism", "Abstraction", "Compilation"],
-      answer: "Compilation",
-    },
-  ],
-};
+const BACKEND_URL =
+  import.meta.env.VITE_BACKEND_URL || "https://medha-backend.onrender.com";
+
+// Select dropdown using design system
+function SelectDropdown({
+  label,
+  options,
+  value,
+  onChange,
+  optionLabel = "name",
+  optionValue = "_id",
+  disabled = false,
+}) {
+  return (
+    <div className="mb-6">
+      <label className="block mb-2 font-semibold" style={{ color: "var(--text-primary)" }}>
+        {label}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-4 py-3 rounded-xl font-medium border-2 focus:outline-none focus:ring-2 transition"
+        style={{
+          backgroundColor: "var(--bg-primary)",
+          borderColor: "var(--accent-secondary)",
+          color: "var(--text-primary)",
+        }}
+        disabled={disabled}
+      >
+        <option value="">Select {label}</option>
+        {(Array.isArray(options) ? options : []).map((opt) => (
+          <option key={opt[optionValue]} value={opt[optionValue]}>
+            {opt[optionLabel]}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function QuizItem({ questionObj = {}, questionNumber, total, onAnswer }) {
+  const [selected, setSelected] = useState(null);
+
+  // Defensive: handle missing options keys
+  const safeOptions =
+    questionObj.options && typeof questionObj.options === "object"
+      ? ["A", "B", "C", "D"].map((opt) => ({
+          key: opt,
+          text: questionObj.options[opt] || "",
+        }))
+      : [];
+
+  const handleSelect = (idx) => {
+    setSelected(idx);
+    setTimeout(() => {
+      onAnswer(idx);
+      setSelected(null);
+    }, 400);
+  };
+
+  return (
+    <Card className="max-w-2xl w-full mx-auto mb-6">
+      <div className="mb-4 font-semibold text-sm uppercase tracking-wide" style={{ color: "var(--action-primary)" }}>
+        Question {questionNumber + 1} <span style={{ color: "var(--text-secondary)" }}>of</span>{" "}
+        {total}
+      </div>
+      <h3 className="text-2xl font-bold mb-6" style={{ color: "var(--text-primary)" }}>
+        {questionObj.question || "Question unavailable."}
+      </h3>
+      <div className="flex flex-col gap-3">
+        {safeOptions.map(({ key, text }, idx) => {
+          // Determine button styles
+          let btnClass =
+            "border-2 px-5 py-3 rounded-xl font-medium text-base text-left transition shadow-sm";
+          if (selected !== null) {
+            if (idx === selected) {
+              btnClass +=
+                key === questionObj.answer
+                  ? " bg-emerald-100 text-emerald-700 border-emerald-400 font-bold"
+                  : " bg-red-100 text-red-700 border-red-400 font-bold";
+            } else {
+              btnClass +=
+                " bg-gray-100 text-gray-400 border-gray-200 opacity-60";
+            }
+          } else {
+            btnClass +=
+              " border-gray-300 hover:bg-indigo-50 hover:border-indigo-400 hover:text-indigo-700";
+          }
+          return (
+            <button
+              key={key}
+              className={btnClass}
+              style={{ 
+                backgroundColor: selected === null ? "var(--bg-primary)" : undefined,
+                color: selected === null ? "var(--text-primary)" : undefined 
+              }}
+              disabled={selected !== null}
+              onClick={() => handleSelect(idx)}
+            >
+              <b className="mr-3">{key}.</b>
+              {text}
+            </button>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+function QuizResult({ score, total, onRestart }) {
+  const percentage = (score / total) * 100;
+  
+  return (
+    <Card className="max-w-xl w-full mx-auto mt-16 text-center">
+      <h2 className="text-3xl font-extrabold mb-6" style={{ color: "var(--action-primary)" }}>
+        Quiz Completed! 🎉
+      </h2>
+      <div className="text-xl mb-6" style={{ color: "var(--text-primary)" }}>
+        <span className="font-bold text-4xl" style={{ color: "var(--accent-primary)" }}>
+          {score}
+        </span>{" "}
+        / <span style={{ color: "var(--text-secondary)" }}>{total}</span>
+      </div>
+      <div 
+        className="w-full rounded-full h-6 mb-10 shadow-inner relative overflow-hidden"
+        style={{ backgroundColor: "var(--bg-secondary)" }}
+      >
+        <div
+          className="h-6 rounded-full transition-all duration-700"
+          style={{ 
+            width: `${percentage}%`,
+            background: `linear-gradient(to right, var(--accent-primary), var(--accent-secondary))` 
+          }}
+        ></div>
+      </div>
+      <p className="mb-8 text-lg" style={{ color: "var(--text-secondary)" }}>
+        You scored {percentage.toFixed(0)}%!
+      </p>
+      <Button onClick={onRestart} size="large">
+        Try Another Quiz
+      </Button>
+    </Card>
+  );
+}
 
 const Quiz = () => {
+  const [subjects, setSubjects] = useState([]);
+  const [notes, setNotes] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedNote, setSelectedNote] = useState("");
   const [questions, setQuestions] = useState([]);
-  const [userAnswers, setUserAnswers] = useState([]);
   const [current, setCurrent] = useState(0);
-  const [score, setScore] = useState(null);
+  const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [topicName, setTopicName] = useState(""); // For topic-based quiz
 
-  const startQuiz = (subject) => {
-    setSelectedSubject(subject);
-    setQuestions(mockQuestions[subject] || []);
-    setUserAnswers([]);
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    if (!token) {
+      setError("You must be logged in to take a quiz.");
+      return;
+    }
+    const fetchSubjects = async () => {
+      try {
+        const res = await axios.get(`${BACKEND_URL}/api/subjects`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const subjectsData = res.data.subjects || res.data;
+        setSubjects(Array.isArray(subjectsData) ? subjectsData : []);
+      } catch (err) {
+        setSubjects([]);
+        setError("Failed to load subjects");
+        console.error("Subjects error:", err?.response?.data || err.message);
+      }
+    };
+    fetchSubjects();
+  }, [token]);
+
+  useEffect(() => {
+    setNotes([]);
+    setSelectedNote("");
+    if (!selectedSubject) return;
+    const fetchNotes = async () => {
+      try {
+        const res = await axios.get(
+          `${BACKEND_URL}/api/notes?subject=${selectedSubject}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const notesData = res.data.notes || res.data;
+        setNotes(Array.isArray(notesData) ? notesData : []);
+      } catch (err) {
+        setNotes([]);
+        setError("Failed to load notes");
+        console.error("Notes error:", err?.response?.data || err.message);
+      }
+    };
+    fetchNotes();
+  }, [selectedSubject, token]);
+
+  const handleGenerateQuiz = async () => {
+    setQuestions([]);
+    setScore(0);
+    setLoading(true);
+    setError("");
     setCurrent(0);
-    setScore(null);
+    setQuizCompleted(false);
+
+    try {
+      const noteObj = notes.find((n) => n._id === selectedNote);
+      const subjectName = noteObj?.subject?.name || noteObj?.subject || "";
+      const res = await axios.post(
+        `${BACKEND_URL}/api/quizzes/generate-ai`,
+        { noteId: selectedNote, subject: subjectName },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const quizQuestions = res.data?.quiz?.questions;
+      setQuestions(Array.isArray(quizQuestions) ? quizQuestions : []);
+      setCurrent(0);
+    } catch (err) {
+      setQuestions([]);
+      setError(err.response?.data?.message || "Could not generate quiz");
+      console.error("Quiz error:", err?.response?.data || err.message);
+    }
+    setLoading(false);
   };
 
-  const handleOption = (option) => {
-    setUserAnswers((prev) => {
-      const updated = [...prev];
-      updated[current] = option;
-      return updated;
-    });
+  // Handler for quiz by topic
+  const handleGenerateQuizByTopic = async () => {
+    setQuestions([]);
+    setScore(0);
+    setLoading(true);
+    setError("");
+    setCurrent(0);
+    setQuizCompleted(false);
+
+    try {
+      const res = await axios.post(
+        `${BACKEND_URL}/api/quizzes/generate-topic-ai`,
+        { topic: topicName, subject: selectedSubject },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const quizQuestions = res.data?.quiz?.questions;
+      setQuestions(Array.isArray(quizQuestions) ? quizQuestions : []);
+      setCurrent(0);
+    } catch (err) {
+      setQuestions([]);
+      setError(
+        err.response?.data?.message || "Could not generate quiz for topic"
+      );
+      console.error("Quiz topic error:", err?.response?.data || err.message);
+    }
+    setLoading(false);
   };
 
-  const handleNext = () => setCurrent((c) => c + 1);
-  const handlePrev = () => setCurrent((c) => c - 1);
-
-  const handleSubmit = () => {
-    let sc = 0;
-    questions.forEach((q, i) => {
-      if (userAnswers[i] === q.answer) sc += 1;
-    });
-    setScore(sc);
+  const handleAnswer = (selectedIdx) => {
+    if (!questions[current]) return;
+    const correctIdx = ["A", "B", "C", "D"].indexOf(questions[current].answer);
+    if (selectedIdx === correctIdx) {
+      setScore((prev) => prev + 1);
+    }
+    setTimeout(() => {
+      if (current < questions.length - 1) setCurrent(current + 1);
+      else setQuizCompleted(true);
+    }, 500);
   };
 
   const handleRestart = () => {
-    setSelectedSubject("");
-    setQuestions([]);
-    setUserAnswers([]);
+    setScore(0);
     setCurrent(0);
-    setScore(null);
+    setQuestions([]);
+    setSelectedSubject("");
+    setSelectedNote("");
+    setTopicName("");
+    setError("");
+    setNotes([]);
+    setQuizCompleted(false);
   };
 
-  // === Quiz not started yet ===
-  if (!selectedSubject)
+  if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 pt-20 pb-16 flex flex-col items-center">
-        <div className="max-w-2xl w-full">
-          <div className="bg-white/90 border border-blue-100 shadow-lg rounded-2xl p-8 mt-10">
-            <h1 className="text-4xl font-bold text-blue-700 mb-3">
-              Take a Quiz
-            </h1>
-            <p className="mb-6 text-blue-900 text-lg">
-              Test yourself! Choose a subject to begin your quiz and check your
-              progress.
-            </p>
-            <SubjectSelect
-              subjects={subjects}
-              selected={""}
-              onChange={startQuiz}
-              label="Select Subject"
+      <div className="min-h-screen flex items-center justify-center pt-20 px-4">
+        <Card className="w-full max-w-lg">
+          <h1 className="text-3xl font-bold mb-6" style={{ color: "var(--action-primary)" }}>
+            🧠 AI Quiz Generator
+          </h1>
+          <div className="text-red-500 font-bold">
+            You must be logged in to take a quiz.
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!questions.length)
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-20 px-4">
+        <Card className="w-full max-w-lg">
+          <h1 className="text-3xl font-extrabold mb-8" style={{ color: "var(--action-primary)" }}>
+            🧠 AI Quiz Generator
+          </h1>
+          <SelectDropdown
+            label="Subject"
+            options={subjects}
+            value={selectedSubject}
+            onChange={setSelectedSubject}
+            optionLabel="name"
+            optionValue="_id"
+          />
+          <SelectDropdown
+            label="Note"
+            options={notes}
+            value={selectedNote}
+            onChange={setSelectedNote}
+            optionLabel="title"
+            optionValue="_id"
+            disabled={!selectedSubject || !notes.length}
+          />
+          
+          {/* Topic-based Quiz Generator */}
+          <div className="mb-6">
+            <label className="block mb-2 font-semibold" style={{ color: "var(--text-primary)" }}>
+              Or Enter Topic
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., Binary Trees, React Hooks"
+              className="w-full px-4 py-3 rounded-xl font-medium border-2 focus:outline-none focus:ring-2 transition"
+              style={{
+                backgroundColor: "var(--bg-primary)",
+                borderColor: "var(--accent-secondary)",
+                color: "var(--text-primary)",
+              }}
+              value={topicName}
+              onChange={(e) => setTopicName(e.target.value)}
+              maxLength={64}
+              autoComplete="off"
             />
           </div>
-        </div>
-      </div>
-    );
 
-  // === Quiz Complete / Score ===
-  if (score !== null)
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 pt-20 pb-16 flex flex-col items-center">
-        <div className="bg-white/90 border border-blue-100 shadow-lg rounded-2xl p-8 mt-10 max-w-md w-full flex flex-col items-center">
-          <h2 className="text-3xl font-bold text-blue-700 mb-4">
-            Quiz Complete!
-          </h2>
-          <div className="mb-5 text-blue-900 text-lg">
-            You scored <span className="font-bold text-blue-700">{score}</span>{" "}
-            out of {questions.length}.
-          </div>
-          <div className="w-full bg-blue-200 rounded-full h-3 mb-6">
-            <div
-              className="bg-blue-600 h-3 rounded-full transition-all duration-500"
-              style={{ width: `${(score / questions.length) * 100}%` }}
-            ></div>
-          </div>
-          <button
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold shadow hover:bg-blue-700 transition"
-            onClick={handleRestart}
+          <Button
+            onClick={handleGenerateQuizByTopic}
+            disabled={loading || !topicName}
+            loading={loading}
+            fullWidth
+            className="mb-3"
+            variant="success"
           >
-            Take Another Quiz
-          </button>
-        </div>
+            Generate Quiz by Topic
+          </Button>
+          
+          <Button
+            onClick={handleGenerateQuiz}
+            disabled={loading || !selectedSubject || !selectedNote}
+            loading={loading}
+            fullWidth
+            variant="primary"
+          >
+            Generate Quiz from Note
+          </Button>
+          
+          {error && (
+            <div className="mt-6 p-4 rounded-xl border-2" style={{ 
+              backgroundColor: "#fef2f2", 
+              borderColor: "#fca5a5",
+              color: "#dc2626" 
+            }}>
+              <p className="font-bold">{error}</p>
+            </div>
+          )}
+        </Card>
       </div>
     );
 
-  // === Quiz in progress ===
-  const q = questions[current];
-  const selected = userAnswers[current];
+  if (quizCompleted)
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-20 px-4">
+        <QuizResult
+          score={score}
+          total={questions.length}
+          onRestart={handleRestart}
+        />
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 pt-20 pb-16 flex flex-col items-center">
-      <div className="max-w-2xl w-full">
-        <div className="bg-white/90 border border-blue-100 shadow-lg rounded-2xl p-8 mt-10">
-          <h2 className="text-2xl font-bold text-blue-700 mb-1">
-            {selectedSubject} Quiz
-          </h2>
-          <div className="text-blue-800 mb-4">
-            Question <span className="font-bold">{current + 1}</span> of{" "}
-            {questions.length}
-          </div>
-          <div className="bg-blue-50/60 border border-blue-200 rounded-xl shadow p-5 mb-5">
-            <div className="font-semibold mb-3 text-blue-900">{q.question}</div>
-            <div className="grid gap-3">
-              {q.options.map((opt, i) => (
-                <label key={i} className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name={`q${current}`}
-                    value={opt}
-                    checked={selected === opt}
-                    onChange={() => handleOption(opt)}
-                    className="accent-blue-600 text-lg"
-                  />
-                  <span className="text-blue-800 text-lg">{opt}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          <div className="flex gap-4 justify-end">
-            <button
-              className="bg-blue-100 border border-blue-300 rounded-lg px-4 py-2 font-medium text-blue-700 hover:bg-blue-200 transition"
-              disabled={current === 0}
-              onClick={handlePrev}
-            >
-              Previous
-            </button>
-            <button
-              className="bg-blue-100 border border-blue-300 rounded-lg px-4 py-2 font-medium text-blue-700 hover:bg-blue-200 transition"
-              onClick={handleRestart}
-            >
-              Change Subject
-            </button>
-            {current < questions.length - 1 ? (
-              <button
-                className="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-                disabled={!selected}
-                onClick={handleNext}
-              >
-                Next
-              </button>
-            ) : (
-              <button
-                className="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-                disabled={userAnswers.length < questions.length}
-                onClick={handleSubmit}
-              >
-                Submit Quiz
-              </button>
-            )}
-          </div>
-        </div>
+    <div className="min-h-screen flex flex-col items-center justify-center pt-20 px-4 pb-10">
+      <QuizItem
+        questionObj={questions[current]}
+        questionNumber={current}
+        total={questions.length}
+        onAnswer={handleAnswer}
+      />
+      <div className="flex gap-4 mt-6">
+        <Button
+          variant="ghost"
+          disabled={current === 0}
+          onClick={() => setCurrent(current - 1)}
+        >
+          ← Previous
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={handleRestart}
+        >
+          🔄 Restart
+        </Button>
+        {current < questions.length - 1 && (
+          <Button
+            variant="primary"
+            onClick={() => setCurrent(current + 1)}
+          >
+            Next →
+          </Button>
+        )}
       </div>
     </div>
   );
