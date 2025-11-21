@@ -196,7 +196,7 @@ const Notes = () => {
       return;
     }
     try {
-      const res = await fetch(`${API_BASE}/api/notes`, {
+      const res = await fetch(`${API_BASE}/api/notes/text`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
