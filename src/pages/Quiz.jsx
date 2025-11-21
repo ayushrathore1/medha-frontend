@@ -108,10 +108,19 @@ const Quiz = () => {
       } else {
         endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-ai`;
 
+        // Find the subject object to get the ID
+        const subjectObj = subjects.find(s => s.name === selectedSubject);
+        const subjectId = subjectObj ? subjectObj._id : null;
+
         // Try to fetch a note for the selected subject
         try {
+          // Use subject ID if available, otherwise fallback or handle error
+          if (!subjectId) {
+             throw new Error("Subject ID not found");
+          }
+
           const notesRes = await axios.get(
-            `${import.meta.env.VITE_BACKEND_URL}/api/notes?subject=${selectedSubject}`,
+            `${import.meta.env.VITE_BACKEND_URL}/api/notes?subject=${subjectId}`,
             {
               headers: { Authorization: `Bearer ${token}` },
               timeout: 10000
@@ -130,7 +139,8 @@ const Quiz = () => {
             payload = { topic: selectedSubject };
           }
         } catch (noteError) {
-          console.error("Error fetching notes:", noteError);
+          console.error("Error fetching notes or no notes found:", noteError);
+          // Fallback to topic generation if notes fetch fails
           endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-topic-ai`;
           payload = { topic: selectedSubject };
         }

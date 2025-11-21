@@ -66,13 +66,7 @@ const Dashboard = () => {
 
   if (loading) return <Loader fullScreen />;
 
-  // Group review items by topic
-  const groupedReview = stats.reviewList.reduce((acc, item) => {
-    const topic = item.topicName || "General";
-    if (!acc[topic]) acc[topic] = [];
-    acc[topic].push(item);
-    return acc;
-  }, {});
+
 
   return (
     <div className="min-h-screen w-full p-6">
@@ -145,33 +139,26 @@ const Dashboard = () => {
               <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
                 Topics to Review
               </h2>
-              {Object.keys(groupedReview).length === 0 ? (
+              {stats.reviewList.length === 0 ? (
                 <p className="opacity-60">No topics marked for review. Great job!</p>
               ) : (
                 <div className="space-y-4">
-                  {Object.entries(groupedReview).map(([topic, items]) => (
-                    <div key={topic} className="p-4 rounded-xl border-2" style={{ borderColor: "var(--accent-secondary)" }}>
+                  {stats.reviewList.map((topic) => (
+                    <div key={topic._id} className="p-4 rounded-xl border-2" style={{ borderColor: "var(--accent-secondary)" }}>
                       <div className="flex justify-between items-center mb-2">
                         <h3 className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>
-                          {topic} <span className="text-sm font-normal opacity-70">({items.length} cards)</span>
+                          {topic.name} <span className="text-sm font-normal opacity-70">({topic.difficulty})</span>
                         </h3>
                         <Button 
-                          onClick={() => handleDeleteTopic(topic)}
+                          onClick={() => handleDeleteTopic(topic.name)}
                           variant="danger"
                           className="!py-1 !px-3 text-sm"
                         >
                           <FaTrash className="mr-2" /> Delete Topic
                         </Button>
                       </div>
-                      <div className="space-y-2">
-                        {items.slice(0, 3).map((item) => (
-                          <div key={item._id} className="text-sm opacity-80 truncate pl-2 border-l-2 border-gray-500">
-                            {item.question}
-                          </div>
-                        ))}
-                        {items.length > 3 && (
-                          <p className="text-xs opacity-60 pl-2">...and {items.length - 3} more</p>
-                        )}
+                      <div className="text-sm opacity-70">
+                         Marked as {topic.difficulty}. Review the flashcards in this topic to improve!
                       </div>
                     </div>
                   ))}

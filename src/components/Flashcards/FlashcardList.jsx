@@ -116,20 +116,20 @@ const FlashcardList = ({ flashcards, onEdit, onDelete, onMarkDifficulty, studyMo
               <Button 
                 onClick={() => {
                   markAsIncorrect();
-                  if (onMarkDifficulty) onMarkDifficulty(currentFlashcard._id, "hard");
+                  // Just move next, don't mark viewed
                 }} 
-                variant="danger"
+                variant="secondary"
               >
-                Difficult
+                Keep Reviewing
               </Button>
               <Button 
                 onClick={() => {
                   markAsCorrect();
-                  if (onMarkDifficulty) onMarkDifficulty(currentFlashcard._id, "easy");
+                  if (onMarkDifficulty) onMarkDifficulty(currentFlashcard._id, "viewed");
                 }} 
                 variant="success"
               >
-                Easy
+                Got it (Viewed)
               </Button>
             </div>
           )}

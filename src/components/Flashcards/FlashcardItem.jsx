@@ -136,15 +136,15 @@ const FlashcardItem = ({ flashcard, onEdit, onDelete, onMarkDifficulty }) => {
         <Button onClick={() => onDelete && onDelete(flashcard._id)} variant="danger" size="small">
           Delete
         </Button>
-        {onMarkDifficulty && (
-          <>
-            <Button onClick={() => onMarkDifficulty(flashcard._id, "easy")} variant="success" size="small">
-              Easy
-            </Button>
-            <Button onClick={() => onMarkDifficulty(flashcard._id, "difficult")} variant="secondary" size="small">
-              Difficult
-            </Button>
-          </>
+        {!flashcard.viewed && onMarkDifficulty && (
+           <Button onClick={() => onMarkDifficulty(flashcard._id, "viewed")} variant="success" size="small">
+             Mark as Viewed
+           </Button>
+        )}
+        {flashcard.viewed && (
+            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 flex items-center">
+                ✓ Viewed
+            </span>
         )}
       </div>
 
@@ -154,11 +154,11 @@ const FlashcardItem = ({ flashcard, onEdit, onDelete, onMarkDifficulty }) => {
           <span
             className="px-3 py-1 rounded-full text-xs font-semibold"
             style={{
-              backgroundColor: flashcard.difficulty === "easy" ? "#d1fae5" : "#fef3c7",
-              color: flashcard.difficulty === "easy" ? "#065f46" : "#92400e",
+              backgroundColor: "var(--bg-secondary)",
+              color: "var(--text-secondary)",
             }}
           >
-            {flashcard.difficulty}
+            {flashcard.topicName || "General"}
           </span>
           {flashcard.isGenerated && (
             <span

@@ -4,18 +4,24 @@ import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import FlashcardList from "../components/Flashcards/FlashcardList";
+import { FaArrowLeft, FaCheckCircle, FaBook, FaLayerGroup } from "react-icons/fa";
 
 const Flashcards = () => {
+  const [viewState, setViewState] = useState("subjects"); // "subjects", "topics", "flashcards"
+  const [subjects, setSubjects] = useState([]);
+  const [topics, setTopics] = useState([]);
   const [flashcards, setFlashcards] = useState([]);
+  
+  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [selectedTopic, setSelectedTopic] = useState(null);
+  
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [studyMode, setStudyMode] = useState(false);
   
-  // New State
-  const [subjects, setSubjects] = useState([]);
+  // Form State
   const [notes, setNotes] = useState([]);
-  const [selectedSubject, setSelectedSubject] = useState("");
   const [generationMode, setGenerationMode] = useState("note"); // "note" or "topic"
   
   const [formData, setFormData] = useState({
@@ -23,23 +29,27 @@ const Flashcards = () => {
     answer: "",
     noteId: "",
     topic: "",
-    subject: ""
   });
 
   useEffect(() => {
-    fetchInitialData();
+    fetchSubjects();
   }, []);
 
   useEffect(() => {
-    if (selectedSubject) {
-      fetchFlashcards(selectedSubject);
-    } else {
-      setFlashcards([]);
+    if (selectedSubject && viewState === "topics") {
+      fetchTopics(selectedSubject.name);
     }
-  }, [selectedSubject]);
+  }, [selectedSubject, viewState]);
 
-  const fetchInitialData = async () => {
+  useEffect(() => {
+    if (selectedTopic && viewState === "flashcards") {
+      fetchFlashcards(selectedTopic.name);
+    }
+  }, [selectedTopic, viewState]);
+
+  const fetchSubjects = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem("token");
       const headers = { Authorization: `Bearer ${token}` };
       const baseUrl = import.meta.env.VITE_BACKEND_URL;
@@ -51,24 +61,35 @@ const Flashcards = () => {
 
       setSubjects(subjectsRes.data.subjects || []);
       setNotes(notesRes.data.notes || []);
-      
-      // Select first subject by default if available
-      if (subjectsRes.data.subjects?.length > 0) {
-        setSelectedSubject(subjectsRes.data.subjects[0].name);
-      }
     } catch (error) {
-      console.error("Error fetching initial data:", error);
+      console.error("Error fetching subjects:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchFlashcards = async (subject) => {
+  const fetchTopics = async (subjectName) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/flashcards?subject=${subject}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/flashcards/topics/all?subject=${encodeURIComponent(subjectName)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTopics(response.data.topics || []);
+    } catch (error) {
+      console.error("Error fetching topics:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFlashcards = async (topicName) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/flashcards?topic=${encodeURIComponent(topicName)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setFlashcards(response.data.flashcards || []);
@@ -87,10 +108,28 @@ const Flashcards = () => {
       const baseUrl = import.meta.env.VITE_BACKEND_URL;
       const headers = { Authorization: `Bearer ${token}` };
 
+      // If we are in "subjects" view, user must have selected a subject in the form (if we allowed it)
+      // But we will enforce selecting a subject first in the UI flow, so selectedSubject should be available if we are in topics/flashcards view.
+      // If we are in subjects view, we might need to let user select subject in form.
+      
+      // Let's simplify: The form always requires a subject. 
+      // If selectedSubject is set, use it. If not, user must select in form (if we enable that).
+      // BUT user requirement: "first select the subject then we can do anything".
+      // So we should probably only allow creating when a subject is selected? 
+      // Or allow creating but force subject selection.
+      
+      const subjectToUse = selectedSubject ? selectedSubject.name : formData.subject;
+      
+      if (!subjectToUse) {
+          alert("Please select a subject first.");
+          setSubmitting(false);
+          return;
+      }
+
       if (generationMode === "note") {
-        // AI Generation from Note
         if (!formData.noteId) {
           alert("Please select a note.");
+          setSubmitting(false);
           return;
         }
         await axios.post(
@@ -99,28 +138,31 @@ const Flashcards = () => {
           { headers }
         );
       } else if (generationMode === "topic") {
-        // AI Generation from Topic
         if (!formData.topic) {
           alert("Please enter a topic.");
+          setSubmitting(false);
           return;
         }
         await axios.post(
           `${baseUrl}/api/flashcards/generate-ai`,
-          { topic: formData.topic, subject: selectedSubject },
+          { topic: formData.topic, subject: subjectToUse },
           { headers }
         );
       } else {
-        // Manual Creation
         await axios.post(
           `${baseUrl}/api/flashcards`,
-          { ...formData, subject: selectedSubject, topicName: "Manual" },
+          { ...formData, subject: subjectToUse, topicName: "Manual" },
           { headers }
         );
       }
 
       setFormData({ ...formData, question: "", answer: "", topic: "" });
       setShowForm(false);
-      fetchFlashcards(selectedSubject);
+      
+      // Refresh current view
+      if (viewState === "topics") fetchTopics(selectedSubject.name);
+      if (viewState === "flashcards") fetchFlashcards(selectedTopic.name);
+      
     } catch (error) {
       console.error("Error creating flashcard:", error);
       alert("Error creating flashcard.");
@@ -137,7 +179,7 @@ const Flashcards = () => {
         data,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetchFlashcards(selectedSubject);
+      if (selectedTopic) fetchFlashcards(selectedTopic.name);
     } catch (error) {
       console.error("Error updating flashcard:", error);
     }
@@ -151,82 +193,112 @@ const Flashcards = () => {
         `${import.meta.env.VITE_BACKEND_URL}/api/flashcards/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetchFlashcards(selectedSubject);
+      if (selectedTopic) fetchFlashcards(selectedTopic.name);
     } catch (error) {
       console.error("Error deleting flashcard:", error);
     }
   };
 
-  const handleMarkDifficulty = async (id, difficulty) => {
+  const handleMarkTopicDifficulty = async (topicName, difficulty, e) => {
+    e.stopPropagation(); 
     try {
       const token = localStorage.getItem("token");
       await axios.patch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/flashcards/${id}/difficulty`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/flashcards/topic/${encodeURIComponent(topicName)}/difficulty`,
         { difficulty },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      // Optimistically update local state
-      setFlashcards(prev => prev.map(fc => 
-        fc._id === id ? { ...fc, difficulty } : fc
+      setTopics(prev => prev.map(t => 
+        t.name === topicName ? { ...t, difficulty } : t
       ));
     } catch (error) {
-      console.error("Error updating difficulty:", error);
+      console.error("Error updating topic difficulty:", error);
     }
   };
 
-  if (loading && !flashcards.length && !subjects.length) {
+  const handleMarkViewed = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/flashcards/${id}/viewed`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setFlashcards(prev => prev.map(fc => 
+        fc._id === id ? { ...fc, viewed: true } : fc
+      ));
+    } catch (error) {
+      console.error("Error marking as viewed:", error);
+    }
+  };
+
+  // Navigation Handlers
+  const goBack = () => {
+    if (viewState === "flashcards") {
+      setViewState("topics");
+      setSelectedTopic(null);
+    } else if (viewState === "topics") {
+      setViewState("subjects");
+      setSelectedSubject(null);
+    }
+  };
+
+  if (loading && !subjects.length && !topics.length && !flashcards.length) {
     return <Loader fullScreen />;
   }
 
   return (
     <div className="min-h-screen w-full p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
+        
+        {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-extrabold" style={{ color: "var(--text-primary)" }}>
-            Flashcards
-          </h1>
+          <div className="flex items-center gap-4">
+            {viewState !== "subjects" && (
+              <Button onClick={goBack} variant="ghost">
+                <FaArrowLeft className="mr-2" /> Back
+              </Button>
+            )}
+            <div>
+                <h1 className="text-4xl font-extrabold" style={{ color: "var(--text-primary)" }}>
+                {viewState === "subjects" && "Select Subject"}
+                {viewState === "topics" && selectedSubject?.name}
+                {viewState === "flashcards" && selectedTopic?.name}
+                </h1>
+                {viewState !== "subjects" && (
+                    <p className="text-sm opacity-70" style={{ color: "var(--text-secondary)" }}>
+                        {viewState === "topics" ? "Select a topic to study" : `Subject: ${selectedSubject?.name}`}
+                    </p>
+                )}
+            </div>
+          </div>
+          
           <div className="flex gap-4">
-            <Button
-              onClick={() => setStudyMode(!studyMode)}
-              variant={studyMode ? "secondary" : "outline"}
-            >
-              {studyMode ? "Exit Study Mode" : "Start Study Mode"}
-            </Button>
-            <Button onClick={() => setShowForm(!showForm)} variant="primary">
-              {showForm ? "Cancel" : "Create New"}
-            </Button>
+            {viewState === "flashcards" && (
+              <Button
+                onClick={() => setStudyMode(!studyMode)}
+                variant={studyMode ? "secondary" : "outline"}
+              >
+                {studyMode ? "Exit Study Mode" : "Start Study Mode"}
+              </Button>
+            )}
+            
+            {/* Only show Create button if a subject is selected (i.e. not in subjects view) */}
+            {viewState !== "subjects" && (
+                <Button onClick={() => setShowForm(!showForm)} variant="primary">
+                {showForm ? "Cancel" : "Create New"}
+                </Button>
+            )}
           </div>
         </div>
 
-        {/* Subject Selection */}
-        <div className="mb-8">
-          <label className="block mb-2 font-semibold" style={{ color: "var(--text-primary)" }}>
-            Select Subject
-          </label>
-          <select
-            value={selectedSubject}
-            onChange={(e) => setSelectedSubject(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border-2 font-medium focus:outline-none focus:ring-2"
-            style={{
-              backgroundColor: "var(--bg-primary)",
-              borderColor: "var(--accent-secondary)",
-              color: "var(--text-primary)",
-            }}
-          >
-            <option value="" disabled>Select a subject</option>
-            {subjects.map((sub) => (
-              <option key={sub._id} value={sub.name}>{sub.name}</option>
-            ))}
-          </select>
-        </div>
-
-        {showForm && (
+        {/* Create Form */}
+        {showForm && viewState !== "subjects" && (
           <Card className="mb-8">
             <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
-              Generate Flashcards
+              Generate Flashcards for {selectedSubject?.name}
             </h2>
             
-            {/* Generation Mode Toggle */}
             <div className="flex gap-4 mb-6">
               <button
                 onClick={() => setGenerationMode("note")}
@@ -264,7 +336,7 @@ const Flashcards = () => {
               {generationMode === "note" && (
                 <div>
                   <label className="block mb-2 font-semibold" style={{ color: "var(--text-primary)" }}>
-                    Select Note
+                    Select Note (must belong to {selectedSubject?.name})
                   </label>
                   <select
                     value={formData.noteId}
@@ -279,11 +351,10 @@ const Flashcards = () => {
                   >
                     <option value="">Select a note...</option>
                     {notes
-                      .filter(n => !selectedSubject || n.subject === selectedSubject)
-                      .map(note => (
-                        <option key={note._id} value={note._id}>{note.title}</option>
-                      ))
-                    }
+                        .filter(n => n.subject === selectedSubject?.name)
+                        .map(note => (
+                      <option key={note._id} value={note._id}>{note.title}</option>
+                    ))}
                   </select>
                 </div>
               )}
@@ -354,28 +425,125 @@ const Flashcards = () => {
           </Card>
         )}
 
-        {/* Group by Topic */}
-        {Object.entries(
-          flashcards.reduce((acc, fc) => {
-            const topic = fc.topicName || "General";
-            if (!acc[topic]) acc[topic] = [];
-            acc[topic].push(fc);
-            return acc;
-          }, {})
-        ).map(([topic, cards]) => (
-          <div key={topic} className="mb-8">
-            <h3 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
-              {topic}
-            </h3>
+        {/* VIEW: SUBJECTS */}
+        {viewState === "subjects" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {subjects.length === 0 ? (
+                    <div className="col-span-full text-center opacity-60 py-12">
+                        No subjects found. Please add subjects in the Dashboard first.
+                    </div>
+                ) : (
+                    subjects.map((subject) => (
+                        <Card 
+                            key={subject._id} 
+                            className="cursor-pointer hover:border-violet-500 transition-all group relative flex flex-col items-center justify-center py-12 gap-4"
+                            onClick={() => {
+                                setSelectedSubject(subject);
+                                setViewState("topics");
+                            }}
+                        >
+                            <div className="p-4 rounded-full bg-violet-500/20 text-violet-500">
+                                <FaBook size={32} />
+                            </div>
+                            <h3 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
+                                {subject.name}
+                            </h3>
+                            <p className="text-sm opacity-70">Click to view topics</p>
+                        </Card>
+                    ))
+                )}
+            </div>
+        )}
+
+        {/* VIEW: TOPICS */}
+        {viewState === "topics" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {topics.length === 0 ? (
+              <div className="col-span-full text-center opacity-60 py-12">
+                No topics found for {selectedSubject.name}. Generate some flashcards to get started!
+              </div>
+            ) : (
+              topics.map((topic) => (
+                <Card 
+                  key={topic._id} 
+                  className="cursor-pointer hover:border-violet-500 transition-all group relative"
+                  onClick={() => {
+                      setSelectedTopic(topic);
+                      setViewState("flashcards");
+                  }}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                        <FaLayerGroup className="text-violet-500" />
+                        <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
+                        {topic.name}
+                        </h3>
+                    </div>
+                    <input type="checkbox" className="w-5 h-5 rounded border-gray-600" onClick={(e) => e.stopPropagation()} />
+                  </div>
+                  
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-sm opacity-70">
+                      {topic.viewedCards} / {topic.totalCards} Viewed
+                    </span>
+                    {topic.viewedCards === topic.totalCards && topic.totalCards > 0 && (
+                      <FaCheckCircle className="text-green-500" />
+                    )}
+                  </div>
+
+                  {/* Difficulty Controls */}
+                  <div className="flex gap-2 mt-4" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={(e) => handleMarkTopicDifficulty(topic.name, "easy", e)}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                        topic.difficulty === "easy" 
+                          ? "bg-green-500 text-white" 
+                          : "bg-gray-700 text-gray-400 hover:bg-gray-600"
+                      }`}
+                    >
+                      Easy
+                    </button>
+                    <button
+                      onClick={(e) => handleMarkTopicDifficulty(topic.name, "medium", e)}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                        topic.difficulty === "medium" 
+                          ? "bg-yellow-500 text-white" 
+                          : "bg-gray-700 text-gray-400 hover:bg-gray-600"
+                      }`}
+                    >
+                      Medium
+                    </button>
+                    <button
+                      onClick={(e) => handleMarkTopicDifficulty(topic.name, "hard", e)}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                        topic.difficulty === "hard" 
+                          ? "bg-red-500 text-white" 
+                          : "bg-gray-700 text-gray-400 hover:bg-gray-600"
+                      }`}
+                    >
+                      Difficult
+                    </button>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* VIEW: FLASHCARDS */}
+        {viewState === "flashcards" && (
+          <div>
             <FlashcardList
-              flashcards={cards}
+              flashcards={flashcards}
               onEdit={handleUpdate}
               onDelete={handleDelete}
-              onMarkDifficulty={handleMarkDifficulty}
+              onMarkDifficulty={(id, type) => {
+                 if (type === "viewed") handleMarkViewed(id);
+              }}
               studyMode={studyMode}
             />
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
