@@ -266,7 +266,15 @@ const RTUExams = () => {
                   </div>
 
                   {/* Analysis indicator for subjects with data */}
-                  {subject.name === "Advanced Engineering Mathematics" && (
+                  {[
+                    "Advanced Engineering Mathematics",
+                    "Data Structures and Algorithms",
+                    "Object Oriented Programming",
+                    "Digital Electronics",
+                    "Software Engineering",
+                    "Technical Communication",
+                    "Managerial Economics and Financial Accounting",
+                  ].includes(subject.name) && (
                     <div
                       className="flex items-center gap-2 text-sm"
                       style={{ color: "var(--action-primary)" }}
