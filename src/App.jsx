@@ -21,6 +21,7 @@ import Welcome from "./pages/Welcome";
 import Notes from "./pages/Notes";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import RTUExams from "./pages/RTUExams";
 
 // Providers
 import { AuthProvider } from "./AuthProvider";
@@ -43,6 +44,14 @@ const App = () => {
             <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
 
             {/* Protected routes */}
+            <Route
+              path="/rtu-exams"
+              element={
+                <ProtectedRoute>
+                  <PageTransition><RTUExams /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/dashboard"
               element={
