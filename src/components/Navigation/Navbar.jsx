@@ -33,6 +33,7 @@ const underlineVariants = {
 
 const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const handleLogoClick = () => {
     if (user) {
@@ -44,6 +45,12 @@ const Navbar = ({ user, onLogout }) => {
 
   const handleProfileClick = () => {
     navigate("/profile");
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleMobileNavClick = (path) => {
+    setIsMobileMenuOpen(false);
+    // Use navigate explicitly if NavLink doesn't close menu (it redirects but state might persist)
   };
 
   return (
@@ -51,7 +58,7 @@ const Navbar = ({ user, onLogout }) => {
       initial={{ y: -32, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
-      className="fixed top-0 left-0 w-full z-30 backdrop-blur-xl bg-[var(--bg-primary)]/80 border-b border-[var(--accent-secondary)]/20 shadow-sm transition-all"
+      className="fixed top-0 left-0 w-full z-50 backdrop-blur-xl bg-[var(--bg-primary)]/90 border-b border-[var(--accent-secondary)]/20 shadow-sm transition-all"
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between h-16 relative">
         {/* Logo Section */}
@@ -70,7 +77,7 @@ const Navbar = ({ user, onLogout }) => {
           </span>
         </div>
 
-        {/* Desktop Nav with animated underline - Only show if user is logged in */}
+        {/* Desktop Nav */}
         {user && (
           <div className="hidden md:flex gap-2 lg:gap-7 items-center">
             {navItems.map((item) => (
@@ -136,7 +143,69 @@ const Navbar = ({ user, onLogout }) => {
             </button>
           </div>
         )}
+
+        {/* Mobile Menu Toggle & Profile (Tablet/Phone) */}
+        {user && (
+          <div className="md:hidden flex items-center gap-3">
+             <button
+              onClick={handleProfileClick}
+              className="h-9 w-9 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 overflow-hidden"
+            >
+               {user?.avatar || user?.profilePic ? (
+                <img
+                  src={user.avatar || user.profilePic}
+                  className="h-full w-full object-cover"
+                  onError={(e) => { e.target.onerror = null; e.target.src = "https://ik.imagekit.io/ayushrathore1/image(1).png?updatedAt=1761828486524"; }}
+                />
+               ) : (
+                 <div className="h-full w-full flex items-center justify-center bg-gray-200 text-xs font-bold">{user?.name?.[0]}</div>
+               )}
+            </button>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-lg text-[var(--text-primary)] hover:bg-[var(--accent-secondary)]/10"
+            >
+              <div className="w-6 h-6 flex flex-col justify-center gap-1.5">
+                <span className={`block w-full h-0.5 bg-current transition-all ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+                <span className={`block w-full h-0.5 bg-current transition-all ${isMobileMenuOpen ? 'opacity-0' : ''}`} />
+                <span className={`block w-full h-0.5 bg-current transition-all ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+              </div>
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      <motion.div
+        initial={false}
+        animate={isMobileMenuOpen ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
+        className="md:hidden overflow-hidden bg-[var(--bg-primary)] border-b border-[var(--accent-secondary)]/20"
+      >
+        <div className="px-4 py-4 space-y-2 flex flex-col">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              onClick={() => handleMobileNavClick(item.path)}
+              className={({ isActive }) =>
+                `block px-4 py-3 rounded-xl font-medium transition-colors ${
+                  isActive
+                    ? "bg-[var(--action-primary)] text-white"
+                    : "text-[var(--text-primary)] hover:bg-[var(--accent-secondary)]/10"
+                }`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+          <button
+            onClick={() => { onLogout(); setIsMobileMenuOpen(false); }}
+            className="w-full text-left px-4 py-3 rounded-xl font-medium text-red-500 hover:bg-red-500/10 mt-2"
+          >
+            Logout
+          </button>
+        </div>
+      </motion.div>
     </motion.nav>
   );
 };
