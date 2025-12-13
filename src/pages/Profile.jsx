@@ -132,15 +132,15 @@ const Profile = () => {
             <div className="space-y-6">
               <div className="text-center">
                 <div className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
-                  {user?.name}
+                  {user?.name || "User Name"}
                 </div>
                 <div className="text-lg" style={{ color: "var(--text-secondary)" }}>
-                  {user?.email}
+                  {user?.email || "email@example.com"}
                 </div>
               </div>
 
               <div className="text-center text-sm" style={{ color: "var(--text-secondary)" }}>
-                Member since {new Date(user?.createdAt).toLocaleDateString()}
+                Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}
               </div>
 
               <Button onClick={() => setIsEditing(true)} variant="primary" fullWidth>
