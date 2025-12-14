@@ -401,6 +401,7 @@ const RTUExams = () => {
                       youtubePlaylistUrl={unit.youtubePlaylistUrl}
                       questions={unit.questions}
                       index={index}
+                      subjectName={selectedSubject?.name || ""}
                     />
                   ))}
                 </div>

@@ -116,17 +116,24 @@ const DailyPlanWidget = () => {
                   <div className="h-4 bg-gray-300 rounded w-5/6"></div>
                 </div>
               ) : plan ? (
-                <div className="space-y-4">
-                  <p className="text-lg leading-relaxed line-clamp-4" style={{ color: "var(--text-secondary)" }}>
-                    {plan}
-                  </p>
+                <div className="flex flex-col items-center justify-center text-center py-6 space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                    <FaMagic className="text-white text-2xl" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
+                      Your Plan is Ready! 🎉
+                    </p>
+                    <p className="text-sm opacity-70 mt-1" style={{ color: "var(--text-secondary)" }}>
+                      Click the button below to view your personalized study board.
+                    </p>
+                  </div>
                   <Button 
-                    variant="outline" 
-                    fullWidth 
+                    variant="primary" 
                     onClick={() => setShowModal(true)}
                     className="mt-2"
                   >
-                    Open Task Board
+                    <FaEye className="mr-2" /> Open Task Board
                   </Button>
                 </div>
               ) : (

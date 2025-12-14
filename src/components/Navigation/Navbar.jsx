@@ -1,15 +1,19 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import axios from "axios";
+import { FaCrown } from "react-icons/fa";
 
-const navItems = [
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+const baseNavItems = [
   { path: "/dashboard", label: "Dashboard" },
   { path: "/notes", label: "Notes" },
   { path: "/rtu-exams", label: "RTU Exams" },
   { path: "/flashcards", label: "Flashcards" },
   { path: "/quiz", label: "Quiz" },
   { path: "/chatbot", label: "Chatbot" },
-  { path: "/feedback", label: "Feedback" },
+  { path: "/updates", label: "Updates" },
 ];
 
 const linkVariants = {
@@ -33,7 +37,34 @@ const underlineVariants = {
 
 const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      
+      try {
+        const res = await axios.get(`${BACKEND_URL}/api/messages/check-admin`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setIsAdmin(res.data.isAdmin);
+      } catch (error) {
+        setIsAdmin(false);
+      }
+    };
+    
+    if (user) {
+      checkAdmin();
+    }
+  }, [user]);
+
+  // Build nav items based on admin status
+  const navItems = isAdmin 
+    ? [...baseNavItems, { path: "/admin", label: "Admin", isAdmin: true }]
+    : baseNavItems;
 
   const handleLogoClick = () => {
     if (user) {
@@ -85,16 +116,23 @@ const Navbar = ({ user, onLogout }) => {
                 key={item.path}
                 to={item.path}
                 style={{ position: "relative", display: "inline-block" }}
-                className="font-medium px-4 py-2 rounded-xl transition-all duration-200"
+                className={`font-medium px-4 py-2 rounded-xl transition-all duration-200 ${
+                  item.isAdmin ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30" : ""
+                }`}
               >
                 {({ isActive }) => (
                   <motion.span
                     initial="inactive"
                     animate={isActive ? "active" : "inactive"}
                     whileHover="hover"
-                    variants={linkVariants}
-                    className="relative block"
+                    variants={item.isAdmin ? {
+                      ...linkVariants,
+                      inactive: { scale: 1, color: "#f59e0b" },
+                      active: { scale: 1.12, color: "#f59e0b" },
+                    } : linkVariants}
+                    className="relative block flex items-center gap-1.5"
                   >
+                    {item.isAdmin && <FaCrown className="text-amber-500" />}
                     {item.label}
                     {isActive && (
                       <motion.span
@@ -102,7 +140,11 @@ const Navbar = ({ user, onLogout }) => {
                         animate="visible"
                         exit="hidden"
                         variants={underlineVariants}
-                        className="absolute left-0 right-0 -bottom-2 h-1 bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)] rounded-xl shadow"
+                        className={`absolute left-0 right-0 -bottom-2 h-1 rounded-xl shadow ${
+                          item.isAdmin 
+                            ? "bg-gradient-to-r from-amber-500 to-orange-500" 
+                            : "bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)]"
+                        }`}
                       />
                     )}
                   </motion.span>

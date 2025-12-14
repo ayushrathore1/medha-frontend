@@ -1,16 +1,16 @@
 import React from "react";
 import { FaTimes, FaThumbtack } from "react-icons/fa";
 import { createPortal } from "react-dom";
+import ReactMarkdown from "react-markdown";
 
 const PlanModal = ({ isOpen, onClose, plan }) => {
   if (!isOpen) return null;
 
-  // Parse the plan into tasks
-  // Assuming the AI returns a list of items, often numbered or bulleted
+  // Parse the plan into tasks (Chunks separated by '---')
   const tasks = plan
-    .split(/\n/) // Split by newline
-    .map(line => line.trim())
-    .filter(line => line.length > 0); // Remove empty lines
+    .split('---') 
+    .map(chunk => chunk.trim())
+    .filter(chunk => chunk.length > 0); 
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
@@ -54,18 +54,27 @@ const PlanModal = ({ isOpen, onClose, plan }) => {
                     backgroundColor: color,
                     transform: `rotate(${rotation}deg)`,
                     fontFamily: '"Comic Sans MS", "Chalkboard SE", sans-serif', // Handwritten-ish font
-                    minHeight: "180px",
+                    minHeight: "200px",
                   }}
                 >
                   {/* Pin */}
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 text-red-600 drop-shadow-md">
                     <FaThumbtack size={24} />
                   </div>
-
-                  {/* Tape (alternative to pin, maybe mix them? sticking to pin for now) */}
                   
-                  <div className="text-gray-800 text-lg font-medium leading-relaxed">
-                    {task.replace(/^[0-9-.*•]+\s*/, "")} {/* Remove bullet/number prefix */}
+                  <div className="text-gray-900 text-base font-medium leading-relaxed prose prose-sm max-w-none">
+                    <ReactMarkdown
+                      components={{
+                        // Custom styling for elements to look "handwritten"
+                        strong: ({node, ...props}) => <span className="font-bold text-black" {...props} />,
+                        ul: ({node, ...props}) => <ul className="list-disc pl-4 space-y-1" {...props} />,
+                        li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                        h1: ({node, ...props}) => <h3 className="text-xl font-bold mb-2 border-b border-black/20 pb-1" {...props} />,
+                        h2: ({node, ...props}) => <h4 className="text-lg font-bold mb-2" {...props} />,
+                      }}
+                    >
+                      {task}
+                    </ReactMarkdown>
                   </div>
                 </div>
               );

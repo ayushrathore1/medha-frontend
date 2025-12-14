@@ -12,7 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Chatbot from "./pages/Chatbot";
 import Flashcards from "./pages/Flashcards";
 import Quiz from "./pages/Quiz";
-import Feedback from "./pages/Feedback";
+import Updates from "./pages/Updates";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -23,6 +23,7 @@ import Notes from "./pages/Notes";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import RTUExams from "./pages/RTUExams";
+import AdminDashboard from "./pages/AdminDashboard";
 
 // Providers
 import { AuthProvider } from "./AuthProvider";
@@ -87,10 +88,18 @@ const App = () => {
               }
             />
             <Route
-              path="/feedback"
+              path="/updates"
               element={
                 <ProtectedRoute>
-                  <PageTransition><Feedback /></PageTransition>
+                  <PageTransition><Updates /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <PageTransition><AdminDashboard /></PageTransition>
                 </ProtectedRoute>
               }
             />
