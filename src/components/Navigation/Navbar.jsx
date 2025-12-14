@@ -188,14 +188,15 @@ const Navbar = ({ user, onLogout }) => {
               to={item.path}
               onClick={() => handleMobileNavClick(item.path)}
               className={({ isActive }) =>
-                `block px-4 py-3 rounded-xl font-medium transition-colors ${
+                `block px-4 py-3 rounded-xl font-medium transition-colors relative z-10 ${
                   isActive
                     ? "bg-[var(--action-primary)] text-white"
                     : "text-[var(--text-primary)] hover:bg-[var(--accent-secondary)]/10"
                 }`
               }
+              style={({ isActive }) => isActive ? { color: '#ffffff' } : {}}
             >
-              {item.label}
+              <span className="relative z-20">{item.label}</span>
             </NavLink>
           ))}
           <button
