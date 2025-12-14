@@ -6,7 +6,7 @@ import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import YearSelector from "../components/RTUExams/YearSelector";
 import UnitWeightageBar from "../components/RTUExams/UnitWeightageBar";
-import { FaArrowLeft, FaLayerGroup, FaCheckCircle, FaChartBar } from "react-icons/fa";
+import { FaArrowLeft, FaLayerGroup, FaCheckCircle, FaChartBar, FaLinkedin } from "react-icons/fa";
 
 const RTUExams = () => {
   // Enhanced viewState: "semesters", "subjects", "years", "unitWeightage"
@@ -407,6 +407,22 @@ const RTUExams = () => {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      <div className="mt-16 mb-8 text-center flex flex-col items-center justify-center">
+        <p className="text-[var(--text-secondary)] font-medium mb-4">
+          Want your branch or year’s paper analysis added? Contact us!
+        </p>
+        <a
+          href="https://www.linkedin.com/in/ayushrathore1"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-[#0077b5] text-white !text-white px-5 py-2.5 rounded-full font-semibold hover:bg-[#006097] transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 relative z-10"
+          style={{ color: 'white' }}
+        >
+          <FaLinkedin className="text-xl" />
+          <span>Connect on LinkedIn</span>
+        </a>
       </div>
     </div>
   );
