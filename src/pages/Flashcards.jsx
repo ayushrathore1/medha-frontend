@@ -160,8 +160,18 @@ const Flashcards = () => {
       setShowForm(false);
       
       // Refresh current view
-      if (viewState === "topics") fetchTopics(selectedSubject.name);
-      if (viewState === "flashcards") fetchFlashcards(selectedTopic.name);
+      // If generated from topic, go back to topics view to see the new topic
+      if (generationMode === "topic" && selectedSubject) {
+        setViewState("topics");
+        setSelectedTopic(null);
+        await fetchTopics(selectedSubject.name);
+        alert("Flashcards generated! Click on your new topic to view them.");
+      } else if (viewState === "flashcards" && selectedTopic) {
+        await fetchFlashcards(selectedTopic.name);
+      } else if (viewState === "topics" && selectedSubject) {
+        await fetchTopics(selectedSubject.name);
+        alert("Flashcards generated! Check your new topic below.");
+      }
       
     } catch (error) {
       console.error("Error creating flashcard:", error);

@@ -205,6 +205,103 @@ const Welcome = () => {
               </div>
             </Card>
           </motion.div>
+
+          {/* Feature Showcase with Screenshots */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1, duration: 0.8 }}
+            className="w-full max-w-6xl mt-24"
+          >
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-4">
+                ✨ Explore Our Features
+              </h2>
+              <p className="text-lg text-[var(--text-secondary)] max-w-3xl mx-auto">
+                Here's a sneak peek at what Medha AI can do for you
+              </p>
+            </div>
+
+            <div className="space-y-20">
+              {/* Dashboard */}
+              <FeatureShowcase
+                title="🏠 Smart Dashboard"
+                description="Your study command center — AI-generated daily plans, to-do lists, study streaks, calendar, and progress tracking all in one place. Start your day organized!"
+                image="https://ik.imagekit.io/ayushrathore1/Medha/Dashboard_ss"
+                reverse={false}
+              />
+
+              {/* Chatbot */}
+              <FeatureShowcase
+                title="🤖 Medha AI Chatbot"
+                description="Your personal AI tutor! Ask questions, get instant explanations, generate study plans, and even solve exam questions. All your conversations are saved."
+                image="https://ik.imagekit.io/ayushrathore1/Medha/chatbot_ss.png"
+                reverse={true}
+              />
+
+              {/* RTU Exams */}
+              <FeatureShowcase
+                title="📊 RTU Exam Analysis"
+                description="See unit-wise weightage, past year questions, and marks distribution. Click 'Medha, solve it!' to get AI-generated exam-ready answers instantly."
+                image="https://ik.imagekit.io/ayushrathore1/Medha/rtuExams_ss.png"
+                reverse={false}
+              />
+
+              {/* Flashcards */}
+              <FeatureShowcase
+                title="📚 Smart Flashcards"
+                description="AI-generated flashcards organized by topic. Set difficulty levels, mark as reviewed, and track your mastery. Study mode for focused learning."
+                image="https://ik.imagekit.io/ayushrathore1/Medha/flashcards_ss"
+                reverse={true}
+              />
+
+              {/* Quiz */}
+              <FeatureShowcase
+                title="🎯 Topic-Based Quizzes"
+                description="Generate custom quizzes from any topic. Test your understanding with instant feedback and detailed explanations for each question."
+                image="https://ik.imagekit.io/ayushrathore1/Medha/Quiz_ss"
+                reverse={false}
+              />
+
+              {/* Notes */}
+              <FeatureShowcase
+                title="📄 Notes with OCR"
+                description="Upload handwritten notes or images — Medha extracts the text using OCR. Organize everything by subject for easy access."
+                image="https://ik.imagekit.io/ayushrathore1/Medha/notes_ss"
+                reverse={true}
+              />
+
+              {/* Updates */}
+              <FeatureShowcase
+                title="📝 Updates & Contact"
+                description="Stay updated with the latest features. Send feedback, feature requests, or bug reports directly through the app. We love hearing from you!"
+                image="https://ik.imagekit.io/ayushrathore1/Medha/updates_ss"
+                reverse={false}
+              />
+            </div>
+          </motion.div>
+
+          {/* Final CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, duration: 0.8 }}
+            className="mt-24 text-center"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-6">
+              Ready to Transform Your Learning?
+            </h2>
+            <Link to="/register">
+              <Button 
+                variant="primary" 
+                size="large" 
+                className="text-lg px-10 py-4 shadow-xl hover:shadow-2xl hover:-translate-y-1"
+                icon={<ArrowRight size={20} />}
+              >
+                Get Started Free
+              </Button>
+            </Link>
+          </motion.div>
         </div>
       </div>
     </div>
@@ -237,6 +334,43 @@ const FeatureCard = ({ icon, title, desc, color, bg, isActive }) => (
           {desc}
         </p>
       </div>
+    </div>
+  </motion.div>
+);
+
+const FeatureShowcase = ({ title, description, image, reverse }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "-100px" }}
+    transition={{ duration: 0.6 }}
+    className={`flex flex-col ${reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center gap-8 lg:gap-12`}
+  >
+    {/* Image */}
+    <div className="w-full lg:w-3/5">
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        transition={{ duration: 0.3 }}
+        className="relative group"
+      >
+        <div className="absolute -inset-2 bg-gradient-to-r from-[var(--action-primary)]/20 to-[var(--accent-secondary)]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <img
+          src={image}
+          alt={title}
+          className="relative w-full rounded-2xl shadow-2xl border border-white/20 group-hover:shadow-[0_20px_60px_rgba(118,112,250,0.15)] transition-shadow duration-500"
+          loading="lazy"
+        />
+      </motion.div>
+    </div>
+
+    {/* Text */}
+    <div className="w-full lg:w-2/5 text-center lg:text-left">
+      <h3 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-4">
+        {title}
+      </h3>
+      <p className="text-lg text-[var(--text-secondary)] leading-relaxed">
+        {description}
+      </p>
     </div>
   </motion.div>
 );
