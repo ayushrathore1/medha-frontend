@@ -10,7 +10,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const updates = [
   {
     version: "2.5.0",
-    date: "December 2024",
+    date: "December 2025",
     title: "AI-Powered Exam Solutions",
     features: [
       "🤖 'Medha, solve it' - AI generates exam-ready solutions",
@@ -21,7 +21,7 @@ const updates = [
   },
   {
     version: "2.4.0",
-    date: "December 2024",
+    date: "December 2025",
     title: "RTU Exam Analysis",
     features: [
       "📝 Unit-wise weightage analysis for RTU papers",
@@ -32,7 +32,7 @@ const updates = [
   },
   {
     version: "2.3.0",
-    date: "November 2024",
+    date: "November 2025",
     title: "Enhanced Study Tools",
     features: [
       "🧠 AI Daily Coach with personalized study plans",
@@ -43,7 +43,7 @@ const updates = [
   },
   {
     version: "2.2.0",
-    date: "November 2024",
+    date: "November 2025",
     title: "Notes & OCR",
     features: [
       "📄 OCR-powered note extraction from images",
@@ -54,7 +54,7 @@ const updates = [
   },
   {
     version: "2.0.0",
-    date: "October 2024",
+    date: "October 2025",
     title: "Medha AI Launch",
     features: [
       "🚀 Initial release of Medha AI",
