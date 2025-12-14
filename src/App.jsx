@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { Analytics } from "@vercel/analytics/react";
 
 // Layout
 import MainLayout from "./components/Layout";
@@ -33,6 +34,7 @@ const App = () => {
 
   return (
     <AuthProvider>
+      <Analytics />
       <MainLayout>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
