@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
@@ -9,6 +10,7 @@ import UnitWeightageBar from "../components/RTUExams/UnitWeightageBar";
 import { FaArrowLeft, FaLayerGroup, FaCheckCircle, FaChartBar, FaLinkedin } from "react-icons/fa";
 
 const RTUExams = () => {
+  const navigate = useNavigate(); // Initialize hook
   // Enhanced viewState: "semesters", "subjects", "years", "unitWeightage"
   const [viewState, setViewState] = useState("semesters");
   const [subjects, setSubjects] = useState([]);
@@ -23,8 +25,14 @@ const RTUExams = () => {
   const [weightageLoading, setWeightageLoading] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.warn("No token found, redirecting to login");
+      navigate("/login");
+      return;
+    }
     fetchSubjects();
-  }, []);
+  }, [navigate]);
 
   const fetchSubjects = async () => {
     try {
@@ -37,6 +45,9 @@ const RTUExams = () => {
       setSubjects(res.data.topics);
     } catch (error) {
       console.error("Error fetching RTU subjects:", error);
+      if (error.response && error.response.status === 401) {
+        navigate("/login");
+      }
     } finally {
       setLoading(false);
     }
