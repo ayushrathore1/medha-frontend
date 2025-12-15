@@ -122,7 +122,7 @@ const Navbar = ({ user, onLogout }) => {
 
         {/* Desktop Nav */}
         {user && (
-          <div className="hidden 2xl:flex gap-5 items-center">
+          <div className="hidden xl:flex gap-5 items-center">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
@@ -209,7 +209,7 @@ const Navbar = ({ user, onLogout }) => {
 
         {/* Mobile Menu Toggle & Profile (Tablet/Phone) */}
         {user && (
-          <div className="2xl:hidden flex items-center gap-3">
+          <div className="xl:hidden flex items-center gap-3">
              <button
               onClick={handleProfileClick}
               className="h-9 w-9 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 overflow-hidden"
@@ -242,7 +242,7 @@ const Navbar = ({ user, onLogout }) => {
       <motion.div
         initial={false}
         animate={isMobileMenuOpen ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
-        className="2xl:hidden overflow-hidden bg-[var(--bg-primary)] border-b border-[var(--accent-secondary)]/20"
+        className="xl:hidden overflow-hidden bg-[var(--bg-primary)] border-b border-[var(--accent-secondary)]/20"
       >
         <div className="px-4 py-4 space-y-2 flex flex-col">
           {navItems.map((item) => (
