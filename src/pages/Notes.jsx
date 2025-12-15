@@ -220,20 +220,20 @@ const Notes = () => {
   };
 
   return (
-    <div className="min-h-screen w-full p-6">
+    <div className="min-h-screen w-full px-4 py-6 sm:p-6 pb-20 sm:pb-6">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <Card className="mb-8">
-          <div className="flex items-center justify-between">
+        <Card className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h1 className="text-3xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+              <h1 className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
                 📚 My Notes
               </h1>
-              <p style={{ color: "var(--text-secondary)" }}>
+              <p className="text-sm sm:text-base" style={{ color: "var(--text-secondary)" }}>
                 Organize and manage your study materials
               </p>
             </div>
-            <div className="hidden md:flex items-center space-x-3 text-base font-medium" style={{ color: "var(--text-secondary)" }}>
+            <div className="flex items-center space-x-3 text-sm sm:text-base font-medium" style={{ color: "var(--text-secondary)" }}>
               <span>{notes.length} notes</span>
               <span>•</span>
               <span>{subjects.length} subjects</span>
@@ -248,7 +248,7 @@ const Notes = () => {
         )}
 
         {/* Subject Selection & Forms */}
-        <Card className="mb-10">
+        <Card className="mb-8 sm:mb-10">
           <div className="mb-6">
             <label className="flex items-center text-lg font-bold mb-2" style={{ color: "var(--text-primary)" }}>
               <span className="mr-2">🎯</span>
@@ -422,11 +422,12 @@ const Notes = () => {
                       <div className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>
                         {new Date(note.createdAt).toLocaleDateString()}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           onClick={() => setViewNote(note)}
                           variant="outline"
                           size="small"
+                          className="flex-1"
                         >
                           View
                         </Button>
@@ -434,6 +435,7 @@ const Notes = () => {
                           onClick={() => handleEditStart(note)}
                           variant="secondary"
                           size="small"
+                          className="flex-1"
                         >
                           Edit
                         </Button>
@@ -441,6 +443,7 @@ const Notes = () => {
                           onClick={() => handleDelete(note._id)}
                           variant="danger"
                           size="small"
+                          className="flex-1"
                         >
                           Delete
                         </Button>

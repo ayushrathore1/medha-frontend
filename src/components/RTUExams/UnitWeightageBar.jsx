@@ -454,6 +454,12 @@ const UnitWeightageBar = ({
                   >
                     {solutions[viewingIdx]}
                   </ReactMarkdown>
+
+                  <div className="mt-8 pt-4 border-t border-[var(--border-color)] text-center">
+                    <p className="text-xs text-[var(--text-secondary)] opacity-70">
+                      Medha AI can make mistakes. Double check the response as you are human and it is AI.
+                    </p>
+                  </div>
                 </div>
               </div>
             </motion.div>

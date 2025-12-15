@@ -24,6 +24,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import RTUExams from "./pages/RTUExams";
 import AdminDashboard from "./pages/AdminDashboard";
+import Messages from "./pages/Messages";
 
 // Providers
 import { AuthProvider } from "./AuthProvider";
@@ -124,6 +125,14 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <PageTransition><Subjects /></PageTransition>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/messages"
+              element={
+                <ProtectedRoute>
+                  <PageTransition><Messages /></PageTransition>
                 </ProtectedRoute>
               }
             />

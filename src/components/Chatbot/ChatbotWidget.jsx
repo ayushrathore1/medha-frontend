@@ -215,6 +215,11 @@ const ChatbotWidget = ({ messages, onSendMessage, isTyping }) => {
           </span>
         </Button>
       </form>
+      <div className="px-4 pb-2 text-center">
+        <p className="text-xs text-[var(--text-secondary)] opacity-70">
+          Medha AI can make mistakes. Double check the response as you are human and it is AI.
+        </p>
+      </div>
 
       <style>{`
         @keyframes fade-in {

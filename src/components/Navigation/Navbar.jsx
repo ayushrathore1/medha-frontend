@@ -14,6 +14,7 @@ const baseNavItems = [
   { path: "/quiz", label: "Quiz" },
   { path: "/chatbot", label: "Chatbot" },
   { path: "/updates", label: "Updates" },
+  { path: "/messages", label: "Messages" },
 ];
 
 const linkVariants = {
@@ -39,25 +40,37 @@ const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  // Check if user is admin
+  // Check if user is admin and fetch unread count
   useEffect(() => {
-    const checkAdmin = async () => {
+    const checkAdminAndUnread = async () => {
       const token = localStorage.getItem("token");
       if (!token) return;
       
       try {
-        const res = await axios.get(`${BACKEND_URL}/api/messages/check-admin`, {
+        // Check admin
+        const adminRes = await axios.get(`${BACKEND_URL}/api/messages/check-admin`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setIsAdmin(res.data.isAdmin);
-      } catch (error) {
+        setIsAdmin(adminRes.data.isAdmin);
+
+        // Get unread count
+        const unreadRes = await axios.get(`${BACKEND_URL}/api/chats/unread-count`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setUnreadCount(unreadRes.data.unreadCount || 0);
+      } catch {
         setIsAdmin(false);
+        setUnreadCount(0);
       }
     };
     
     if (user) {
-      checkAdmin();
+      checkAdminAndUnread();
+      // Poll for unread count every 30 seconds
+      const interval = setInterval(checkAdminAndUnread, 30000);
+      return () => clearInterval(interval);
     }
   }, [user]);
 
@@ -79,9 +92,8 @@ const Navbar = ({ user, onLogout }) => {
     setIsMobileMenuOpen(false);
   };
 
-  const handleMobileNavClick = (path) => {
+  const handleMobileNavClick = () => {
     setIsMobileMenuOpen(false);
-    // Use navigate explicitly if NavLink doesn't close menu (it redirects but state might persist)
   };
 
   return (
@@ -91,32 +103,32 @@ const Navbar = ({ user, onLogout }) => {
       transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
       className="fixed top-0 left-0 w-full z-50 backdrop-blur-xl bg-[var(--bg-primary)]/90 border-b border-[var(--accent-secondary)]/20 shadow-sm transition-all"
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between h-16 relative">
+      <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 relative">
         {/* Logo Section */}
         <div
-          className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
+          className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:opacity-90 transition-opacity shrink-0"
           onClick={handleLogoClick}
         >
           <img
             src="https://ik.imagekit.io/ayushrathore1/logo.png?updatedAt=1758343718570"
             alt="MEDHA logo"
-            className="w-10 h-10 rounded-xl shadow-md bg-white"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl shadow-md bg-white"
             draggable="false"
           />
-          <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-[var(--action-primary)] via-[var(--accent-secondary)] to-[var(--accent-primary)] bg-clip-text text-transparent">
+          <span className="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-[var(--action-primary)] via-[var(--accent-secondary)] to-[var(--accent-primary)] bg-clip-text text-transparent hidden sm:inline">
             MEDHA
           </span>
         </div>
 
         {/* Desktop Nav */}
         {user && (
-          <div className="hidden md:flex gap-2 lg:gap-7 items-center">
+          <div className="hidden 2xl:flex gap-5 items-center">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 style={{ position: "relative", display: "inline-block" }}
-                className={`font-medium px-4 py-2 rounded-xl transition-all duration-200 ${
+                className={`font-medium px-3 py-2 rounded-xl transition-all duration-200 text-base whitespace-nowrap ${
                   item.isAdmin ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30" : ""
                 }`}
               >
@@ -134,6 +146,12 @@ const Navbar = ({ user, onLogout }) => {
                   >
                     {item.isAdmin && <FaCrown className="text-amber-500" />}
                     {item.label}
+                    {/* Notification badge for Messages */}
+                    {item.path === "/messages" && unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-2 px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
                     {isActive && (
                       <motion.span
                         initial="hidden"
@@ -155,7 +173,7 @@ const Navbar = ({ user, onLogout }) => {
             {/* Profile avatar */}
             <button
               onClick={handleProfileClick}
-              className="ml-2 h-11 w-11 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 hover:bg-white/80 shadow-sm transition overflow-hidden flex items-center justify-center"
+              className="ml-2 h-10 w-10 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 hover:bg-white/80 shadow-sm transition overflow-hidden flex items-center justify-center"
               title="Profile"
             >
               {user?.avatar || user?.profilePic ? (
@@ -178,8 +196,11 @@ const Navbar = ({ user, onLogout }) => {
             </button>
 
             <button
-              onClick={onLogout}
-              className="ml-3 bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-secondary)] text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg hover:opacity-90 transition-all shadow-md"
+              onClick={() => {
+                sessionStorage.removeItem("medha_feature_modal_shown");
+                onLogout();
+              }}
+              className="ml-2 bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-secondary)] text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg hover:opacity-90 transition-all shadow-md text-sm"
             >
               Logout
             </button>
@@ -188,7 +209,7 @@ const Navbar = ({ user, onLogout }) => {
 
         {/* Mobile Menu Toggle & Profile (Tablet/Phone) */}
         {user && (
-          <div className="md:hidden flex items-center gap-3">
+          <div className="2xl:hidden flex items-center gap-3">
              <button
               onClick={handleProfileClick}
               className="h-9 w-9 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 overflow-hidden"
@@ -221,7 +242,7 @@ const Navbar = ({ user, onLogout }) => {
       <motion.div
         initial={false}
         animate={isMobileMenuOpen ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
-        className="md:hidden overflow-hidden bg-[var(--bg-primary)] border-b border-[var(--accent-secondary)]/20"
+        className="2xl:hidden overflow-hidden bg-[var(--bg-primary)] border-b border-[var(--accent-secondary)]/20"
       >
         <div className="px-4 py-4 space-y-2 flex flex-col">
           {navItems.map((item) => (
@@ -238,11 +259,23 @@ const Navbar = ({ user, onLogout }) => {
               }
               style={({ isActive }) => isActive ? { color: '#ffffff' } : {}}
             >
-              <span className="relative z-20">{item.label}</span>
+              <span className="relative z-20 flex items-center justify-between">
+                {item.label}
+                {/* Notification badge for Messages in mobile menu */}
+                {item.path === "/messages" && unreadCount > 0 && (
+                  <span className="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </span>
             </NavLink>
           ))}
           <button
-            onClick={() => { onLogout(); setIsMobileMenuOpen(false); }}
+            onClick={() => { 
+              sessionStorage.removeItem("medha_feature_modal_shown");
+              onLogout(); 
+              setIsMobileMenuOpen(false); 
+            }}
             className="w-full text-left px-4 py-3 rounded-xl font-medium text-red-500 hover:bg-red-500/10 mt-2"
           >
             Logout

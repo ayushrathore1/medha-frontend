@@ -258,36 +258,37 @@ const Flashcards = () => {
   }
 
   return (
-    <div className="min-h-screen w-full p-6">
+    <div className="min-h-screen w-full px-4 py-6 sm:p-6 pb-20 sm:pb-6">
       <div className="max-w-5xl mx-auto">
         
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+          <div className="flex items-center gap-4 w-full sm:w-auto">
             {viewState !== "subjects" && (
-              <Button onClick={goBack} variant="ghost">
+              <Button onClick={goBack} variant="ghost" className="shrink-0">
                 <FaArrowLeft className="mr-2" /> Back
               </Button>
             )}
-            <div>
-                <h1 className="text-4xl font-extrabold" style={{ color: "var(--text-primary)" }}>
+            <div className="flex-1 sm:flex-auto min-w-0">
+                <h1 className="text-2xl sm:text-4xl font-extrabold truncate" style={{ color: "var(--text-primary)" }}>
                 {viewState === "subjects" && "Select Subject"}
                 {viewState === "topics" && selectedSubject?.name}
                 {viewState === "flashcards" && selectedTopic?.name}
                 </h1>
                 {viewState !== "subjects" && (
-                    <p className="text-sm opacity-70" style={{ color: "var(--text-secondary)" }}>
+                    <p className="text-sm opacity-70 truncate" style={{ color: "var(--text-secondary)" }}>
                         {viewState === "topics" ? "Select a topic to study" : `Subject: ${selectedSubject?.name}`}
                     </p>
                 )}
             </div>
           </div>
           
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-2 sm:gap-4 w-full sm:w-auto">
             {viewState === "flashcards" && (
               <Button
                 onClick={() => setStudyMode(!studyMode)}
                 variant={studyMode ? "secondary" : "outline"}
+                className="flex-1 sm:flex-none text-sm"
               >
                 {studyMode ? "Exit Study Mode" : "Start Study Mode"}
               </Button>
@@ -295,7 +296,7 @@ const Flashcards = () => {
             
             {/* Only show Create button if a subject is selected (i.e. not in subjects view) */}
             {viewState !== "subjects" && (
-                <Button onClick={() => setShowForm(!showForm)} variant="primary">
+                <Button onClick={() => setShowForm(!showForm)} variant="primary" className="flex-1 sm:flex-none text-sm">
                 {showForm ? "Cancel" : "Create New"}
                 </Button>
             )}

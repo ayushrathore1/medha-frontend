@@ -7,7 +7,10 @@ import SubjectManager from "../components/Dashboard/SubjectManager";
 import CalendarWidget from "../components/Dashboard/CalendarWidget";
 import LiveClock from "../components/Dashboard/LiveClock";
 import StudyTimer from "../components/Dashboard/StudyTimer";
+import FeatureAnnouncementModal from "../components/Common/FeatureAnnouncementModal";
+import { format } from "date-fns";
 import TodoList from "../components/Dashboard/TodoList";
+// import PlanModal from "../components/Dashboard/PlanModal"; // Commenting out PlanModalget";
 import DailyPlanWidget from "../components/Dashboard/DailyPlanWidget";
 import { FaFire, FaBook, FaChartLine, FaTrash } from "react-icons/fa";
 
@@ -22,6 +25,7 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("Student");
+  const [showFeatureModal, setShowFeatureModal] = useState(false);
   const [greeting, setGreeting] = useState("Good Morning");
 
   useEffect(() => {
@@ -39,10 +43,38 @@ const Dashboard = () => {
       const headers = { Authorization: `Bearer ${token}` };
       const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
-      const res = await axios.get(`${baseUrl}/api/dashboard/stats`, { headers });
+      const [statsRes, userRes] = await Promise.all([
+        axios.get(`${baseUrl}/api/dashboard/stats`, { headers }),
+        axios.get(`${baseUrl}/api/users/me`, { headers })
+      ]);
       
-      setStats(res.data);
-      setUserName(res.data.userName || "Student");
+      setStats(statsRes.data);
+      setUserName(statsRes.data.userName || "Student");
+
+      // Check for Feature Announcement Modal
+      const user = userRes.data;
+      const MAX_VIEWS = 3;
+      const SESSION_KEY = "medha_feature_modal_shown";
+
+      if (
+        (user.featureNotificationViews || 0) < MAX_VIEWS && 
+        !sessionStorage.getItem(SESSION_KEY)
+      ) {
+        console.log("SHOWING FEATURE MODAL: Views =", user.featureNotificationViews);
+        setShowFeatureModal(true);
+        // Mark as shown in this session immediately to prevent re-show on refresh
+        sessionStorage.setItem(SESSION_KEY, "true");
+        
+        // Increment view count in backend
+        await axios.post(
+          `${baseUrl}/api/users/increment-notification-view`, 
+          {}, 
+          { headers }
+        );
+      } else {
+        console.log("NOT SHOWING MODAL. Views:", user.featureNotificationViews, "Session Shown:", sessionStorage.getItem(SESSION_KEY));
+      }
+
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
@@ -69,27 +101,27 @@ const Dashboard = () => {
 
 
   return (
-    <div className="min-h-screen w-full p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen w-full px-4 py-6 sm:p-6 pb-20 sm:pb-6">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div>
-            <h1 className="text-4xl font-extrabold mb-2" style={{ color: "var(--text-primary)" }}>
+            <h1 className="text-3xl sm:text-4xl font-extrabold mb-2" style={{ color: "var(--text-primary)" }}>
               {greeting}, {userName}! 👋
             </h1>
-            <p className="text-lg opacity-80" style={{ color: "var(--text-secondary)" }}>
+            <p className="text-base sm:text-lg opacity-80" style={{ color: "var(--text-secondary)" }}>
               Ready to conquer your subjects today?
             </p>
           </div>
         </div>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           
           {/* Left Column: Stats, Plan, Todos, Subjects */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6 sm:space-y-8">
             {/* Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card className="flex items-center gap-4">
                 <div className="p-3 rounded-full bg-orange-500/20 text-orange-500">
                   <FaFire size={24} />
@@ -136,23 +168,23 @@ const Dashboard = () => {
 
             {/* Topics to Review */}
             <Card>
-              <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
+              <h2 className="text-xl sm:text-2xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
                 Topics to Review
               </h2>
               {stats.reviewList.length === 0 ? (
-                <p className="opacity-60">No topics marked for review. Great job!</p>
+                <p className="opacity-60 text-sm sm:text-base">No topics marked for review. Great job!</p>
               ) : (
                 <div className="space-y-4">
                   {stats.reviewList.map((topic) => (
-                    <div key={topic._id} className="p-4 rounded-xl border-2" style={{ borderColor: "var(--accent-secondary)" }}>
-                      <div className="flex justify-between items-center mb-2">
+                    <div key={topic._id} className="p-3 sm:p-4 rounded-xl border-2" style={{ borderColor: "var(--accent-secondary)" }}>
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
                         <h3 className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>
                           {topic.name} <span className="text-sm font-normal opacity-70">({topic.difficulty})</span>
                         </h3>
                         <Button 
                           onClick={() => handleDeleteTopic(topic.name)}
                           variant="danger"
-                          className="!py-1 !px-3 text-sm"
+                          className="!py-1.5 !px-3 text-sm w-full sm:w-auto flex justify-center"
                         >
                           <FaTrash className="mr-2" /> Delete Topic
                         </Button>
@@ -168,7 +200,7 @@ const Dashboard = () => {
           </div>
 
           {/* Right Column: Tools Only */}
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Unified Widget Card */}
             <Card className="space-y-6 sticky top-24">
               <LiveClock />
@@ -183,6 +215,10 @@ const Dashboard = () => {
 
         </div>
       </div>
+      <FeatureAnnouncementModal 
+        isOpen={showFeatureModal} 
+        onClose={() => setShowFeatureModal(false)} 
+      />
     </div>
   );
 };

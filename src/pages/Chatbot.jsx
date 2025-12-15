@@ -123,21 +123,33 @@ const Chatbot = () => {
 
   return (
     <div 
-      className="w-full flex flex-col"
+      className="w-full flex flex-col fixed inset-0 top-16" // Fixed positioning to prevent scroll issues
       style={{ 
-        height: "calc(100vh - 80px)", // Subtract navbar height
-        overflow: "hidden",
-        padding: "1rem",
+        height: "calc(100vh - 64px)", // Exact viewport height minus navbar
+        backgroundColor: "var(--bg-primary)"
       }}
     >
-      <div className="flex-1 flex gap-4 max-w-7xl mx-auto w-full overflow-hidden">
+      <div className="flex-1 flex w-full overflow-hidden relative">
+        {/* Mobile History Toggle Overlay */}
+        {showHistory && (
+          <div 
+            className="absolute inset-0 bg-black/50 z-20 md:hidden"
+            onClick={() => setShowHistory(false)}
+          />
+        )}
+
         {/* Sidebar - Chat History */}
         {token && (
           <div 
-            className={`flex-shrink-0 transition-all duration-300 ${showHistory ? 'w-64' : 'w-12'}`}
-            style={{ height: "100%" }}
+            className={`absolute md:relative z-30 h-full transition-all duration-300 transform ${
+              showHistory ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-12'
+            }`}
+            style={{ 
+              backgroundColor: "var(--bg-primary)",
+              borderRight: "1px solid var(--border-color)"
+            }}
           >
-            <Card className="h-full flex flex-col overflow-hidden">
+            <Card className="h-full flex flex-col overflow-hidden rounded-none md:rounded-xl border-0 md:border">
               {/* Sidebar Header */}
               <div 
                 className="flex items-center justify-between p-3 border-b flex-shrink-0" 
@@ -161,7 +173,10 @@ const Chatbot = () => {
                 <>
                   {/* New Chat Button */}
                   <button
-                    onClick={createNewChat}
+                    onClick={() => {
+                        createNewChat();
+                        if (window.innerWidth < 768) setShowHistory(false);
+                    }}
                     className="m-2 p-2.5 rounded-lg border-2 border-dashed flex items-center justify-center gap-2 hover:bg-white/5 transition-colors text-sm font-medium flex-shrink-0"
                     style={{ borderColor: "var(--accent-primary)", color: "var(--accent-primary)" }}
                   >
@@ -169,7 +184,7 @@ const Chatbot = () => {
                   </button>
 
                   {/* Sessions List - Scrollable */}
-                  <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1.5">
+                  <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-1.5 custom-scrollbar">
                     {loadingSessions ? (
                       <div className="text-center py-4 opacity-50 text-sm">Loading...</div>
                     ) : sessions.length === 0 ? (
@@ -180,7 +195,10 @@ const Chatbot = () => {
                       sessions.map(session => (
                         <div
                           key={session._id}
-                          onClick={() => loadSession(session._id)}
+                          onClick={() => {
+                              loadSession(session._id);
+                              if (window.innerWidth < 768) setShowHistory(false);
+                          }}
                           className={`p-2.5 rounded-lg cursor-pointer transition-all group ${
                             currentSessionId === session._id 
                               ? 'bg-white/15 border-l-4' 
@@ -248,32 +266,40 @@ const Chatbot = () => {
         )}
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col h-full overflow-hidden w-full">
           {/* Header - Fixed */}
-          <Card className="mb-3 p-4 flex-shrink-0">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                <FaRobot className="text-white text-xl" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-extrabold" style={{ color: "var(--text-primary)" }}>
-                  Medha AI
-                </h1>
-                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Your intelligent study companion with real-time knowledge
-                </p>
-              </div>
-              <div className="ml-auto flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>
-                  Online
-                </span>
-              </div>
-            </div>
-          </Card>
+          <div className="p-2 md:p-4 flex-shrink-0">
+             <Card className="p-3 md:p-4 flex items-center gap-3">
+                 {/* Mobile Toggle Button */}
+                 <button 
+                  onClick={() => setShowHistory(true)} 
+                  className="md:hidden p-2 -ml-2 text-[var(--text-secondary)]"
+                 >
+                     <FaComments size={20} />
+                 </button>
+
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shrink-0">
+                  <FaRobot className="text-white text-lg md:text-xl" />
+                </div>
+                <div className="min-w-0">
+                  <h1 className="text-lg md:text-2xl font-extrabold truncate" style={{ color: "var(--text-primary)" }}>
+                    Medha AI
+                  </h1>
+                  <p className="text-xs md:text-sm truncate" style={{ color: "var(--text-secondary)" }}>
+                    Your intelligent study companion
+                  </p>
+                </div>
+                <div className="ml-auto flex items-center gap-2 shrink-0">
+                  <div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                  <span className="text-xs font-semibold hidden sm:inline" style={{ color: "var(--text-secondary)" }}>
+                    Online
+                  </span>
+                </div>
+             </Card>
+          </div>
 
           {/* Chat Widget - Fills remaining space */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden px-2 md:px-4 pb-2">
             <ChatbotWidget
               messages={messages}
               onSendMessage={handleSendMessage}

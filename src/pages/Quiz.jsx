@@ -379,13 +379,13 @@ const Quiz = () => {
   const answeredCount = Object.keys(selectedAnswers).length;
 
   return (
-    <div className="min-h-screen w-full p-6">
+    <div className="min-h-screen w-full px-4 py-6 sm:p-6 pb-20 sm:pb-6">
       <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-extrabold" style={{ color: "var(--text-primary)" }}>
+        <div className="flex justify-between items-center mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl font-extrabold" style={{ color: "var(--text-primary)" }}>
             Quiz
           </h1>
-          <div style={{ color: "var(--text-secondary)" }}>
+          <div className="text-sm sm:text-base" style={{ color: "var(--text-secondary)" }}>
             Question {currentQuestion + 1} of {quiz.questions.length}
           </div>
         </div>
@@ -400,25 +400,31 @@ const Quiz = () => {
         />
 
         <Card className="mt-6 p-4">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-4">
             <Button
               onClick={handlePrevious}
               disabled={currentQuestion === 0}
               variant="outline"
+              className="flex-1 sm:flex-none"
             >
-              ← Previous
+              ← Prev
             </Button>
+
+             <div className="text-sm font-medium sm:hidden" style={{ color: "var(--text-secondary)" }}>
+                {answeredCount}/{quiz.questions.length}
+            </div>
 
             {currentQuestion === quiz.questions.length - 1 ? (
               <Button
                 onClick={handleSubmit}
                 variant="success"
                 disabled={Object.keys(selectedAnswers).length !== quiz.questions.length}
+                className="flex-1 sm:flex-none"
               >
-                Submit Quiz ({answeredCount}/{quiz.questions.length})
+                Submit
               </Button>
             ) : (
-              <Button onClick={handleNext} variant="primary">
+              <Button onClick={handleNext} variant="primary" className="flex-1 sm:flex-none">
                 Next →
               </Button>
             )}
@@ -428,7 +434,7 @@ const Quiz = () => {
           <div className="mt-4">
             <div className="flex justify-between text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
               <span>Progress</span>
-              <span>{answeredCount}/{quiz.questions.length} answered</span>
+              <span className="hidden sm:inline">{answeredCount}/{quiz.questions.length} answered</span>
             </div>
             <div className="w-full h-2 rounded-full" style={{ backgroundColor: "var(--bg-secondary)" }}>
               <div

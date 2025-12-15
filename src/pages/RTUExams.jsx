@@ -185,20 +185,20 @@ const RTUExams = () => {
   if (loading && subjects.length === 0) return <Loader fullScreen />;
 
   return (
-    <div className="min-h-screen pt-24 px-4 sm:px-6 max-w-7xl mx-auto pb-12">
+    <div className="min-h-screen pt-20 px-4 sm:px-6 max-w-7xl mx-auto pb-20 sm:pb-12">
       {/* Header with Back Button logic */}
-      <header className="mb-10 flex flex-col items-center relative">
+      <header className="mb-8 sm:mb-10 flex flex-col items-center relative">
         {viewState !== "semesters" && (
           <div className="self-start md:self-auto md:absolute md:left-0 md:top-4 mb-4 md:mb-0">
-            <Button onClick={handleBack} variant="ghost">
+            <Button onClick={handleBack} variant="ghost" className="pl-0 md:pl-4">
               <FaArrowLeft className="mr-2" /> Back
             </Button>
           </div>
         )}
-        <h1 className="text-3xl md:text-5xl font-extrabold bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent mb-4 text-center px-4 leading-tight">
+        <h1 className="text-3xl md:text-5xl font-extrabold bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent mb-2 sm:mb-4 text-center px-4 leading-tight">
           {getHeaderTitle()}
         </h1>
-        <p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto text-center">
+        <p className="text-[var(--text-secondary)] text-base sm:text-lg max-w-2xl mx-auto text-center px-2">
           {getHeaderSubtitle()}
         </p>
       </header>
