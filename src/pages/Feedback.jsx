@@ -1,4 +1,6 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { FaEnvelope } from "react-icons/fa";
 import FeedbackForm from "../components/Feedback/FeedbackForm";
 import Footer from "../components/Common/Footer";
 import Card from "../components/Common/Card";
@@ -24,18 +26,13 @@ const Feedback = () => {
             <p className="text-lg text-blue-600 max-w-2xl mx-auto mb-6">
               Help us make MEDHA better for everyone
             </p>
-            <a
-              href="https://www.linkedin.com/in/ayushrathore1"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'white', textDecoration: 'none' }}
-              className="inline-flex items-center space-x-2 bg-[#0077b5] hover:bg-[#006399] text-white !text-white px-6 py-3 rounded-full font-semibold transition-all shadow-md active:scale-95 group"
+            <Link
+              to="/messages"
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white px-6 py-3 rounded-full font-semibold transition-all shadow-md active:scale-95"
             >
-              <svg className="w-5 h-5 fill-current text-white group-hover:text-white" viewBox="0 0 24 24">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-              </svg>
-              <span className="text-white group-hover:text-white">Connect on LinkedIn</span>
-            </a>
+              <FaEnvelope className="w-5 h-5" />
+              <span>Send us a Message</span>
+            </Link>
           </div>
         </div>
       </header>
@@ -91,22 +88,19 @@ const Feedback = () => {
                     </div>
                 </div>
                   
+                  
                   <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                      </svg>
+                    <div className="flex-shrink-0 w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <FaEnvelope className="w-4 h-4 text-indigo-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-blue-700">Connect on LinkedIn</h3>
-                      <a 
-                        href="https://www.linkedin.com/in/ayushrathore1" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
+                      <h3 className="font-semibold text-blue-700">Direct Message</h3>
+                      <Link 
+                        to="/messages"
                         className="text-sm text-blue-600 hover:text-blue-800 underline block mt-1"
                       >
-                        Ayush Rathore
-                      </a>
+                        Chat with Admin
+                      </Link>
                     </div>
                   </div>
                 </div>

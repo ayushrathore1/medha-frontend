@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Card from "../Common/Card";
+import Loader from "../Common/Loader";
 import { FaCalendarAlt } from "react-icons/fa";
 
 /**
@@ -13,64 +14,29 @@ import { FaCalendarAlt } from "react-icons/fa";
  */
 const YearSelector = ({ years, selectedYear, onYearSelect, loading }) => {
   if (loading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          padding: "40px",
-        }}
-      >
-        <div
-          style={{
-            width: "40px",
-            height: "40px",
-            border: "3px solid var(--accent-secondary)",
-            borderTopColor: "var(--action-primary)",
-            borderRadius: "50%",
-            animation: "spin 1s linear infinite",
-          }}
-        />
-      </div>
-    );
+    return <div className="flex justify-center py-20 px-8"><Loader /></div>;
   }
 
   if (!years || years.length === 0) {
     return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "40px",
-          color: "var(--text-secondary)",
-        }}
-      >
-        No exam papers available for this subject yet.
+      <div className="text-center py-20 px-8">
+        <div className="flex justify-center mb-4 text-slate-300 text-4xl">
+          <FaCalendarAlt />
+        </div>
+        <p className="text-lg font-bold text-slate-500">
+          No exam papers available for this subject yet.
+        </p>
+        <p className="text-slate-400">Check back later or contact admin.</p>
       </div>
     );
   }
 
   return (
-    <div className="year-selector">
-      <h3
-        style={{
-          fontSize: "18px",
-          fontWeight: "600",
-          color: "var(--text-primary)",
-          marginBottom: "16px",
-          textAlign: "center",
-        }}
-      >
+    <div className="w-full max-w-2xl mx-auto">
+      <h3 className="text-xl font-bold text-slate-800 mb-6 text-center">
         Select Exam Year
       </h3>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-          gap: "16px",
-          maxWidth: "400px",
-          margin: "0 auto",
-        }}
-      >
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {years.map((year, index) => (
           <motion.div
             key={year}
@@ -80,42 +46,15 @@ const YearSelector = ({ years, selectedYear, onYearSelect, loading }) => {
           >
             <Card
               onClick={() => onYearSelect(year)}
-              hoverEffect={true}
-              className="cursor-pointer"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "24px 16px",
-                gap: "8px",
-                border:
-                  selectedYear === year
-                    ? "2px solid var(--action-primary)"
-                    : undefined,
-              }}
+              className={`cursor-pointer flex flex-col items-center justify-center p-6 gap-3 transition-all hover:border-indigo-400 hover:shadow-lg ${selectedYear === year ? 'border-indigo-600 ring-2 ring-indigo-100 bg-indigo-50' : 'bg-white'}`}
             >
-              <FaCalendarAlt
-                style={{
-                  fontSize: "24px",
-                  color: "var(--action-primary)",
-                }}
-              />
-              <span
-                style={{
-                  fontSize: "20px",
-                  fontWeight: "700",
-                  color: "var(--text-primary)",
-                }}
-              >
+              <div className={`p-3 rounded-full ${selectedYear === year ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-500'}`}>
+                <FaCalendarAlt size={24} />
+              </div>
+              <div className="text-3xl font-black text-slate-800">
                 {year}
-              </span>
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: "var(--text-secondary)",
-                }}
-              >
+              </div>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                 RTU Paper
               </span>
             </Card>

@@ -8,4 +8,15 @@ export default defineConfig({
   server: {
     port: 3000 , // or your desired port
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/tests/setup.js',
+    include: ['src/**/*.{test,spec}.{js,jsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      exclude: ['node_modules/', 'src/tests/'],
+    },
+  },
 });

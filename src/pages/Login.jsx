@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import Card from "../components/Common/Card";
-import Button from "../components/Common/Button";
 import LoginForm from "../components/Auth/LoginForm";
 import { AuthContext } from "../AuthContext";
 
@@ -40,29 +40,54 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center px-4">
-      <Card className="max-w-md w-full">
-        <h2 className="text-3xl font-extrabold text-center mb-2 tracking-tight" style={{ color: "var(--action-primary)" }}>
-          Welcome Back
-        </h2>
-        <p className="text-center mb-8" style={{ color: "var(--text-secondary)" }}>
-          Sign in to continue to MEDHA
-        </p>
+    <div className="min-h-screen w-full flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-violet-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "2s" }}></div>
+      </div>
 
-        <LoginForm onSubmit={handleLogin} loading={loading} error={error} />
-
-        <div className="mt-6 text-center space-y-3">
-          <Link to="/forgot-password" className="block font-medium" style={{ color: "var(--action-primary)" }}>
-            Forgot your password?
-          </Link>
-          <div style={{ color: "var(--text-secondary)" }}>
-            Don't have an account?{" "}
-            <Link to="/register" className="font-semibold" style={{ color: "var(--action-primary)" }}>
-              Sign up
-            </Link>
-          </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
+        <div className="text-center mb-8">
+           <Link to="/">
+            <img
+              src="https://ik.imagekit.io/ayushrathore1/logo.png?updatedAt=1758343718570"
+              alt="MEDHA logo"
+              className="w-16 h-16 mx-auto mb-4 rounded-2xl shadow-lg"
+            />
+           </Link>
+          <h2 className="text-4xl font-black tracking-tight text-slate-900 mb-2">
+            Welcome Back
+          </h2>
+          <p className="text-slate-500 font-medium text-lg">
+            Your personal knowledge archive awaits.
+          </p>
         </div>
-      </Card>
+
+        <Card className="shadow-2xl shadow-indigo-500/10 border-indigo-100">
+          <LoginForm onSubmit={handleLogin} loading={loading} error={error} />
+
+          <div className="mt-8 pt-6 border-t border-slate-100 text-center space-y-4">
+            <Link 
+              to="/forgot-password" 
+              className="block text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+            >
+              Forgot your password?
+            </Link>
+            <div className="text-slate-600 font-medium">
+              New to MEDHA?{" "}
+              <Link to="/register" className="text-indigo-600 font-bold hover:text-indigo-700 hover:underline">
+                Create an account
+              </Link>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
     </div>
   );
 };

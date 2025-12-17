@@ -1,13 +1,49 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaHistory, FaCrown, FaInbox, FaBug, FaLightbulb, FaArrowRight, FaEnvelope, FaLinkedin, FaComments } from "react-icons/fa";
+import { FaHistory, FaCrown, FaInbox, FaBug, FaLightbulb, FaArrowRight, FaEnvelope, FaComments } from "react-icons/fa";
 import Card from "../components/Common/Card";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 // Medha Updates - Changelog
 const updates = [
+  {
+    version: "2.9.0",
+    date: "December 2025",
+    title: "Notes Sharing Platform",
+    features: [
+      "📤 Upload and share notes with the community",
+      "📥 Download notes shared by other students",
+      "🔍 Search notes by subject, topic, or keyword",
+      "⭐ Rate and review shared notes",
+      "📚 Subject-wise organization for easy browsing",
+    ],
+  },
+  {
+    version: "2.8.0",
+    date: "December 2025",
+    title: "Admin Dashboard & Email System",
+    features: [
+      "📧 AI-powered email composer for admin broadcasts",
+      "📊 Email history tracking with re-send capability",
+      "👥 User management with individual/bulk messaging",
+      "🎨 Refreshed UI with light theme consistency",
+      "🔒 Enhanced security with balanced rate limiting",
+    ],
+  },
+  {
+    version: "2.7.0",
+    date: "December 2025",
+    title: "RTU Exam Paper Analysis",
+    features: [
+      "📝 Digital Electronics 2024 & 2025 paper analysis",
+      "📊 Unit-wise marks distribution with weightage %",
+      "🎯 98 marks breakdown (including optional questions)",
+      "📖 Complete documentation for adding new papers",
+      "🧮 KaTeX math equation rendering in solutions",
+    ],
+  },
   {
     version: "2.6.0",
     date: "December 2025",
@@ -33,7 +69,7 @@ const updates = [
   {
     version: "2.4.0",
     date: "December 2025",
-    title: "RTU Exam Analysis",
+    title: "RTU Exam Weightage",
     features: [
       "📝 Unit-wise weightage analysis for RTU papers",
       "🎯 Question bank with marks distribution",
@@ -64,6 +100,7 @@ const updates = [
     ],
   },
 ];
+
 
 const Updates = () => {
   const navigate = useNavigate();
@@ -233,23 +270,6 @@ const Updates = () => {
                 >
                   <FaComments /> Open Messages
                 </button>
-              </div>
-
-              {/* Connect Section */}
-              <div className="mt-6 pt-6 border-t border-gray-700 flex flex-col items-center">
-                <p className="text-sm text-center mb-4" style={{ color: "var(--text-secondary)" }}>
-                  Or connect with us on LinkedIn
-                </p>
-                <a
-                  href="https://www.linkedin.com/in/ayushrathore1"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-[#0077b5] text-white !text-white px-5 py-2.5 rounded-full font-semibold hover:bg-[#006097] transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 relative z-10"
-                  style={{ color: 'white' }}
-                >
-                  <FaLinkedin className="text-xl" />
-                  <span>Connect on LinkedIn</span>
-                </a>
               </div>
             </Card>
           </div>

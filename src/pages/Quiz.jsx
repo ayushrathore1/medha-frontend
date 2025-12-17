@@ -1,36 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import QuizItem from "../components/Quiz/QuizItem";
-
-/* --- SubjectSelect is defined here for clarity and reliability --- */
-const SubjectSelect = ({ subjects, selectedSubject, onChange }) => (
-  <div className="w-full">
-    <label htmlFor="subject" className="block mb-2 font-medium">
-      Select Subject
-    </label>
-    <select
-      id="subject"
-      value={selectedSubject}
-      onChange={e => onChange(e.target.value)}
-      className="w-full px-5 py-3 rounded-xl border-2 font-medium focus:outline-none focus:ring-2"
-      style={{
-        backgroundColor: "var(--bg-primary)",
-        borderColor: "var(--accent-secondary)",
-        color: "var(--text-primary)"
-      }}
-    >
-      <option value="">-- Select a subject --</option>
-      {subjects.map((subj) => (
-        <option key={subj._id} value={subj.name}>
-          {subj.name}
-        </option>
-      ))}
-    </select>
-  </div>
-);
+import { FaBrain, FaUniversity, FaKeyboard, FaTrophy, FaRedo, FaList, FaArrowLeft, FaArrowRight, FaCheck } from "react-icons/fa";
 
 const Quiz = () => {
   const [subjects, setSubjects] = useState([]);
@@ -52,30 +27,16 @@ const Quiz = () => {
   const fetchSubjects = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Authentication required. Please log in.");
-        return;
-      }
+      if (!token) return;
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/subjects`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 10000,
-        }
+        { headers: { Authorization: `Bearer ${token}` }, timeout: 10000 }
       );
-      console.log("Subjects response:", response.data);
-
       if (response.data && Array.isArray(response.data.subjects)) {
         setSubjects(response.data.subjects);
-      } else {
-        setSubjects([]);
-        setError("No subjects found.");
       }
     } catch (error) {
       console.error("Error fetching subjects:", error);
-      const errorMsg = error.response?.data?.message || error.message || "Failed to fetch subjects.";
-      setError(errorMsg);
-      setSubjects([]);
     }
   };
 
@@ -94,75 +55,40 @@ const Quiz = () => {
 
     try {
       const token = localStorage.getItem("token");
-
-      if (!token) {
-        throw new Error("Authentication required");
-      }
+      if (!token) throw new Error("Authentication required");
 
       let endpoint, payload;
-
       if (generationMode === "topic") {
         endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-topic-ai`;
         payload = { topic: topic.trim() };
-        console.log("Generating topic-based quiz:", payload);
       } else {
         endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-ai`;
-
-        // Find the subject object to get the ID
         const subjectObj = subjects.find(s => s.name === selectedSubject);
         const subjectId = subjectObj ? subjectObj._id : null;
-
-        // Try to fetch a note for the selected subject
+        
         try {
-          // Use subject ID if available, otherwise fallback or handle error
-          if (!subjectId) {
-             throw new Error("Subject ID not found");
-          }
-
-          const notesRes = await axios.get(
-            `${import.meta.env.VITE_BACKEND_URL}/api/notes?subject=${subjectId}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-              timeout: 10000
-            }
-          );
-
-          if (notesRes.data?.notes?.length > 0) {
-            payload = {
-              noteId: notesRes.data.notes[0]._id,
-              subject: selectedSubject
-            };
-            console.log("Generating quiz from note:", payload);
-          } else {
-            // Fallback: topic mode with subject name
-            endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-topic-ai`;
-            payload = { topic: selectedSubject };
-          }
-        } catch (noteError) {
-          console.error("Error fetching notes or no notes found:", noteError);
-          // Fallback to topic generation if notes fetch fails
-          endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-topic-ai`;
-          payload = { topic: selectedSubject };
+           if (!subjectId) throw new Error("ID not found");
+           const notesRes = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/notes?subject=${subjectId}`, { headers: { Authorization: `Bearer ${token}` } });
+           if (notesRes.data?.notes?.length > 0) {
+              payload = { noteId: notesRes.data.notes[0]._id, subject: selectedSubject };
+           } else {
+              endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-topic-ai`;
+              payload = { topic: selectedSubject };
+           }
+        } catch {
+           endpoint = `${import.meta.env.VITE_BACKEND_URL}/api/quizzes/generate-topic-ai`;
+           payload = { topic: selectedSubject };
         }
       }
 
-      console.log("Sending request to:", endpoint);
-      console.log("Payload:", payload);
-
       const response = await axios.post(endpoint, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 60000 // 60 seconds for AI generation
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 60000
       });
 
-      console.log("Quiz response:", response.data);
-
       const quizData = response.data.quiz || response.data;
-
       if (!quizData || !quizData.questions || quizData.questions.length === 0) {
-        throw new Error("Invalid quiz data received from server");
+        throw new Error("Invalid quiz data received");
       }
 
       setQuiz(quizData);
@@ -172,23 +98,7 @@ const Quiz = () => {
       setScore(0);
       setError("");
     } catch (error) {
-      console.error("Error generating quiz:", error);
-
-      let errorMsg = "Failed to generate quiz. ";
-
-      if (error.response) {
-        errorMsg += error.response.data?.message || error.response.data?.error || `Server error: ${error.response.status}`;
-      } else if (error.request) {
-        errorMsg += "No response from server. Please check your connection.";
-      } else {
-        errorMsg += error.message || "Unknown error occurred.";
-      }
-
-      setError(errorMsg);
-
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        setError("Session expired. Please log in again.");
-      }
+      setError(error.response?.data?.message || "Failed to generate quiz. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -229,225 +139,240 @@ const Quiz = () => {
     setShowResults(false);
     setScore(0);
     setError("");
-    setSelectedSubject("");
-    setTopic("");
   };
 
-  if (loading) {
-    return <Loader fullScreen message="Generating your quiz..." />;
-  }
+  if (loading) return <Loader fullScreen message="Generating a unique quiz for you..." />;
 
+  // START SCREEN
   if (!quiz) {
     return (
-      <div className="min-h-screen w-full p-6">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-4xl font-extrabold mb-8" style={{ color: "var(--text-primary)" }}>
-            Ready to test your knowledge?
-          </h1>
-          <p className="mb-8 text-lg" style={{ color: "var(--text-secondary)" }}>
-            Choose how you want to generate your quiz
-          </p>
+      <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-slate-50 flex items-center justify-center">
+        <div className="w-full max-w-4xl">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
+              Quiz Arena
+            </h1>
+            <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">
+              Test your knowledge with AI-generated quizzes from your course material or any topic you choose.
+            </p>
+          </div>
 
-          {error && (
-            <div
-              className="mb-6 p-4 rounded-xl border-2 border-red-500 bg-red-50"
-              style={{ color: "#dc2626" }}
-            >
-              <strong>Error:</strong> {error}
-            </div>
-          )}
-
-          <Card className="p-8">
-            <div className="flex justify-center gap-4 mb-8">
-              <Button
-                variant={generationMode === "subject" ? "primary" : "outline"}
-                onClick={() => {
-                  setGenerationMode("subject");
-                  setError("");
-                }}
-              >
-                Select Subject
-              </Button>
-              <Button
-                variant={generationMode === "topic" ? "primary" : "outline"}
-                onClick={() => {
-                  setGenerationMode("topic");
-                  setError("");
-                }}
-              >
-                Enter Topic
-              </Button>
-            </div>
-
-            <div className="max-w-md mx-auto space-y-6">
-              {generationMode === "subject" ? (
-                <>
-                  <SubjectSelect
-                    subjects={subjects}
-                    selectedSubject={selectedSubject}
-                    onChange={(value) => {
-                      setSelectedSubject(value);
-                      setError("");
-                    }}
-                  />
-                  {subjects.length === 0 && !error && (
-                    <p className="text-center text-sm" style={{ color: "var(--text-secondary)" }}>
-                      No subjects found. Try entering a custom topic instead.
-                    </p>
-                  )}
-                </>
-              ) : (
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Enter any topic (e.g., 'React Hooks', 'Thermodynamics')"
-                    value={topic}
-                    onChange={(e) => {
-                      setTopic(e.target.value);
-                      setError("");
-                    }}
-                    className="w-full px-5 py-3 rounded-xl border-2 font-medium focus:outline-none focus:ring-2"
-                    style={{
-                      backgroundColor: "var(--bg-primary)",
-                      borderColor: "var(--accent-secondary)",
-                      color: "var(--text-primary)",
-                    }}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter' && topic.trim()) {
-                        handleStartQuiz();
-                      }
-                    }}
-                  />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+             {/* Mode Selection */}
+             <Card className="md:col-span-2 p-1">
+                <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                    <button
+                      onClick={() => { setGenerationMode("subject"); setError(""); }}
+                      className={`flex-1 py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-3 transition-all ${generationMode === "subject" ? "bg-white text-indigo-600 shadow-md" : "text-slate-400 hover:text-slate-600"}`}
+                    >
+                       <FaUniversity /> By Subject
+                    </button>
+                    <button
+                      onClick={() => { setGenerationMode("topic"); setError(""); }}
+                      className={`flex-1 py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-3 transition-all ${generationMode === "topic" ? "bg-white text-indigo-600 shadow-md" : "text-slate-400 hover:text-slate-600"}`}
+                    >
+                       <FaKeyboard /> Custom Topic
+                    </button>
                 </div>
-              )}
+             </Card>
 
-              <Button
-                onClick={handleStartQuiz}
-                disabled={loading || (generationMode === "subject" ? !selectedSubject : !topic.trim())}
-                loading={loading}
-                fullWidth
-                size="large"
-              >
-                {loading ? "Generating Quiz..." : "Start Quiz"}
-              </Button>
-            </div>
-          </Card>
+             {/* Input Area */}
+             <div className="md:col-span-2">
+               <AnimatePresence mode="wait">
+                 {generationMode === "subject" ? (
+                    <motion.div 
+                      key="subject"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6 max-w-md mx-auto"
+                    >
+                       <div className="relative">
+                          <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Select Course</label>
+                          <select
+                            value={selectedSubject}
+                            onChange={(e) => { setSelectedSubject(e.target.value); setError(""); }}
+                            className="w-full px-5 py-4 rounded-2xl border border-slate-300 bg-white text-lg font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 appearance-none shadow-sm"
+                          >
+                             <option value="">-- Choose Subject --</option>
+                             {subjects.map((s) => <option key={s._id} value={s.name}>{s.name}</option>)}
+                          </select>
+                          <div className="absolute right-5 bottom-4 pointer-events-none text-slate-500">▼</div>
+                       </div>
+                    </motion.div>
+                 ) : (
+                    <motion.div 
+                      key="topic"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6 max-w-md mx-auto"
+                    >
+                       <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Enter Topic</label>
+                          <input
+                             type="text"
+                             placeholder="e.g. Thermodynamics, React Hooks..."
+                             value={topic}
+                             onChange={(e) => { setTopic(e.target.value); setError(""); }}
+                             onKeyPress={(e) => e.key === 'Enter' && topic.trim() && handleStartQuiz()}
+                             className="w-full px-5 py-4 rounded-2xl border border-slate-300 bg-white text-lg font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 shadow-sm"
+                          />
+                       </div>
+                    </motion.div>
+                 )}
+               </AnimatePresence>
+
+               {error && (
+                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 max-w-md mx-auto bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-200 text-center font-bold">
+                    {error}
+                 </motion.div>
+               )}
+
+               <div className="mt-8 max-w-sm mx-auto">
+                 <Button 
+                    onClick={handleStartQuiz} 
+                    loading={loading}
+                    disabled={generationMode === "subject" ? !selectedSubject : !topic.trim()}
+                    size="lg" 
+                    fullWidth 
+                    className="h-14 text-lg bg-gradient-to-r from-indigo-600 to-violet-600 shadow-xl shadow-indigo-500/30 border-0"
+                 >
+                    Start Challenge
+                 </Button>
+               </div>
+             </div>
+          </div>
         </div>
       </div>
     );
   }
 
+  // RESULTS SCREEN
   if (showResults) {
     const percentage = Math.round((score / quiz.questions.length) * 100);
     return (
-      <div className="min-h-screen w-full p-6">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-4xl font-extrabold mb-8" style={{ color: "var(--text-primary)" }}>
-            Quiz Results
-          </h1>
+      <div className="min-h-screen w-full px-4 py-8 bg-slate-50 flex items-center justify-center">
+         <motion.div 
+           initial={{ scale: 0.9, opacity: 0 }}
+           animate={{ scale: 1, opacity: 1 }}
+           className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-8 md:p-12 text-center"
+         >
+            <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center mb-6 shadow-xl ${
+               percentage >= 70 ? 'bg-emerald-100 text-emerald-600' :
+               percentage >= 50 ? 'bg-amber-100 text-amber-600' :
+               'bg-red-100 text-red-600'
+            }`}>
+               <FaTrophy size={60} />
+            </div>
 
-          <Card className="text-center p-8">
-            <div
-              className="text-6xl font-extrabold mb-4"
-              style={{
-                color: percentage >= 70 ? "#10b981" : percentage >= 50 ? "#f59e0b" : "#ef4444"
-              }}
-            >
-              {percentage}%
-            </div>
-            <div className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
-              {score} / {quiz.questions.length} Correct
-            </div>
-            <p className="text-lg mb-8" style={{ color: "var(--text-secondary)" }}>
-              {percentage >= 70 ? "Excellent work! 🎉" : percentage >= 50 ? "Good effort! Keep it up! 👍" : "Keep practicing! You'll improve! 💪"}
+            <h2 className="text-4xl font-black text-slate-900 mb-2">
+               {percentage >= 80 ? "Outstanding!" : percentage >= 50 ? "Good Job!" : "Keep Learning!"}
+            </h2>
+            <p className="text-slate-500 font-medium text-lg mb-8">
+               You scored <span className="font-bold text-slate-900 text-2xl">{score}</span> out of {quiz.questions.length}
             </p>
-            <div className="flex gap-4">
-              <Button onClick={handleRestart} variant="primary" fullWidth>
-                Take Another Quiz
-              </Button>
-              <Button onClick={() => setShowResults(false)} variant="outline" fullWidth>
-                Review Answers
-              </Button>
+
+            <div className="w-full h-6 bg-slate-100 rounded-full mb-10 overflow-hidden relative">
+               <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${percentage}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className={`h-full rounded-full ${
+                    percentage >= 70 ? 'bg-emerald-500' :
+                    percentage >= 50 ? 'bg-amber-500' :
+                    'bg-red-500'
+                  }`}
+               />
+               <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white shadow-sm drop-shadow-md">
+                  {percentage}% Accuracy
+               </span>
             </div>
-          </Card>
-        </div>
+
+            <div className="grid grid-cols-2 gap-4">
+               <Button onClick={handleRestart} variant="primary" size="lg" className="shadow-lg shadow-indigo-500/20">
+                  <FaRedo className="mr-2"/> Try Again
+               </Button>
+               <Button onClick={() => setShowResults(false)} variant="outline" size="lg">
+                  <FaList className="mr-2"/> Review Answers
+               </Button>
+            </div>
+         </motion.div>
       </div>
     );
   }
 
-  const question = quiz.questions[currentQuestion];
-  const answeredCount = Object.keys(selectedAnswers).length;
-
+  // QUIZ SCREEN
   return (
-    <div className="min-h-screen w-full px-4 py-6 sm:p-6 pb-20 sm:pb-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl font-extrabold" style={{ color: "var(--text-primary)" }}>
-            Quiz
-          </h1>
-          <div className="text-sm sm:text-base" style={{ color: "var(--text-secondary)" }}>
-            Question {currentQuestion + 1} of {quiz.questions.length}
-          </div>
-        </div>
-
-        <QuizItem
-          question={question.question || question.text}
-          options={question.options}
-          selectedAnswer={selectedAnswers[currentQuestion]}
-          correctAnswer={question.correctAnswer || question.answer}
-          onSelectAnswer={handleSelectAnswer}
-          showResult={showResults}
-        />
-
-        <Card className="mt-6 p-4">
-          <div className="flex justify-between items-center gap-4">
-            <Button
-              onClick={handlePrevious}
-              disabled={currentQuestion === 0}
-              variant="outline"
-              className="flex-1 sm:flex-none"
-            >
-              ← Prev
-            </Button>
-
-             <div className="text-sm font-medium sm:hidden" style={{ color: "var(--text-secondary)" }}>
-                {answeredCount}/{quiz.questions.length}
-            </div>
-
-            {currentQuestion === quiz.questions.length - 1 ? (
-              <Button
-                onClick={handleSubmit}
-                variant="success"
-                disabled={Object.keys(selectedAnswers).length !== quiz.questions.length}
-                className="flex-1 sm:flex-none"
-              >
-                Submit
-              </Button>
-            ) : (
-              <Button onClick={handleNext} variant="primary" className="flex-1 sm:flex-none">
-                Next →
-              </Button>
-            )}
+    <div className="min-h-screen w-full px-4 py-8 bg-slate-50">
+       <div className="max-w-3xl mx-auto space-y-6">
+          
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+             <div>
+                <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                   <FaBrain className="text-indigo-600"/> Quiz Mode
+                </h1>
+                <p className="text-slate-500 font-bold">
+                   Question {currentQuestion + 1} <span className="text-slate-300">/</span> {quiz.questions.length}
+                </p>
+             </div>
+             <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 font-mono font-bold text-slate-700">
+                {generationMode === "subject" ? selectedSubject : topic}
+             </div>
           </div>
 
-          {/* Progress bar */}
-          <div className="mt-4">
-            <div className="flex justify-between text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
-              <span>Progress</span>
-              <span className="hidden sm:inline">{answeredCount}/{quiz.questions.length} answered</span>
-            </div>
-            <div className="w-full h-2 rounded-full" style={{ backgroundColor: "var(--bg-secondary)" }}>
-              <div
-                className="h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${((currentQuestion + 1) / quiz.questions.length) * 100}%`,
-                  background: `linear-gradient(to right, var(--action-primary), var(--accent-secondary))`,
-                }}
-              />
-            </div>
+          {/* Progress Bar */}
+          <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+             <motion.div 
+                className="h-full bg-indigo-500"
+                initial={{ width: 0 }}
+                animate={{ width: `${((currentQuestion + 1) / quiz.questions.length) * 100}%` }}
+             />
           </div>
-        </Card>
-      </div>
+
+          {/* Question */}
+          <QuizItem
+             question={quiz.questions[currentQuestion].question || quiz.questions[currentQuestion].text}
+             options={quiz.questions[currentQuestion].options}
+             selectedAnswer={selectedAnswers[currentQuestion]}
+             correctAnswer={quiz.questions[currentQuestion].correctAnswer || quiz.questions[currentQuestion].answer}
+             onSelectAnswer={handleSelectAnswer}
+             showResult={showResults}
+          />
+
+          {/* Controls */}
+          <div className="flex justify-between items-center pt-6">
+             <Button 
+                onClick={handlePrevious} 
+                disabled={currentQuestion === 0} 
+                variant="ghost" 
+                className="text-slate-400 hover:text-slate-600"
+             >
+                <FaArrowLeft className="mr-2"/> Previous
+             </Button>
+
+             {currentQuestion === quiz.questions.length - 1 ? (
+                <Button 
+                   onClick={handleSubmit} 
+                   variant="success"
+                   size="lg"
+                   className="shadow-lg shadow-emerald-500/20"
+                   disabled={Object.keys(selectedAnswers).length < quiz.questions.length} // Removed strict check to allow partial submission? No, let's allow it but warn visually maybe. Actually let's restrict for now.
+                >
+                   Submit Quiz <FaCheck className="ml-2"/>
+                </Button>
+             ) : (
+                <Button 
+                   onClick={handleNext} 
+                   variant="primary" 
+                   size="lg"
+                   className="shadow-lg shadow-indigo-500/20"
+                >
+                   Next Question <FaArrowRight className="ml-2"/>
+                </Button>
+             )}
+          </div>
+
+       </div>
     </div>
   );
 };

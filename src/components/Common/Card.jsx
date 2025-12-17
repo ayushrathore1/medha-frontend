@@ -1,32 +1,31 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
-const Card = ({ children, className = "", hoverEffect = true, ...props }) => {
+function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
+
+const Card = ({ children, className = "", hoverEffect = true, noPadding = false, ...props }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
       whileHover={
         hoverEffect
           ? {
-              y: -5,
-              boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.1)",
+              y: -4,
+              boxShadow: "0 10px 30px -10px rgba(0, 0, 0, 0.08)",
             }
           : {}
       }
-      className={`
-        backdrop-blur-xl
-        border-2
-        rounded-2xl shadow-lg
-        p-6
-        transition-all duration-300
-        ${className}
-      `}
-      style={{
-        backgroundColor: "var(--bg-card)",
-        borderColor: "var(--accent-secondary)",
-      }}
+      className={cn(
+        "bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden",
+        noPadding ? "p-0" : "p-6",
+        className
+      )}
       {...props}
     >
       {children}

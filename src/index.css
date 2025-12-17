@@ -1,42 +1,52 @@
-/* Import Manrope font */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Inter:wght@300..700&display=swap');
 
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Manrope", "Inter", sans-serif;
   
-  --color-teal-500: #5DCCC6;
-  --color-mint-400: #A5B6F6;
-  --color-lavender-400: #C3A3F7;
+  /* Modern Professional Palette 2025 */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-500: #6366f1; /* Indigo */
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+
+  --color-secondary-500: #8b5cf6; /* Violet */
+  --color-accent-500: #d946ef; /* Fuchsia */
   
-  --color-coral-300: #FFB7B2;
-  --color-indigo-600: #5B3FD5;
-  
-  --color-navy-900: #273242;
-  --color-grey-500: #50586B;
-  --color-cool-grey-100: #F6F7FB;
-  --color-soft-blue-100: #E7EDF6;
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
 }
 
 :root {
   font-family: var(--font-sans);
-  line-height: 1.6;
+  line-height: 1.5;
   font-weight: 400;
 
-  /* Hybrid Theme Variables */
-  --bg-primary: var(--color-cool-grey-100);
-  --bg-secondary: var(--color-soft-blue-100);
-  --text-primary: var(--color-navy-900);
-  --text-secondary: var(--color-grey-500);
-  --accent-primary: var(--color-teal-500);
-  --accent-secondary: var(--color-mint-400);
-  --accent-tertiary: var(--color-lavender-400);
-  --action-primary: var(--color-indigo-600);
-  --action-secondary: var(--color-coral-300);
+  /* Global Tokens for Components */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc; /* Slate 50 */
+  --bg-tertiary: #f1f5f9; /* Slate 100 */
+  
+  --text-primary: #0f172a; /* Slate 900 */
+  --text-secondary: #64748b; /* Slate 500 */
+  --text-tertiary: #94a3b8; /* Slate 400 */
+  
+  --action-primary: #4f46e5; /* Indigo 600 */
+  --action-hover: #4338ca;
+  --accent-secondary: #8b5cf6;
 
   color: var(--text-primary);
-  background-color: var(--bg-primary);
+  background-color: var(--bg-secondary);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -48,49 +58,60 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: radial-gradient(circle at 0% 0%, rgba(93, 204, 198, 0.15) 0%, transparent 50%),
-              radial-gradient(circle at 100% 0%, rgba(165, 182, 246, 0.15) 0%, transparent 50%),
-              radial-gradient(circle at 100% 100%, rgba(195, 163, 247, 0.15) 0%, transparent 50%),
-              radial-gradient(circle at 0% 100%, rgba(93, 204, 198, 0.1) 0%, transparent 50%);
+  background-color: var(--bg-secondary);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.03) 0px, transparent 50%), 
+    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.03) 0px, transparent 50%);
   background-attachment: fixed;
 }
 
+/* Base Elements */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
+h1 { font-size: 2.5rem; line-height: 1.1; }
+h2 { font-size: 2rem; line-height: 1.25; }
+h3 { font-size: 1.5rem; line-height: 1.33; }
 
 a {
   font-weight: 500;
   color: var(--action-primary);
-  text-decoration: inherit;
-  transition: color 0.2s ease;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
 a:hover {
-  color: var(--accent-secondary);
+  filter: brightness(110%);
+}
+
+/* Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.glass-card {
+  background: white;
+  border: 1px solid var(--color-slate-200);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(80, 88, 107, 0.2);
+  background: var(--color-slate-300);
   border-radius: 4px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(80, 88, 107, 0.4);
+  background: var(--color-slate-400);
 }

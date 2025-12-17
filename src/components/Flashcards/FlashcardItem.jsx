@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Button from "../Common/Button";
+import { FaPen, FaTrash, FaCheck, FaTimes } from "react-icons/fa";
 
 const FlashcardItem = ({ flashcard, onEdit, onDelete, onMarkDifficulty }) => {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -23,52 +24,27 @@ const FlashcardItem = ({ flashcard, onEdit, onDelete, onMarkDifficulty }) => {
 
   if (isEditing) {
     return (
-      <div
-        className="p-6 rounded-2xl border-2"
-        style={{
-          backgroundColor: "var(--bg-primary)",
-          borderColor: "var(--accent-secondary)",
-        }}
-      >
+      <div className="p-6 bg-white rounded-2xl shadow-xl border border-indigo-100">
         <div className="space-y-4">
           <div>
-            <label className="block mb-2 font-semibold" style={{ color: "var(--text-primary)" }}>
-              Question
-            </label>
-            <input
-              type="text"
+            <label className="block mb-2 text-sm font-bold text-slate-700">Question</label>
+            <textarea
               value={editedQuestion}
               onChange={(e) => setEditedQuestion(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 font-medium focus:outline-none focus:ring-2"
-              style={{
-                backgroundColor: "var(--bg-primary)",
-                borderColor: "var(--accent-secondary)",
-                color: "var(--text-primary)",
-              }}
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium min-h-[80px]"
             />
           </div>
           <div>
-            <label className="block mb-2 font-semibold" style={{ color: "var(--text-primary)" }}>
-              Answer
-            </label>
+            <label className="block mb-2 text-sm font-bold text-slate-700">Answer</label>
             <textarea
               value={editedAnswer}
               onChange={(e) => setEditedAnswer(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 font-medium min-h-[120px] focus:outline-none focus:ring-2"
-              style={{
-                backgroundColor: "var(--bg-primary)",
-                borderColor: "var(--accent-secondary)",
-                color: "var(--text-primary)",
-              }}
+              className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium min-h-[120px]"
             />
           </div>
           <div className="flex gap-3">
-            <Button onClick={handleSave} variant="primary" fullWidth>
-              Save
-            </Button>
-            <Button onClick={handleCancel} variant="ghost" fullWidth>
-              Cancel
-            </Button>
+            <Button onClick={handleSave} variant="primary" fullWidth size="sm">Save Changes</Button>
+            <Button onClick={handleCancel} variant="ghost" fullWidth size="sm">Cancel</Button>
           </div>
         </div>
       </div>
@@ -76,103 +52,69 @@ const FlashcardItem = ({ flashcard, onEdit, onDelete, onMarkDifficulty }) => {
   }
 
   return (
-    <div className="relative">
+    <div className="perspective-1000 w-full max-w-2xl mx-auto">
       <motion.div
-        className="relative h-64 cursor-pointer"
+        className="relative h-[400px] w-full cursor-pointer preserve-3d"
         onClick={() => setIsFlipped(!isFlipped)}
-        style={{ perspective: "1000px" }}
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+        style={{ transformStyle: "preserve-3d" }}
       >
-        <motion.div
-          className="absolute w-full h-full"
-          initial={false}
-          animate={{ rotateY: isFlipped ? 180 : 0 }}
-          transition={{ duration: 0.6 }}
-          style={{
-            transformStyle: "preserve-3d",
-          }}
+        {/* Front Face */}
+        <div 
+          className="absolute inset-0 backface-hidden bg-white rounded-3xl shadow-2xl border border-slate-100 p-8 flex flex-col items-center justify-center text-center"
+          style={{ backfaceVisibility: "hidden" }}
         >
-          {/* Front */}
-          <div
-            className="absolute w-full h-full flex flex-col items-center justify-center p-6 rounded-2xl border-2"
-            style={{
-              backgroundColor: "var(--bg-primary)",
-              borderColor: "var(--accent-secondary)",
-              backfaceVisibility: "hidden",
-            }}
-          >
-            <div className="text-sm font-semibold mb-4" style={{ color: "var(--text-secondary)" }}>
-              QUESTION
-            </div>
-            <div className="text-2xl font-bold text-center" style={{ color: "var(--text-primary)" }}>
-              {flashcard.question}
-            </div>
+          <div className="absolute top-6 left-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
+            Question
           </div>
+          <div className="text-2xl md:text-3xl font-bold text-slate-800 leading-snug">
+            {flashcard.question}
+          </div>
+          <div className="absolute bottom-6 text-sm font-semibold text-indigo-500 flex items-center gap-2">
+            Click to flip ↻
+          </div>
+        </div>
 
-          {/* Back */}
-          <div
-            className="absolute w-full h-full flex flex-col items-center justify-center p-6 rounded-2xl border-2"
-            style={{
-              backgroundColor: "var(--bg-secondary)",
-              borderColor: "var(--accent-secondary)",
-              backfaceVisibility: "hidden",
-              transform: "rotateY(180deg)",
-            }}
-          >
-            <div className="text-sm font-semibold mb-4" style={{ color: "var(--text-secondary)" }}>
-              ANSWER
-            </div>
-            <div className="text-lg text-center" style={{ color: "var(--text-primary)" }}>
-              {flashcard.answer}
-            </div>
+        {/* Back Face */}
+        <div 
+          className="absolute inset-0 backface-hidden bg-gradient-to-br from-indigo-50 to-violet-50 rounded-3xl shadow-2xl border border-indigo-100 p-8 flex flex-col items-center justify-center text-center"
+          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+        >
+          <div className="absolute top-6 left-6 text-xs font-bold text-indigo-400 uppercase tracking-widest">
+            Answer
           </div>
-        </motion.div>
+          <div className="text-xl md:text-2xl font-medium text-slate-800 leading-relaxed">
+            {flashcard.answer}
+          </div>
+        </div>
       </motion.div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 mt-4">
-        <Button onClick={() => setIsEditing(true)} variant="outline" size="small">
-          Edit
-        </Button>
-        <Button onClick={() => onDelete && onDelete(flashcard._id)} variant="danger" size="small">
-          Delete
-        </Button>
-        {!flashcard.viewed && onMarkDifficulty && (
-           <Button onClick={() => onMarkDifficulty(flashcard._id, "viewed")} variant="success" size="small">
-             Mark as Viewed
-           </Button>
-        )}
-        {flashcard.viewed && (
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 flex items-center">
-                ✓ Viewed
-            </span>
+      {/* Controls */}
+      <div className="flex justify-between items-center mt-8 px-4">
+        <div className="flex gap-2">
+           <button 
+             onClick={() => setIsEditing(true)} 
+             className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-colors"
+             title="Edit Card"
+           >
+             <FaPen size={14}/>
+           </button>
+           <button 
+             onClick={() => onDelete && onDelete(flashcard._id)} 
+             className="p-2 text-slate-400 hover:text-red-600 hover:bg-white rounded-lg transition-colors"
+             title="Delete Card"
+           >
+             <FaTrash size={14}/>
+           </button>
+        </div>
+
+        {flashcard.isGenerated && (
+           <span className="text-xs font-bold text-indigo-400 bg-indigo-50 px-3 py-1 rounded-full">
+             AI Generated
+           </span>
         )}
       </div>
-
-      {/* Tags */}
-      {flashcard.difficulty && (
-        <div className="mt-3 flex gap-2">
-          <span
-            className="px-3 py-1 rounded-full text-xs font-semibold"
-            style={{
-              backgroundColor: "var(--bg-secondary)",
-              color: "var(--text-secondary)",
-            }}
-          >
-            {flashcard.topicName || "General"}
-          </span>
-          {flashcard.isGenerated && (
-            <span
-              className="px-3 py-1 rounded-full text-xs font-semibold"
-              style={{
-                backgroundColor: "var(--accent-secondary)",
-                color: "var(--text-primary)",
-              }}
-            >
-              AI Generated
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { getBarGradient } from "../../utils/unitWeightageUtils";
-import { FaYoutube, FaChevronDown, FaChevronUp, FaMagic, FaEye, FaSpinner, FaTimes } from "react-icons/fa";
+import { FaYoutube, FaChevronDown, FaChevronUp, FaMagic, FaEye, FaSpinner, FaTimes, FaBookOpen } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -11,9 +11,6 @@ import "katex/dist/katex.min.css";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-/**
- * UnitWeightageBar - Visual bar component for unit weightage with AI solve feature
- */
 const UnitWeightageBar = ({
   unitSerial,
   unitName,
@@ -24,11 +21,12 @@ const UnitWeightageBar = ({
   questions = [],
   index = 0,
   subjectName = "",
+  year = "", // Add year prop with default
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [solutions, setSolutions] = useState({}); // Store solutions by question index
-  const [loadingIdx, setLoadingIdx] = useState(null); // Currently loading question
-  const [viewingIdx, setViewingIdx] = useState(null); // Currently viewing solution
+  const [solutions, setSolutions] = useState({});
+  const [loadingIdx, setLoadingIdx] = useState(null);
+  const [viewingIdx, setViewingIdx] = useState(null);
 
   const barWidth = Math.min(weightagePercentage, 100);
 
@@ -45,18 +43,14 @@ const UnitWeightageBar = ({
     }
   };
 
-  // Solve question using Medha AI
   const handleSolve = async (e, question, idx) => {
     e.stopPropagation();
-    
-    // If already solved, just show it
     if (solutions[idx]) {
       setViewingIdx(idx);
       return;
     }
 
     setLoadingIdx(idx);
-    
     try {
       const token = localStorage.getItem("token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -64,7 +58,7 @@ const UnitWeightageBar = ({
       const response = await axios.post(
         `${BACKEND_URL}/api/chatbot/solve`,
         {
-          question: question.text.replace(/<[^>]*>/g, ''), // Strip HTML
+          question: question.text.replace(/<[^>]*>/g, ''),
           subject: subjectName,
           unit: `Unit ${unitSerial} - ${unitName}`,
           marks: question.marks,
@@ -81,7 +75,7 @@ const UnitWeightageBar = ({
       console.error("Error solving question:", error);
       setSolutions(prev => ({
         ...prev,
-        [idx]: "❌ Failed to generate solution. Please try again."
+        [idx]: "❌ Failed to generate solution. One of our AI services might be busy. Please try again later."
       }));
       setViewingIdx(idx);
     } finally {
@@ -89,384 +83,194 @@ const UnitWeightageBar = ({
     }
   };
 
-  // Close solution modal
   const closeSolution = (e) => {
     e.stopPropagation();
     setViewingIdx(null);
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
-      className="unit-weightage-bar element-hover"
-      onClick={toggleExpand}
-      style={{
-        padding: "16px",
-        marginBottom: "16px",
-        borderRadius: "16px",
-        backgroundColor: "var(--bg-card)",
-        border: "1px solid var(--accent-secondary)",
-        cursor: questions.length > 0 ? "pointer" : "default",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Main Content Row */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        {/* Header Row */}
-        <div className="flex justify-between items-start gap-4">
-          <div className="flex-1">
-            <span
-              style={{
-                fontSize: "15px",
-                fontWeight: "600",
-                color: "var(--text-primary)",
-                lineHeight: "1.4",
-                display: "block",
-                marginBottom: "8px",
-              }}
-            >
-              Unit {unitSerial} – {unitName}
-            </span>
-            
-            <div className="flex flex-wrap items-center gap-3">
-              <span
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "700",
-                  color: "var(--action-primary)",
-                  backgroundColor: "rgba(139, 92, 246, 0.15)",
-                  padding: "4px 10px",
-                  borderRadius: "20px",
-                }}
-              >
-                {totalMarks} marks ({weightagePercentage.toFixed(1)}%)
-              </span>
-              
-              {youtubePlaylistUrl && (
-                <button
-                  onClick={handleWatchLecture}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    padding: "4px 12px",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                    color: "#fff",
-                    backgroundColor: "#FF0000",
-                    border: "none",
-                    borderRadius: "20px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
-                  onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
-                >
-                  <FaYoutube /> Watch
-                </button>
-              )}
+    <>
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.4, delay: index * 0.1 }}
+        className={`group relative p-6 mb-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all ${
+          questions.length > 0 ? "cursor-pointer" : ""
+        }`}
+        onClick={toggleExpand}
+      >
+        <div className="flex flex-col gap-4">
+          {/* Header */}
+          <div className="flex justify-between items-start gap-4">
+            <div className="flex-1">
+               <h4 className="text-lg font-bold text-slate-900 mb-2 leading-tight">
+                 Unit {unitSerial} <span className="text-slate-400 font-light mx-2">|</span> {unitName}
+               </h4>
+               
+               <div className="flex flex-wrap items-center gap-3">
+                 <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+                    {totalMarks} Marks • {weightagePercentage.toFixed(1)}% Weightage
+                 </span>
+                 
+                 {youtubePlaylistUrl && (
+                    <button
+                      onClick={handleWatchLecture}
+                      className="flex items-center gap-2 px-3 py-1 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-full transition-colors shadow-sm"
+                    >
+                      <FaYoutube /> Watch Lecture
+                    </button>
+                 )}
+               </div>
             </div>
+
+            {questions.length > 0 && (
+              <div className={`text-slate-400 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
+                <FaChevronDown />
+              </div>
+            )}
           </div>
 
-          {questions.length > 0 && (
-            <div style={{ color: "var(--text-secondary)", marginTop: "4px" }}>
-              {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
-            </div>
-          )}
+          {/* Progress Bar */}
+          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+             <motion.div
+               initial={{ width: 0 }}
+               animate={{ width: `${barWidth}%` }}
+               transition={{ duration: 0.8, delay: index * 0.1 + 0.2, ease: "easeOut" }}
+               className="h-full rounded-full"
+               style={{ background: getBarGradient(weightagePercentage) }}
+             />
+          </div>
         </div>
 
-        {/* Progress Bar */}
-        <div
-          style={{
-            height: "10px",
-            backgroundColor: "rgba(255, 255, 255, 0.08)",
-            borderRadius: "5px",
-            overflow: "hidden",
-            width: "100%",
-          }}
-        >
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${barWidth}%` }}
-            transition={{ duration: 0.8, delay: index * 0.1 + 0.2, ease: "easeOut" }}
-            style={{
-              height: "100%",
-              background: getBarGradient(weightagePercentage),
-              borderRadius: "5px",
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Expanded Questions List */}
-      <AnimatePresence>
-        {isExpanded && questions.length > 0 && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            style={{ overflow: "hidden" }}
-          >
-            <div 
-              style={{
-                marginTop: "20px",
-                paddingTop: "16px",
-                borderTop: "1px solid rgba(255,255,255,0.1)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px"
-              }}
+        {/* Questions List */}
+        <AnimatePresence>
+          {isExpanded && questions.length > 0 && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden"
             >
-              <h4 style={{ 
-                fontSize: "14px", 
-                fontWeight: "600", 
-                color: "var(--text-secondary)",
-                textTransform: "uppercase",
-                letterSpacing: "0.5px",
-                marginBottom: "4px"
-              }}>
-                Questions asked in 2024
-              </h4>
+               <div className="mt-6 pt-6 border-t border-slate-100 space-y-4">
+                  <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <FaBookOpen /> Past Year Questions ({year})
+                  </h5>
 
-              {questions.map((q, idx) => (
-                <div 
-                  key={idx}
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.03)",
-                    padding: "12px",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <span style={{ 
-                      fontWeight: "700", 
-                      color: "var(--action-primary)", 
-                      fontSize: "14px"
-                    }}>
-                      {q.qCode}
-                    </span>
-                    <span style={{ 
-                      fontSize: "12px", 
-                      fontWeight: "600",
-                      backgroundColor: "rgba(255,255,255,0.1)",
-                      padding: "2px 8px",
-                      borderRadius: "4px",
-                      color: "var(--text-primary)"
-                    }}>
-                      {q.marks} marks
-                    </span>
-                  </div>
-                  
-                  <div 
-                    style={{ 
-                      fontSize: "14px", 
-                      color: "var(--text-secondary)",
-                      lineHeight: "1.6",
-                      marginBottom: "12px"
-                    }}
-                    className="question-content"
-                    dangerouslySetInnerHTML={{ __html: q.text }}
-                  />
+                  {questions.map((q, idx) => (
+                    <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-indigo-200 transition-colors">
+                       <div className="flex justify-between items-start mb-3">
+                          <span className="font-bold text-indigo-600 text-sm bg-white px-2 py-0.5 rounded border border-indigo-100 shadow-sm">
+                             {q.qCode}
+                          </span>
+                          <span className="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">
+                             {q.marks} Marks
+                          </span>
+                       </div>
+                       
+                       <div 
+                         className="prose prose-sm prose-slate max-w-none text-slate-600 mb-4 font-medium leading-relaxed"
+                         dangerouslySetInnerHTML={{ __html: q.text }}
+                       />
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
-                    {/* Medha, solve it button */}
-                    <button
-                      onClick={(e) => handleSolve(e, q, idx)}
-                      disabled={loadingIdx === idx}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "6px 14px",
-                        fontSize: "12px",
-                        fontWeight: "600",
-                        color: "#fff",
-                        background: solutions[idx] 
-                          ? "linear-gradient(135deg, #10b981, #059669)" 
-                          : "linear-gradient(135deg, #8b5cf6, #6366f1)",
-                        border: "none",
-                        borderRadius: "20px",
-                        cursor: loadingIdx === idx ? "wait" : "pointer",
-                        transition: "all 0.2s ease",
-                        opacity: loadingIdx === idx ? 0.7 : 1,
-                      }}
-                    >
-                      {loadingIdx === idx ? (
-                        <>
-                          <FaSpinner className="animate-spin" /> Solving...
-                        </>
-                      ) : solutions[idx] ? (
-                        <>
-                          <FaEye /> View Solution
-                        </>
-                      ) : (
-                        <>
-                          <FaMagic /> Medha, solve it
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={(e) => handleSolve(e, q, idx)}
+                            disabled={loadingIdx === idx}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white transition-all shadow-md hover:shadow-lg ${
+                               solutions[idx] 
+                                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600" 
+                                  : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
+                            } ${loadingIdx === idx ? "opacity-70 cursor-wait" : ""}`}
+                          >
+                             {loadingIdx === idx ? (
+                               <><FaSpinner className="animate-spin" /> Solving...</>
+                             ) : solutions[idx] ? (
+                               <><FaEye /> View Solution</>
+                             ) : (
+                               <><FaMagic /> Solve with Medha</>
+                             )}
+                          </button>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Solution Modal */}
       <AnimatePresence>
         {viewingIdx !== null && solutions[viewingIdx] && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closeSolution}
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.8)",
-              zIndex: 1000,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "20px",
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                backgroundColor: "var(--bg-primary)",
-                borderRadius: "16px",
-                maxWidth: "800px",
-                width: "100%",
-                maxHeight: "80vh",
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-                border: "1px solid var(--accent-secondary)",
-              }}
-            >
-              {/* Modal Header */}
-              <div 
-                style={{
-                  padding: "16px 20px",
-                  borderBottom: "1px solid rgba(255,255,255,0.1)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  background: "linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.2))",
-                }}
+           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={closeSolution}>
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden border border-slate-200"
               >
-                <div>
-                  <h3 style={{ 
-                    fontSize: "18px", 
-                    fontWeight: "700", 
-                    color: "var(--text-primary)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px"
-                  }}>
-                    <FaMagic style={{ color: "#8b5cf6" }} />
-                    Medha AI Solution
-                  </h3>
-                  <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "4px" }}>
-                    {subjectName} • Unit {unitSerial}
-                  </p>
-                </div>
-                <button
-                  onClick={closeSolution}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "var(--text-secondary)",
-                    cursor: "pointer",
-                    padding: "8px",
-                    borderRadius: "8px",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  <FaTimes size={18} />
-                </button>
-              </div>
+                 {/* Modal Header */}
+                 <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-white">
+                    <div className="flex items-center gap-3">
+                       <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                          <FaMagic />
+                       </div>
+                       <div>
+                          <h3 className="font-bold text-slate-800 text-lg">AI Generated Solution</h3>
+                          <p className="text-xs text-slate-500 font-medium">{subjectName} • Unit {unitSerial}</p>
+                       </div>
+                    </div>
+                    <button onClick={closeSolution} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+                       <FaTimes size={20} />
+                    </button>
+                 </div>
 
-              {/* Modal Content */}
-              <div 
-                style={{
-                  padding: "20px",
-                  overflowY: "auto",
-                  flex: 1,
-                }}
-              >
-                <div 
-                  className="prose prose-invert max-w-none solution-content"
-                  style={{
-                    fontSize: "15px",
-                    lineHeight: "1.8",
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm, remarkMath]}
-                    rehypePlugins={[rehypeKatex]}
-                    components={{
-                      h1: ({node, ...props}) => <h1 style={{ fontSize: "24px", fontWeight: "700", marginBottom: "16px", color: "var(--action-primary)" }} {...props} />,
-                      h2: ({node, ...props}) => <h2 style={{ fontSize: "20px", fontWeight: "600", marginTop: "20px", marginBottom: "12px", color: "var(--text-primary)" }} {...props} />,
-                      h3: ({node, ...props}) => <h3 style={{ fontSize: "17px", fontWeight: "600", marginTop: "16px", marginBottom: "8px", color: "var(--text-primary)" }} {...props} />,
-                      p: ({node, ...props}) => <p style={{ marginBottom: "12px" }} {...props} />,
-                      ul: ({node, ...props}) => <ul style={{ marginBottom: "12px", paddingLeft: "20px", listStyleType: "disc" }} {...props} />,
-                      ol: ({node, ...props}) => <ol style={{ marginBottom: "12px", paddingLeft: "20px", listStyleType: "decimal" }} {...props} />,
-                      li: ({node, ...props}) => <li style={{ marginBottom: "6px" }} {...props} />,
-                      strong: ({node, ...props}) => <strong style={{ color: "#a78bfa", fontWeight: "600" }} {...props} />,
-                      code: ({node, inline, ...props}) => 
-                        inline ? (
-                          <code style={{ backgroundColor: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: "4px", fontSize: "14px" }} {...props} />
-                        ) : (
-                          <code style={{ display: "block", backgroundColor: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: "8px", fontSize: "13px", overflowX: "auto", whiteSpace: "pre-wrap" }} {...props} />
-                        ),
-                      pre: ({node, ...props}) => <pre style={{ backgroundColor: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: "8px", marginBottom: "12px", overflowX: "auto" }} {...props} />,
-                      // Table styling
-                      table: ({node, ...props}) => (
-                        <div style={{ overflowX: "auto", marginBottom: "16px" }}>
-                          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }} {...props} />
-                        </div>
-                      ),
-                      thead: ({node, ...props}) => <thead style={{ backgroundColor: "rgba(139, 92, 246, 0.2)" }} {...props} />,
-                      th: ({node, ...props}) => <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: "600", borderBottom: "2px solid rgba(255,255,255,0.2)", color: "var(--text-primary)" }} {...props} />,
-                      td: ({node, ...props}) => <td style={{ padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.1)" }} {...props} />,
-                      tr: ({node, ...props}) => <tr style={{ transition: "background 0.2s" }} {...props} />,
-                      // Sub/superscript
-                      sub: ({node, ...props}) => <sub style={{ fontSize: "0.75em", verticalAlign: "sub" }} {...props} />,
-                      sup: ({node, ...props}) => <sup style={{ fontSize: "0.75em", verticalAlign: "super" }} {...props} />,
-                      // Blockquote
-                      blockquote: ({node, ...props}) => <blockquote style={{ borderLeft: "3px solid #8b5cf6", paddingLeft: "16px", marginLeft: "0", fontStyle: "italic", color: "var(--text-secondary)" }} {...props} />,
-                    }}
-                  >
-                    {solutions[viewingIdx]}
-                  </ReactMarkdown>
+                 {/* Modal Content */}
+                 <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50/50">
+                    <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed font-medium">
+                       <ReactMarkdown
+                          remarkPlugins={[remarkGfm, remarkMath]}
+                          rehypePlugins={[rehypeKatex]}
+                          components={{
+                            h1: ({node, ...props}) => <h1 className="text-2xl font-black text-indigo-700 mb-4 border-b pb-2 border-indigo-100" {...props} />,
+                            h2: ({node, ...props}) => <h2 className="text-xl font-bold text-slate-800 mt-6 mb-3 flex items-center gap-2" {...props} />,
+                            h3: ({node, ...props}) => <h3 className="text-lg font-bold text-slate-700 mt-4 mb-2" {...props} />,
+                            ul: ({node, ...props}) => <ul className="list-disc pl-5 space-y-1 my-4 bg-white p-4 rounded-xl border border-slate-100 shadow-sm" {...props} />,
+                            ol: ({node, ...props}) => <ol className="list-decimal pl-5 space-y-1 my-4 bg-white p-4 rounded-xl border border-slate-100 shadow-sm" {...props} />,
+                            li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                            code: ({node, inline, ...props}) => 
+                              inline ? (
+                                <code className="bg-slate-200 text-slate-800 px-1 py-0.5 rounded text-sm font-mono" {...props} />
+                              ) : (
+                                <code className="block bg-slate-800 text-slate-100 p-4 rounded-xl text-sm font-mono my-4 overflow-x-auto shadow-inner" {...props} />
+                              ),
+                            table: ({node, ...props}) => (
+                               <div className="overflow-x-auto my-6 rounded-xl border border-slate-200 shadow-sm">
+                                  <table className="w-full text-sm text-left" {...props} />
+                               </div>
+                            ),
+                            th: ({node, ...props}) => <th className="bg-slate-100 px-4 py-3 font-bold text-slate-700 border-b border-slate-200" {...props} />,
+                            td: ({node, ...props}) => <td className="px-4 py-3 border-b border-slate-100 bg-white" {...props} />,
+                            blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-indigo-400 pl-4 py-1 my-4 bg-indigo-50/50 text-indigo-900 italic rounded-r-lg" {...props} />,
+                          }}
+                       >
+                          {solutions[viewingIdx]?.replace(/\\\[/g, '$$').replace(/\\\]/g, '$$').replace(/\\\(/g, '$').replace(/\\\)/g, '$')}
+                       </ReactMarkdown>
+                    </div>
 
-                  <div className="mt-8 pt-4 border-t border-[var(--border-color)] text-center">
-                    <p className="text-xs text-[var(--text-secondary)] opacity-70">
-                      Medha AI can make mistakes. Double check the response as you are human and it is AI.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
+                    <div className="mt-8 pt-6 border-t border-slate-200 text-center">
+                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest opacity-70">
+                          AI generated content • Verify with standard textbooks
+                       </p>
+                    </div>
+                 </div>
+              </motion.div>
+           </div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </>
   );
 };
 

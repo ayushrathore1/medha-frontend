@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import FlashcardItem from "./FlashcardItem";
 import Card from "../Common/Card";
 import Button from "../Common/Button";
+import { motion } from "framer-motion";
+import { FaArrowLeft, FaArrowRight, FaCheck, FaTimes, FaUndo } from "react-icons/fa";
 
 const FlashcardList = ({ flashcards, onEdit, onDelete, onMarkDifficulty, studyMode = false }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -9,11 +11,11 @@ const FlashcardList = ({ flashcards, onEdit, onDelete, onMarkDifficulty, studyMo
 
   if (!flashcards || flashcards.length === 0) {
     return (
-      <Card className="text-center py-12">
-        <p className="text-xl font-semibold" style={{ color: "var(--text-secondary)" }}>
-          No flashcards yet. Create some to get started!
+      <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-300">
+        <p className="text-xl font-bold text-slate-400">
+          No flashcards in this deck yet.
         </p>
-      </Card>
+      </div>
     );
   }
 
@@ -45,130 +47,86 @@ const FlashcardList = ({ flashcards, onEdit, onDelete, onMarkDifficulty, studyMo
   };
 
   const currentFlashcard = flashcards[currentIndex];
+  const progress = ((currentIndex + 1) / flashcards.length) * 100;
 
   return (
-    <div className="space-y-6">
-      {/* Header with stats */}
-      <Card>
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
-              Flashcards
-            </h3>
-            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-              {currentIndex + 1} of {flashcards.length}
-            </p>
-          </div>
-          {studyMode && (
-            <div className="flex gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-600">
-                  {studied.correct}
-                </div>
-                <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                  Correct
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">
-                  {studied.incorrect}
-                </div>
-                <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                  Incorrect
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold" style={{ color: "var(--action-primary)" }}>
-                  {studied.correct + studied.incorrect > 0
-                    ? Math.round((studied.correct / (studied.correct + studied.incorrect)) * 100)
-                    : 0}
-                  %
-                </div>
-                <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                  Accuracy
-                </div>
-              </div>
+    <div className="max-w-3xl mx-auto space-y-8">
+      
+      {/* Header Stats */}
+      <div className="flex items-center justify-between">
+         <div className="text-sm font-bold text-slate-500">
+            Card {currentIndex + 1} of {flashcards.length}
+         </div>
+         {studyMode && (
+            <div className="flex gap-4 text-xs font-bold">
+               <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Known: {studied.correct}</span>
+               <span className="text-red-600 bg-red-50 px-2 py-1 rounded">Review: {studied.incorrect}</span>
             </div>
-          )}
-        </div>
-      </Card>
+         )}
+      </div>
 
-      {/* Current Flashcard */}
-      <FlashcardItem
-        flashcard={currentFlashcard}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
+      {/* Progress Bar */}
+      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+         <motion.div 
+           className="h-full bg-indigo-500"
+           initial={{ width: 0 }}
+           animate={{ width: `${progress}%` }}
+           transition={{ duration: 0.3 }}
+         />
+      </div>
 
-      {/* Navigation */}
-      <Card>
-        <div className="flex gap-4 justify-between items-center">
-          <Button
-            onClick={handlePrevious}
-            disabled={currentIndex === 0}
-            variant="outline"
-          >
-            ← Previous
-          </Button>
+      {/* The Logical Card */}
+      <div className="min-h-[450px] flex flex-col justify-center">
+         <FlashcardItem
+            flashcard={currentFlashcard}
+            onEdit={onEdit}
+            onDelete={onDelete}
+         />
+      </div>
 
-          {studyMode && (
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => {
-                  markAsIncorrect();
-                  // Just move next, don't mark viewed
-                }} 
-                variant="secondary"
-              >
-                Keep Reviewing
-              </Button>
-              <Button 
-                onClick={() => {
-                  markAsCorrect();
-                  if (onMarkDifficulty) onMarkDifficulty(currentFlashcard._id, "viewed");
-                }} 
-                variant="success"
-              >
-                Got it (Viewed)
-              </Button>
+      {/* Controls */}
+      <div className="flex flex-col items-center gap-6">
+         
+         {studyMode ? (
+            <div className="flex gap-4 w-full max-w-sm">
+               <Button 
+                 onClick={markAsIncorrect}
+                 className="flex-1 bg-white border border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 shadow-lg shadow-red-500/10"
+                 size="lg"
+               >
+                 <FaTimes className="mr-2"/> Still Learning
+               </Button>
+               <Button 
+                 onClick={() => {
+                   markAsCorrect();
+                   if (onMarkDifficulty) onMarkDifficulty(currentFlashcard._id, "viewed");
+                 }} 
+                 className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 border-0"
+                 size="lg"
+               >
+                 <FaCheck className="mr-2"/> Got It
+               </Button>
             </div>
-          )}
+         ) : (
+            <div className="flex gap-4">
+               <Button onClick={handlePrevious} disabled={currentIndex === 0} variant="secondary" className="rounded-full px-6">
+                 <FaArrowLeft />
+               </Button>
+               <Button onClick={handleNext} disabled={currentIndex === flashcards.length - 1} variant="primary" className="rounded-full px-8">
+                 Next Card <FaArrowRight className="ml-2"/>
+               </Button>
+            </div>
+         )}
 
-          <Button
-            onClick={handleNext}
-            disabled={currentIndex === flashcards.length - 1}
-            variant="primary"
-          >
-            Next →
-          </Button>
-        </div>
+         {currentIndex === flashcards.length - 1 && studyMode && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+               <Button onClick={resetStudy} variant="ghost">
+                 <FaUndo className="mr-2"/> Restart Deck
+               </Button>
+            </motion.div>
+         )}
+      </div>
 
-        {studyMode && currentIndex === flashcards.length - 1 && (
-          <div className="mt-4 text-center">
-            <Button onClick={resetStudy} variant="outline">
-              Reset Study Session
-            </Button>
-          </div>
-        )}
-
-        {/* Progress Bar */}
-        <div className="mt-4">
-          <div className="w-full h-2 rounded-full" style={{ backgroundColor: "var(--bg-secondary)" }}>
-            <div
-              className="h-2 rounded-full transition-all duration-300"
-              style={{
-                width: `${((currentIndex + 1) / flashcards.length) * 100}%`,
-                background: `linear-gradient(to right, var(--action-primary), var(--accent-secondary))`,
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Keyboard shortcuts hint */}
-        <div className="mt-4 text-center text-xs" style={{ color: "var(--text-secondary)" }}>
-          <span className="font-semibold">Tip:</span> Use arrow keys to navigate
-        </div>
-      </Card>
     </div>
   );
 };

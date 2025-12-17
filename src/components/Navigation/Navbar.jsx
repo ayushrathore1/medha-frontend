@@ -115,7 +115,7 @@ const Navbar = ({ user, onLogout }) => {
             className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl shadow-md bg-white"
             draggable="false"
           />
-          <span className="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-[var(--action-primary)] via-[var(--accent-secondary)] to-[var(--accent-primary)] bg-clip-text text-transparent hidden sm:inline">
+          <span className="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-violet-500 to-fuchsia-500 bg-clip-text text-transparent hidden sm:inline">
             MEDHA
           </span>
         </div>
@@ -200,10 +200,34 @@ const Navbar = ({ user, onLogout }) => {
                 sessionStorage.removeItem("medha_feature_modal_shown");
                 onLogout();
               }}
-              className="ml-2 bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-secondary)] text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg hover:opacity-90 transition-all shadow-md text-sm"
+              className="ml-2 bg-gradient-to-r from-indigo-600 to-violet-500 text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg hover:opacity-90 transition-all shadow-md text-sm"
             >
               Logout
             </button>
+          </div>
+        )}
+
+        {/* Non-logged in nav items */}
+        {!user && (
+          <div className="flex items-center gap-4">
+            <NavLink to="/login">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="hidden sm:block px-5 py-2.5 rounded-xl font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] border border-transparent hover:border-[var(--accent-secondary)]/30 transition-all"
+              >
+                Log in
+              </motion.button>
+            </NavLink>
+            <NavLink to="/register">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-6 py-2.5 rounded-xl font-bold text-white shadow-lg bg-gradient-to-r from-indigo-600 to-violet-500 hover:shadow-xl hover:opacity-90 transition-all"
+              >
+                Join for Free
+              </motion.button>
+            </NavLink>
           </div>
         )}
 

@@ -13,71 +13,55 @@ const LoginForm = ({ onSubmit, loading, error }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div
-          className="p-4 rounded-xl text-center font-semibold text-red-600 border-2 border-red-200"
-          style={{ backgroundColor: "var(--bg-primary)" }}
-        >
+        <div className="p-4 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-200 flex items-center justify-center">
           {error}
         </div>
       )}
 
       <div>
-        <label
-          className="block mb-2 font-semibold"
-          style={{ color: "var(--text-primary)" }}
-        >
+        <label className="block mb-2 text-sm font-bold text-slate-700">
           Email Address
         </label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-5 py-3 rounded-xl border-2 font-medium transition-all focus:outline-none focus:ring-2"
-          style={{
-            backgroundColor: "var(--bg-primary)",
-            borderColor: "var(--accent-secondary)",
-            color: "var(--text-primary)",
-          }}
-          placeholder="you@example.com"
+          className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 placeholder-slate-400 font-medium transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-slate-400"
+          placeholder="you@university.edu"
           required
         />
       </div>
 
       <div>
-        <label
-          className="block mb-2 font-semibold"
-          style={{ color: "var(--text-primary)" }}
-        >
+        <label className="block mb-2 text-sm font-bold text-slate-700">
           Password
         </label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-5 py-3 rounded-xl border-2 font-medium transition-all focus:outline-none focus:ring-2"
-          style={{
-            backgroundColor: "var(--bg-primary)",
-            borderColor: "var(--accent-secondary)",
-            color: "var(--text-primary)",
-          }}
+          className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 placeholder-slate-400 font-medium transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-slate-400"
           placeholder="••••••••"
           required
           minLength={6}
         />
       </div>
 
-      <Button
-        type="submit"
-        disabled={loading}
-        loading={loading}
-        variant="primary"
-        size="large"
-        fullWidth
-      >
-        Sign In
-      </Button>
+      <div className="pt-2">
+        <Button
+          type="submit"
+          disabled={loading}
+          loading={loading}
+          variant="primary"
+          size="lg"
+          fullWidth
+          className="shadow-xl shadow-indigo-500/20"
+        >
+          Sign In
+        </Button>
+      </div>
     </form>
   );
 };

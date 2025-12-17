@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { format } from "date-fns";
+import { 
+  FaFire, FaBook, FaChartLine, FaTrash, 
+  FaPlus, FaBrain, FaFolderOpen, FaLightbulb 
+} from "react-icons/fa";
+
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
@@ -8,11 +16,8 @@ import CalendarWidget from "../components/Dashboard/CalendarWidget";
 import LiveClock from "../components/Dashboard/LiveClock";
 import StudyTimer from "../components/Dashboard/StudyTimer";
 import FeatureAnnouncementModal from "../components/Common/FeatureAnnouncementModal";
-import { format } from "date-fns";
-import TodoList from "../components/Dashboard/TodoList";
-// import PlanModal from "../components/Dashboard/PlanModal"; // Commenting out PlanModalget";
 import DailyPlanWidget from "../components/Dashboard/DailyPlanWidget";
-import { FaFire, FaBook, FaChartLine, FaTrash } from "react-icons/fa";
+import TodoList from "../components/Dashboard/TodoList";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -60,19 +65,9 @@ const Dashboard = () => {
         (user.featureNotificationViews || 0) < MAX_VIEWS && 
         !sessionStorage.getItem(SESSION_KEY)
       ) {
-        console.log("SHOWING FEATURE MODAL: Views =", user.featureNotificationViews);
         setShowFeatureModal(true);
-        // Mark as shown in this session immediately to prevent re-show on refresh
         sessionStorage.setItem(SESSION_KEY, "true");
-        
-        // Increment view count in backend
-        await axios.post(
-          `${baseUrl}/api/users/increment-notification-view`, 
-          {}, 
-          { headers }
-        );
-      } else {
-        console.log("NOT SHOWING MODAL. Views:", user.featureNotificationViews, "Session Shown:", sessionStorage.getItem(SESSION_KEY));
+        await axios.post(`${baseUrl}/api/users/increment-notification-view`, {}, { headers });
       }
 
     } catch (error) {
@@ -90,7 +85,7 @@ const Dashboard = () => {
         `${import.meta.env.VITE_BACKEND_URL}/api/flashcards/topic/${encodeURIComponent(topicName)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetchDashboardData(); // Refresh data
+      fetchDashboardData();
     } catch (error) {
       console.error("Error deleting topic:", error);
     }
@@ -98,118 +93,156 @@ const Dashboard = () => {
 
   if (loading) return <Loader fullScreen />;
 
-
+  const quickActions = [
+    { label: "New Note", icon: <FaPlus />, to: "/notes", color: "text-indigo-600", bg: "bg-indigo-50" },
+    { label: "Start Quiz", icon: <FaBrain />, to: "/quiz", color: "text-violet-600", bg: "bg-violet-50" },
+    { label: "Archive", icon: <FaFolderOpen />, to: "/rtu-exams", color: "text-emerald-600", bg: "bg-emerald-50" },
+    { label: "AI Tutor", icon: <FaLightbulb />, to: "/chatbot", color: "text-amber-600", bg: "bg-amber-50" },
+  ];
 
   return (
-    <div className="min-h-screen w-full px-4 py-6 sm:p-6 pb-20 sm:pb-6">
-      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold mb-2" style={{ color: "var(--text-primary)" }}>
-              {greeting}, {userName}! 👋
+    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-slate-50/50">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
+              {greeting}, {userName}! <span className="inline-block animate-wave origin-bottom-right">👋</span>
             </h1>
-            <p className="text-base sm:text-lg opacity-80" style={{ color: "var(--text-secondary)" }}>
-              Ready to conquer your subjects today?
+            <p className="text-lg text-slate-500 font-medium">
+              Let's make today productive.
             </p>
-          </div>
+          </motion.div>
+
+          {/* Quick Stats Grid (Compact) */}
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex gap-4"
+          >
+            <div className="flex items-center gap-3 px-5 py-3 bg-white rounded-2xl shadow-sm border border-slate-200">
+              <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                <FaFire size={20} />
+              </div>
+              <div>
+                <div className="text-xl font-bold text-slate-900">{stats.streak}</div>
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Day Streak</div>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        {/* Quick Actions Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {quickActions.map((action, idx) => (
+            <Link key={idx} to={action.to}>
+              <motion.div
+                whileHover={{ y: -5 }}
+                className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-pointer"
+              >
+                <div className={`p-3 rounded-xl ${action.bg} ${action.color}`}>
+                  {action.icon}
+                </div>
+                <span className="font-bold text-slate-700">{action.label}</span>
+              </motion.div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left Column: Stats, Plan, Todos, Subjects */}
-          <div className="lg:col-span-2 space-y-6 sm:space-y-8">
-            {/* Stats Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-orange-500/20 text-orange-500">
-                  <FaFire size={24} />
-                </div>
-                <div>
-                  <p className="text-sm opacity-70">Day Streak</p>
-                  <p className="text-2xl font-bold">{stats.streak}</p>
-                </div>
-              </Card>
-              <Card className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-blue-500/20 text-blue-500">
-                  <FaBook size={24} />
-                </div>
-                <div>
-                  <p className="text-sm opacity-70">Cards Learned</p>
-                  <p className="text-2xl font-bold">{stats.cardsLearned}</p>
-                </div>
-              </Card>
-              <Card className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-green-500/20 text-green-500">
-                  <FaChartLine size={24} />
-                </div>
-                <div>
-                  <p className="text-sm opacity-70">Avg Accuracy</p>
-                  <p className="text-2xl font-bold">{stats.accuracy}%</p>
-                </div>
-              </Card>
+          {/* Main Content Column */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* Stats Overview */}
+            <div className="grid grid-cols-2 gap-4">
+               <Card className="flex items-center gap-4 bg-gradient-to-br from-indigo-500 to-violet-600 text-white border-none">
+                 <div className="p-3 bg-white/20 rounded-xl">
+                   <FaBook size={24} />
+                 </div>
+                 <div>
+                   <div className="text-3xl font-black">{stats.cardsLearned}</div>
+                   <div className="text-indigo-100 font-medium">Cards Mastered</div>
+                 </div>
+               </Card>
+               <Card className="flex items-center gap-4 bg-white">
+                 <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
+                   <FaChartLine size={24} />
+                 </div>
+                 <div>
+                   <div className="text-3xl font-black text-slate-900">{stats.accuracy}%</div>
+                   <div className="text-slate-500 font-medium">Avg Accuracy</div>
+                 </div>
+               </Card>
             </div>
 
-            {/* Daily Plan & Todo Grid */}
+            {/* Widgets Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               {/* Daily Plan Widget */}
                <div className="h-full">
                   <DailyPlanWidget />
                </div>
-               {/* To-Do List */}
                <div className="h-full">
                   <TodoList />
                </div>
             </div>
 
-            {/* Subject Manager */}
             <SubjectManager />
 
-            {/* Topics to Review */}
-            <Card>
-              <h2 className="text-xl sm:text-2xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
-                Topics to Review
-              </h2>
+            {/* Review List */}
+            <Card title="Topics to Review">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-slate-900">Focus Areas</h2>
+                <span className="text-sm font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{stats.reviewList.length} Topics</span>
+              </div>
+              
               {stats.reviewList.length === 0 ? (
-                <p className="opacity-60 text-sm sm:text-base">No topics marked for review. Great job!</p>
+                <div className="text-center py-8 text-slate-500">
+                  <div className="inline-block p-4 bg-emerald-50 text-emerald-500 rounded-full mb-3"><FaBrain size={24}/></div>
+                  <p>All caught up! No active review topics.</p>
+                </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {stats.reviewList.map((topic) => (
-                    <div key={topic._id} className="p-3 sm:p-4 rounded-xl border-2" style={{ borderColor: "var(--accent-secondary)" }}>
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
-                        <h3 className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>
-                          {topic.name} <span className="text-sm font-normal opacity-70">({topic.difficulty})</span>
-                        </h3>
-                        <Button 
-                          onClick={() => handleDeleteTopic(topic.name)}
-                          variant="danger"
-                          className="!py-1.5 !px-3 text-sm w-full sm:w-auto flex justify-center"
-                        >
-                          <FaTrash className="mr-2" /> Delete Topic
-                        </Button>
+                    <motion.div 
+                      key={topic._id} 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="group flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-200 transition-colors"
+                    >
+                      <div>
+                        <h3 className="font-bold text-slate-800">{topic.name}</h3>
+                        <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase mt-1 inline-block">
+                          {topic.difficulty} Difficulty
+                        </span>
                       </div>
-                      <div className="text-sm opacity-70">
-                         Marked as {topic.difficulty}. Review the flashcards in this topic to improve!
-                      </div>
-                    </div>
+                      <Button 
+                        onClick={() => handleDeleteTopic(topic.name)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-slate-400 hover:text-red-500"
+                      >
+                        <FaTrash />
+                      </Button>
+                    </motion.div>
                   ))}
                 </div>
               )}
             </Card>
           </div>
 
-          {/* Right Column: Tools Only */}
-          <div className="space-y-6 sm:space-y-8">
-            {/* Unified Widget Card */}
-            <Card className="space-y-6 sticky top-24">
+          {/* Sidebar Column */}
+          <div className="space-y-6">
+            <Card className="sticky top-24 space-y-6 p-6">
               <LiveClock />
-              <div className="border-t border-gray-700 pt-4">
-                <CalendarWidget />
-              </div>
-              <div className="border-t border-gray-700 pt-4">
-                <StudyTimer />
-              </div>
+              <div className="h-px bg-slate-100 w-full"></div>
+              <CalendarWidget />
+              <div className="h-px bg-slate-100 w-full"></div>
+              <StudyTimer />
             </Card>
           </div>
 

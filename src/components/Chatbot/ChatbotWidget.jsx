@@ -1,8 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import Button from "../Common/Button";
+import { FaPaperPlane, FaRobot, FaUser } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // Typewriter component for streaming text effect
-const TypewriterText = ({ text, speed = 15, onComplete }) => {
+const TypewriterText = ({ text, speed = 10, onComplete }) => {
   const [displayedText, setDisplayedText] = useState("");
   const [isComplete, setIsComplete] = useState(false);
 
@@ -28,10 +32,10 @@ const TypewriterText = ({ text, speed = 15, onComplete }) => {
   }, [text, speed]);
 
   return (
-    <span>
+    <div className="whitespace-pre-wrap">
       {displayedText}
-      {!isComplete && <span className="animate-pulse">▊</span>}
-    </span>
+      {!isComplete && <span className="animate-pulse inline-block w-2 h-4 ml-1 bg-current align-middle"></span>}
+    </div>
   );
 };
 
@@ -43,20 +47,16 @@ const ChatbotWidget = ({ messages, onSendMessage, isTyping }) => {
   const [atBottom, setAtBottom] = useState(true);
   const prevMessagesLength = useRef(messages?.length || 0);
 
-  // Track new bot messages for typewriter effect
-  // Only animate if exactly ONE new message was added (not bulk load from session)
   useEffect(() => {
     const currentLength = messages?.length || 0;
     const prevLength = prevMessagesLength.current;
     
-    // Only trigger animation if exactly 1 message was added (real-time response)
     if (currentLength === prevLength + 1) {
       const newMessage = messages[messages.length - 1];
       if (newMessage.sender === "bot") {
         setAnimatingIndex(messages.length - 1);
       }
     } else if (currentLength !== prevLength) {
-      // Bulk load (session switch) - reset animation
       setAnimatingIndex(-1);
     }
     
@@ -67,7 +67,7 @@ const ChatbotWidget = ({ messages, onSendMessage, isTyping }) => {
     if (atBottom) {
       chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, atBottom]);
+  }, [messages, atBottom, isTyping]); // scroll on typing too
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -80,7 +80,7 @@ const ChatbotWidget = ({ messages, onSendMessage, isTyping }) => {
   const handleScroll = () => {
     if (chatScrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = chatScrollRef.current;
-      setAtBottom(scrollHeight - scrollTop - clientHeight < 50);
+      setAtBottom(scrollHeight - scrollTop - clientHeight < 100);
     }
   };
 
@@ -89,147 +89,117 @@ const ChatbotWidget = ({ messages, onSendMessage, isTyping }) => {
   };
 
   return (
-    <div
-      className="flex flex-col h-full rounded-2xl border-2 overflow-hidden"
-      style={{
-        backgroundColor: "var(--bg-primary)",
-        borderColor: "var(--accent-secondary)",
-        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
-      }}
-    >
+    <div className="flex flex-col h-full bg-slate-50 relative">
+      
       {/* Chat messages area */}
       <div
         ref={chatScrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-6 space-y-4"
-        style={{
-          scrollbarWidth: "thin",
-          scrollbarColor: "var(--accent-secondary) transparent",
-        }}
+        className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6"
       >
         {messages && messages.map((msg, idx) => (
-          <div
+          <motion.div
             key={idx}
-            className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} gap-3 px-2`}
           >
-            {/* Bot avatar */}
+            {/* Bot Avatar */}
             {msg.sender === "bot" && (
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mr-3 shadow-lg">
-                <span className="text-white text-lg">🤖</span>
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md self-start mt-1">
+                <FaRobot className="text-white text-sm" />
               </div>
             )}
             
+            {/* Message Bubble */}
             <div
-              className={`max-w-[70%] px-5 py-4 rounded-2xl shadow-md ${
-                msg.sender === "user" ? "rounded-br-sm" : "rounded-bl-sm"
+              className={`max-w-[85%] md:max-w-[70%] px-5 py-4 shadow-sm text-sm md:text-base leading-relaxed ${
+                msg.sender === "user" 
+                  ? "bg-indigo-600 text-white rounded-2xl rounded-tr-sm" 
+                  : "bg-white text-slate-800 border border-slate-200 rounded-2xl rounded-tl-sm"
               }`}
-              style={{
-                backgroundColor:
-                  msg.sender === "user"
-                    ? "linear-gradient(135deg, var(--action-primary), var(--accent-primary))"
-                    : "var(--bg-secondary)",
-                background:
-                  msg.sender === "user"
-                    ? "linear-gradient(135deg, #6366f1, #8b5cf6)"
-                    : "var(--bg-secondary)",
-                color: msg.sender === "user" ? "#ffffff" : "var(--text-primary)",
-                fontSize: "1rem",
-                fontWeight: "500",
-                lineHeight: "1.6",
-                letterSpacing: "0.01em",
-              }}
             >
               {msg.sender === "bot" && idx === animatingIndex ? (
                 <TypewriterText 
                   text={msg.text} 
-                  speed={12} 
+                  speed={8} 
                   onComplete={handleTypewriterComplete}
                 />
               ) : (
-                <span className="whitespace-pre-wrap">{msg.text}</span>
+                msg.sender === "bot" ? (
+                   <div className="prose prose-sm max-w-none prose-slate">
+                     <ReactMarkdown 
+                        children={msg.text} 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                           p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                           a: ({node, ...props}) => <a className="text-indigo-600 hover:underline" {...props} />,
+                           code: ({node, inline, ...props}) => 
+                              inline 
+                              ? <code className="bg-slate-100 text-indigo-600 px-1 py-0.5 rounded text-xs font-mono" {...props} />
+                              : <code className="block bg-slate-800 text-slate-100 p-3 rounded-lg text-xs font-mono my-2 overflow-x-auto" {...props} />
+                        }}
+                     />
+                   </div>
+                ) : (
+                   <p className="whitespace-pre-wrap">{msg.text}</p>
+                )
               )}
             </div>
 
-            {/* User avatar */}
+            {/* User Avatar */}
             {msg.sender === "user" && (
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center ml-3 shadow-lg">
-                <span className="text-white text-lg">👤</span>
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shadow-sm self-start mt-1">
+                <FaUser className="text-slate-500 text-sm" />
               </div>
             )}
-          </div>
+          </motion.div>
         ))}
         
         {/* Typing indicator */}
         {isTyping && (
-          <div className="flex justify-start animate-fade-in">
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mr-3 shadow-lg">
-              <span className="text-white text-lg">🤖</span>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start gap-3 px-2">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md">
+              <FaRobot className="text-white text-sm" />
             </div>
-            <div
-              className="px-5 py-4 rounded-2xl rounded-bl-sm shadow-md"
-              style={{
-                backgroundColor: "var(--bg-secondary)",
-                color: "var(--text-primary)",
-              }}
-            >
-              <span className="inline-flex gap-1.5 items-center">
-                <span className="w-2.5 h-2.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></span>
-                <span className="w-2.5 h-2.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></span>
-                <span className="w-2.5 h-2.5 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></span>
-              </span>
+            <div className="px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1">
+               <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span>
+               <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "0.15s" }}></span>
+               <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "0.3s" }}></span>
             </div>
-          </div>
+          </motion.div>
         )}
         <div ref={chatEndRef} />
       </div>
 
       {/* Input area */}
-      <form
-        onSubmit={handleSubmit}
-        className="p-4 border-t-2 flex gap-3"
-        style={{
-          backgroundColor: "var(--bg-primary)",
-          borderColor: "var(--accent-secondary)",
-        }}
-      >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask me anything..."
-          className="flex-1 px-5 py-3 rounded-xl border-2 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-200"
-          style={{
-            backgroundColor: "var(--bg-primary)",
-            borderColor: "var(--accent-secondary)",
-            color: "var(--text-primary)",
-            fontSize: "1rem",
-            fontWeight: "500",
-          }}
-        />
-        <Button type="submit" variant="primary" className="px-6 shadow-lg hover:shadow-xl transition-all">
-          <span className="flex items-center gap-2">
-            Send
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-            </svg>
-          </span>
-        </Button>
-      </form>
-      <div className="px-4 pb-2 text-center">
-        <p className="text-xs text-[var(--text-secondary)] opacity-70">
-          Medha AI can make mistakes. Double check the response as you are human and it is AI.
-        </p>
+      <div className="p-4 bg-white border-t border-slate-200">
+         <form
+           onSubmit={handleSubmit}
+           className="max-w-4xl mx-auto relative flex gap-3 items-end"
+         >
+           <div className="flex-1 relative">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask anything..."
+                className="w-full pl-5 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-0 transition-colors text-slate-800 font-medium placeholder:text-slate-400"
+              />
+           </div>
+           <Button 
+             type="submit" 
+             variant="primary" 
+             disabled={!input.trim() || isTyping}
+             className={`h-[52px] w-[52px] rounded-xl flex items-center justify-center p-0 transition-transform ${input.trim() ? 'hover:scale-105 active:scale-95 shadow-lg shadow-indigo-500/20' : 'opacity-70'}`}
+           >
+              <FaPaperPlane className={`${input.trim() ? 'ml-[-2px]' : ''}`} />
+           </Button>
+         </form>
+         <p className="text-center text-[10px] sm:text-xs text-slate-400 mt-3 font-medium">
+            Medha AI can make mistakes. Verify important info.
+         </p>
       </div>
-
-      <style>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out;
-        }
-      `}</style>
     </div>
   );
 };
