@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import NoteModal from "./NoteModal";
 import TextNoteForm from "../components/Notes/TextNoteForm";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaBook, FaGlobe, FaSearch, FaUpload, FaPlus, FaCloudUploadAlt, FaFileAlt, FaTrash, FaPen, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaBook, FaGlobe, FaSearch, FaUpload, FaPlus, FaCloudUploadAlt, FaFileAlt, FaTrash, FaPen, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp, FaFolder, FaFolderOpen, FaInfoCircle, FaHeart, FaRegHeart } from "react-icons/fa";
 
 const API_BASE = `${import.meta.env.VITE_BACKEND_URL}`;
 
@@ -34,6 +34,25 @@ const Notes = () => {
   const [uploadTitle, setUploadTitle] = useState("");
   const fileInputRef = useRef(null);
   const token = localStorage.getItem("token");
+  
+  // Get current user ID (simple decode for UI update, ideally from context)
+  const getUserId = () => {
+    try {
+      if(!token) return null;
+      return JSON.parse(atob(token.split('.')[1])).id;
+    } catch(e) { return null; }
+  }
+  const currentUserId = getUserId();
+
+  // Explore page state
+  const [expandedSubjects, setExpandedSubjects] = useState({});
+
+  const toggleSubject = (subjectId) => {
+    setExpandedSubjects(prev => ({
+      ...prev,
+      [subjectId]: !prev[subjectId]
+    }));
+  };
 
   // Fetch subjects
   useEffect(() => {
@@ -130,6 +149,32 @@ const Notes = () => {
       }
     } catch {
       setErrorMsg("Failed to update visibility");
+    }
+  };
+
+  // Toggle Like
+  const toggleLike = async (e, noteId) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch(`${API_BASE}/api/notes/${noteId}/like`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // Update state in publicNotes
+        setPublicNotes(publicNotes.map(n => {
+           if(n._id === noteId) {
+             const newLikes = data.isLiked 
+                ? [...(n.likes || []), currentUserId] 
+                : (n.likes || []).filter(id => id !== currentUserId);
+             return { ...n, likes: newLikes };
+           }
+           return n;
+        }));
+      }
+    } catch (err) {
+      console.error("Error toggling like", err);
     }
   };
 
@@ -275,6 +320,25 @@ const Notes = () => {
     if (note.owner?.email) return note.owner.email.split("@")[0];
     return "Unknown";
   };
+
+  const groupedNotes = useMemo(() => {
+    const groups = {};
+    publicNotes.forEach(note => {
+      const subId = note.subject?._id || "unknown";
+      const subName = note.subject?.name || "Uncategorized";
+      
+      if (!groups[subId]) {
+        groups[subId] = {
+          subjectId: subId,
+          subjectName: subName,
+          ownerName: getOwnerName(note),
+          notes: []
+        };
+      }
+      groups[subId].notes.push(note);
+    });
+    return Object.values(groups);
+  }, [publicNotes]);
 
   return (
     <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-slate-50/50">
@@ -491,6 +555,18 @@ const Notes = () => {
         {/* Explore Tab */}
         {activeTab === "explore" && (
           <div className="space-y-6">
+            
+            {/* Disclaimer */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-4 mx-auto max-w-3xl">
+              <FaInfoCircle className="text-amber-500 text-xl shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-bold text-amber-800">Community Disclaimer</h3>
+                <p className="text-sm text-amber-900/80">
+                  These notes are uploaded by students and the community. Medha does not claim ownership or copyright over this content. Use them for educational reference only.
+                </p>
+              </div>
+            </div>
+
             <div className="max-w-2xl mx-auto">
                <div className="relative">
                  <FaSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -514,33 +590,80 @@ const Notes = () => {
                  <p className="text-xl font-bold text-slate-400">No public notes found matching your search.</p>
                </div>
             ) : (
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                 {publicNotes.map((note) => (
-                    <motion.div
-                      key={note._id}
-                      whileHover={{ y: -5 }}
-                      onClick={() => setViewNote(note)}
-                      className="cursor-pointer"
-                    >
-                       <Card className="h-full border-slate-200 hover:border-indigo-400 transition-colors">
-                          <div className="flex justify-between items-start mb-4">
-                             <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><FaGlobe /></div>
-                             <span className="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded">
-                               {note.subject?.name || "General"}
-                             </span>
-                          </div>
-                          <h4 className="font-bold text-slate-800 mb-2 line-clamp-1">{note.title}</h4>
-                          <p className="text-sm text-slate-500 line-clamp-3 mb-4 h-15">
-                            {note.content || note.extractedText || "No preview"}
-                          </p>
-                          <div className="flex items-center gap-2 pt-4 border-t border-slate-100">
-                             <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
-                               {getOwnerName(note).charAt(0).toUpperCase()}
-                             </div>
-                             <span className="text-xs font-bold text-slate-500">{getOwnerName(note)}</span>
-                          </div>
-                       </Card>
-                    </motion.div>
+               <div className="space-y-4">
+                 {groupedNotes.map((group) => (
+                   <div key={group.subjectId} className="border border-slate-200 rounded-xl bg-white overflow-hidden shadow-sm">
+                     <button
+                       onClick={() => toggleSubject(group.subjectId)}
+                       className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+                     >
+                       <div className="flex items-center gap-3">
+                         <div className={`text-xl ${expandedSubjects[group.subjectId] ? "text-indigo-600" : "text-slate-400"}`}>
+                           {expandedSubjects[group.subjectId] ? <FaFolderOpen /> : <FaFolder />}
+                         </div>
+                         <div>
+                           <h3 className="font-bold text-slate-800 text-lg">{group.subjectName}</h3>
+                           <p className="text-xs font-semibold text-slate-500">By {group.ownerName} • {group.notes.length} Files</p>
+                         </div>
+                       </div>
+                       <div className="text-slate-400">
+                         {expandedSubjects[group.subjectId] ? <FaChevronUp /> : <FaChevronDown />}
+                       </div>
+                     </button>
+                     
+                     <AnimatePresence>
+                       {expandedSubjects[group.subjectId] && (
+                         <motion.div
+                           initial={{ height: 0, opacity: 0 }}
+                           animate={{ height: "auto", opacity: 1 }}
+                           exit={{ height: 0, opacity: 0 }}
+                           className="border-t border-slate-200"
+                         >
+                           <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 bg-slate-50/30">
+                             {group.notes.map((note) => (
+                               <motion.div
+                                 key={note._id}
+                                 whileHover={{ y: -3 }}
+                                 onClick={() => setViewNote(note)}
+                                 className="cursor-pointer"
+                               >
+                                  <Card className="h-full border-slate-200 hover:border-indigo-400 transition-colors bg-white">
+                                     <div className="flex justify-between items-start mb-3">
+                                        <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-sm"><FaGlobe /></div>
+                                        <div className="flex items-center gap-2">
+                                           {note.fileUrl && (
+                                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                                                PDF
+                                              </span>
+                                           )}
+                                        {/* Like Button */}
+                                          <button 
+                                            onClick={(e) => toggleLike(e, note._id)}
+                                            className="flex items-center gap-1 text-slate-400 hover:text-pink-500 transition-colors"
+                                          >
+                                            {note.likes?.includes(currentUserId) ? <FaHeart className="text-pink-500" /> : <FaRegHeart />}
+                                            <span className="text-xs font-bold">{note.likes?.length || 0}</span>
+                                          </button>
+                                        </div>
+                                     </div>
+                                     <h4 className="font-bold text-slate-800 mb-1 line-clamp-1 text-sm">{note.title}</h4>
+                                     <p className="text-xs text-slate-500 line-clamp-2 mb-3 h-8">
+                                       {note.content || note.extractedText || "No preview"}
+                                     </p>
+                                     <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                                        <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                          {getOwnerName(note).charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="text-[10px] font-bold text-slate-500 line-clamp-1">{getOwnerName(note)}</span>
+                                     </div>
+                                  </Card>
+                               </motion.div>
+                             ))}
+                           </div>
+                         </motion.div>
+                       )}
+                     </AnimatePresence>
+                   </div>
                  ))}
                </div>
             )}
@@ -556,3 +679,4 @@ const Notes = () => {
 };
 
 export default Notes;
+

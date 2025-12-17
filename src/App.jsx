@@ -12,7 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Chatbot from "./pages/Chatbot";
 import Flashcards from "./pages/Flashcards";
 import Quiz from "./pages/Quiz";
-import Updates from "./pages/Updates";
+import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -89,10 +89,10 @@ const App = () => {
               }
             />
             <Route
-              path="/updates"
+              path="/notifications"
               element={
                 <ProtectedRoute>
-                  <PageTransition><Updates /></PageTransition>
+                  <PageTransition><Notifications /></PageTransition>
                 </ProtectedRoute>
               }
             />

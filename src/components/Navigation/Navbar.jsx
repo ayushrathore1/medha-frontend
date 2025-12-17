@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { FaCrown } from "react-icons/fa";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const NOTIFICATION_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
 
 const baseNavItems = [
   { path: "/dashboard", label: "Dashboard" },
@@ -13,7 +14,7 @@ const baseNavItems = [
   { path: "/flashcards", label: "Flashcards" },
   { path: "/quiz", label: "Quiz" },
   { path: "/chatbot", label: "Chatbot" },
-  { path: "/updates", label: "Updates" },
+  { path: "/notifications", label: "Notifications" },
   { path: "/messages", label: "Messages" },
 ];
 
@@ -40,9 +41,24 @@ const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0); // Messages
+  const [unreadNotifications, setUnreadNotifications] = useState(0); // Notifications
+  const prevUnreadNotifications = useRef(0);
 
-  // Check if user is admin and fetch unread count
+  // Sound effect for new notifications
+  useEffect(() => {
+    if (unreadNotifications > prevUnreadNotifications.current) {
+      try {
+        const audio = new Audio(NOTIFICATION_SOUND);
+        audio.play().catch(e => console.log("Audio play failed:", e));
+      } catch (err) {
+        console.error("Error playing sound:", err);
+      }
+    }
+    prevUnreadNotifications.current = unreadNotifications;
+  }, [unreadNotifications]);
+
+  // Check if user is admin and fetch unread counts
   useEffect(() => {
     const checkAdminAndUnread = async () => {
       const token = localStorage.getItem("token");
@@ -55,14 +71,22 @@ const Navbar = ({ user, onLogout }) => {
         });
         setIsAdmin(adminRes.data.isAdmin);
 
-        // Get unread count
+        // Get unread messages count
         const unreadRes = await axios.get(`${BACKEND_URL}/api/chats/unread-count`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUnreadCount(unreadRes.data.unreadCount || 0);
+
+        // Get unread notifications count
+        const notifRes = await axios.get(`${BACKEND_URL}/api/notifications`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setUnreadNotifications(notifRes.data.unreadCount || 0);
+
       } catch {
         setIsAdmin(false);
         setUnreadCount(0);
+        setUnreadNotifications(0);
       }
     };
     
@@ -150,6 +174,12 @@ const Navbar = ({ user, onLogout }) => {
                     {item.path === "/messages" && unreadCount > 0 && (
                       <span className="absolute -top-1 -right-2 px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
                         {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                    {/* Notification badge for Notifications */}
+                    {item.path === "/notifications" && unreadNotifications > 0 && (
+                      <span className="absolute -top-1 -right-2 px-1.5 py-0.5 text-xs font-bold bg-indigo-500 text-white rounded-full min-w-[18px] text-center">
+                        {unreadNotifications > 99 ? "99+" : unreadNotifications}
                       </span>
                     )}
                     {isActive && (
@@ -289,6 +319,12 @@ const Navbar = ({ user, onLogout }) => {
                 {item.path === "/messages" && unreadCount > 0 && (
                   <span className="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
                     {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+                {/* Notification badge for Notifications in mobile menu */}
+                {item.path === "/notifications" && unreadNotifications > 0 && (
+                  <span className="px-2 py-0.5 text-xs font-bold bg-indigo-500 text-white rounded-full">
+                    {unreadNotifications > 99 ? "99+" : unreadNotifications}
                   </span>
                 )}
               </span>
