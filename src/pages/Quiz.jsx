@@ -7,8 +7,15 @@ import Loader from "../components/Common/Loader";
 import QuizItem from "../components/Quiz/QuizItem";
 import { FaBrain, FaUniversity, FaKeyboard, FaTrophy, FaRedo, FaList, FaArrowLeft, FaArrowRight, FaCheck } from "react-icons/fa";
 
+import { useTour } from "../context/TourContext";
+
 const Quiz = () => {
-  const [subjects, setSubjects] = useState([]);
+  const { isGuestMode } = useTour();
+  const [subjects, setSubjects] = useState(isGuestMode ? [
+    { _id: 's1', name: 'Digital Electronics' },
+    { _id: 's2', name: 'Software Engineering' },
+    { _id: 's3', name: 'Data Structures' }
+  ] : []);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [generationMode, setGenerationMode] = useState("subject");
@@ -21,8 +28,10 @@ const Quiz = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchSubjects();
-  }, []);
+    if (!isGuestMode) {
+      fetchSubjects();
+    }
+  }, [isGuestMode]);
 
   const fetchSubjects = async () => {
     try {

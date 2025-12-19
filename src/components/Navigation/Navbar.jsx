@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { FaCrown } from "react-icons/fa";
+import { PlayCircle } from "lucide-react";
+import { useTour } from "../../context/TourContext";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const NOTIFICATION_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
@@ -38,6 +40,7 @@ const underlineVariants = {
 };
 
 const Navbar = ({ user, onLogout }) => {
+  const { isGuestMode, startTour, isTourEnabled } = useTour();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -58,19 +61,52 @@ const Navbar = ({ user, onLogout }) => {
     prevUnreadNotifications.current = unreadNotifications;
   }, [unreadNotifications]);
 
-  // Check if user is admin and fetch unread counts
+  // Check if user is admin (only on mount or user change)
   useEffect(() => {
-    const checkAdminAndUnread = async () => {
+    const checkAdmin = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIsAdmin(false);
+        localStorage.removeItem("isAdmin");
+        return;
+      }
+      
+      // Use cached value immediately to prevent flickering
+      const cachedAdmin = localStorage.getItem("isAdmin") === "true";
+      if (cachedAdmin) {
+        setIsAdmin(true);
+      }
+      
+      try {
+        const adminRes = await axios.get(`${BACKEND_URL}/api/messages/check-admin`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const adminStatus = adminRes.data.isAdmin;
+        setIsAdmin(adminStatus);
+        localStorage.setItem("isAdmin", adminStatus ? "true" : "false");
+      } catch {
+        // Only reset if we don't have a cached value
+        if (!cachedAdmin) {
+          setIsAdmin(false);
+        }
+      }
+    };
+    
+    if (user) {
+      checkAdmin();
+    } else {
+      setIsAdmin(false);
+      localStorage.removeItem("isAdmin");
+    }
+  }, [user]);
+
+  // Fetch unread counts separately (doesn't affect admin status)
+  useEffect(() => {
+    const fetchUnreadCounts = async () => {
       const token = localStorage.getItem("token");
       if (!token) return;
       
       try {
-        // Check admin
-        const adminRes = await axios.get(`${BACKEND_URL}/api/messages/check-admin`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setIsAdmin(adminRes.data.isAdmin);
-
         // Get unread messages count
         const unreadRes = await axios.get(`${BACKEND_URL}/api/chats/unread-count`, {
           headers: { Authorization: `Bearer ${token}` }
@@ -82,18 +118,16 @@ const Navbar = ({ user, onLogout }) => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUnreadNotifications(notifRes.data.unreadCount || 0);
-
       } catch {
-        setIsAdmin(false);
         setUnreadCount(0);
         setUnreadNotifications(0);
       }
     };
     
     if (user) {
-      checkAdminAndUnread();
+      fetchUnreadCounts();
       // Poll for unread count every 30 seconds
-      const interval = setInterval(checkAdminAndUnread, 30000);
+      const interval = setInterval(fetchUnreadCounts, 30000);
       return () => clearInterval(interval);
     }
   }, [user]);
@@ -145,12 +179,16 @@ const Navbar = ({ user, onLogout }) => {
         </div>
 
         {/* Desktop Nav */}
-        {user && (
+        {(user || isGuestMode) && (
           <div className="hidden xl:flex gap-5 items-center">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
+                data-tour={item.path === '/dashboard' ? 'dashboard-link' : 
+                           item.path === '/chatbot' ? 'ai-tutor' : 
+                           item.path === '/flashcards' ? 'flashcards' : 
+                           item.path === '/rtu-exams' ? 'rtu-exams' : undefined}
                 style={{ position: "relative", display: "inline-block" }}
                 className={`font-medium px-3 py-2 rounded-xl transition-all duration-200 text-base whitespace-nowrap ${
                   item.isAdmin ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30" : ""
@@ -203,6 +241,7 @@ const Navbar = ({ user, onLogout }) => {
             {/* Profile avatar */}
             <button
               onClick={handleProfileClick}
+              data-tour="profile"
               className="ml-2 h-10 w-10 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 hover:bg-white/80 shadow-sm transition overflow-hidden flex items-center justify-center"
               title="Profile"
             >
@@ -220,7 +259,7 @@ const Navbar = ({ user, onLogout }) => {
                 />
               ) : (
                 <div className="h-full w-full rounded-full flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-[var(--action-primary)] to-[var(--accent-secondary)]">
-                  {user?.name?.[0]?.toUpperCase() || "U"}
+                  {isGuestMode ? "G" : (user?.name?.[0]?.toUpperCase() || "U")}
                 </div>
               )}
             </button>
@@ -238,8 +277,20 @@ const Navbar = ({ user, onLogout }) => {
         )}
 
         {/* Non-logged in nav items */}
-        {!user && (
+        {(!user && !isGuestMode) && (
           <div className="flex items-center gap-4">
+            {/* Show Take a Tour button only when tour feature is enabled */}
+            {isTourEnabled && (
+              <motion.button
+                onClick={() => startTour(true)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all"
+              >
+                <PlayCircle size={18} />
+                Take a Tour
+              </motion.button>
+            )}
             <NavLink to="/login">
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -262,7 +313,7 @@ const Navbar = ({ user, onLogout }) => {
         )}
 
         {/* Mobile Menu Toggle & Profile (Tablet/Phone) */}
-        {user && (
+        {(user || isGuestMode) && (
           <div className="xl:hidden flex items-center gap-3">
              <button
               onClick={handleProfileClick}
@@ -275,7 +326,9 @@ const Navbar = ({ user, onLogout }) => {
                   onError={(e) => { e.target.onerror = null; e.target.src = "https://ik.imagekit.io/ayushrathore1/image(1).png?updatedAt=1761828486524"; }}
                 />
                ) : (
-                 <div className="h-full w-full flex items-center justify-center bg-gray-200 text-xs font-bold">{user?.name?.[0]}</div>
+                 <div className="h-full w-full flex items-center justify-center bg-gray-200 text-xs font-bold">
+                   {isGuestMode ? "G" : (user?.name?.[0] || "U")}
+                 </div>
                )}
             </button>
             <button

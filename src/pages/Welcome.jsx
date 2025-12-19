@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle, Sparkles, Zap, BookOpen, MessageSquare, Brain, Target, Users, Star, Rocket, Layers } from "lucide-react";
+import { useTour } from "../context/TourContext";
 
 // Components (Assuming these exist based on context)
 // If not, we can use simple HTML, but the original file imported them.
 // Button and Card were imported but not heavily used in the main structure I wrote.
 
 const Welcome = () => {
+  const { startTour } = useTour();
   const [activeFeature, setActiveFeature] = useState(0);
 
   useEffect(() => {
@@ -127,6 +129,7 @@ const Welcome = () => {
               <div className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start mb-12">
                 <Link to="/register">
                   <motion.button
+                    data-tour="hero-section"
                     whileHover={{ scale: 1.05, boxShadow: "0 20px 40px -10px rgba(79, 70, 229, 0.4)" }}
                     whileTap={{ scale: 0.98 }}
                     className="w-full sm:w-auto px-10 py-5 bg-gray-900 text-white font-bold text-lg rounded-2xl shadow-2xl flex items-center justify-center gap-3 hover:bg-black transition-all group"

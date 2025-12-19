@@ -194,6 +194,9 @@ const AdminDashboard = () => {
   };
 
   const handleSendEmail = async () => {
+    // Guard against double submissions
+    if (sendingEmail) return;
+    
     if (!emailSubject || !emailBody) {
       alert("Please provide both subject and body.");
       return;
@@ -206,6 +209,7 @@ const AdminDashboard = () => {
       return;
     }
 
+    // Set sending state AFTER confirm but before API call
     setSendingEmail(true);
     try {
       await axios.post(`${BACKEND_URL}/api/admin/send-email`, {
@@ -218,6 +222,8 @@ const AdminDashboard = () => {
       alert("Email(s) sent successfully!");
       setEmailSubject("");
       setEmailBody("");
+      // Refresh history after sending
+      fetchEmailHistory();
     } catch (error) {
       console.error("Error sending email:", error);
       alert("Failed to send email. Check console for details.");

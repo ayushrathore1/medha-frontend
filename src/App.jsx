@@ -31,116 +31,120 @@ import { AuthProvider } from "./AuthProvider";
 // ProtectedRoute
 import ProtectedRoute from "./ProtectedRoute";
 
+import { TourProvider } from "./context/TourContext";
+
 const App = () => {
   const location = useLocation();
 
   return (
     <AuthProvider>
       <Analytics />
-      <MainLayout>
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            {/* Public routes */}
-            <Route path="/" element={<PageTransition><Welcome /></PageTransition>} />
-            <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
-            <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
-            <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
-            <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
+      <TourProvider>
+        <MainLayout>
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              {/* Public routes */}
+              <Route path="/" element={<PageTransition><Welcome /></PageTransition>} />
+              <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+              <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+              <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+              <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
 
-            {/* Protected routes */}
-            <Route
-              path="/rtu-exams"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><RTUExams /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Dashboard /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/chatbot"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Chatbot /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/flashcards"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Flashcards /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/quiz"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Quiz /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/notifications"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Notifications /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><AdminDashboard /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Profile /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/notes"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Notes /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/subjects"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Subjects /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/messages"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Messages /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            {/* Catch-all 404 */}
-            <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-          </Routes>
-        </AnimatePresence>
-      </MainLayout>
+              {/* Protected routes */}
+              <Route
+                path="/rtu-exams"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><RTUExams /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Dashboard /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/chatbot"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Chatbot /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/flashcards"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Flashcards /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/quiz"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Quiz /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Notifications /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><AdminDashboard /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Profile /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/notes"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Notes /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/subjects"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Subjects /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/messages"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Messages /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              {/* Catch-all 404 */}
+              <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
+            </Routes>
+          </AnimatePresence>
+        </MainLayout>
+      </TourProvider>
     </AuthProvider>
   );
 };

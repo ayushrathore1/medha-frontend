@@ -9,27 +9,75 @@ import YearSelector from "../components/RTUExams/YearSelector";
 import UnitWeightageBar from "../components/RTUExams/UnitWeightageBar";
 import { FaArrowLeft, FaLayerGroup, FaCheckCircle, FaChartBar, FaEnvelope, FaUniversity, FaBook } from "react-icons/fa";
 
+import { useTour } from "../context/TourContext";
+
 const RTUExams = () => {
+  const { isGuestMode } = useTour();
   const navigate = useNavigate();
   const [viewState, setViewState] = useState("semesters");
-  const [subjects, setSubjects] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [subjects, setSubjects] = useState(isGuestMode ? [
+    { name: "Digital Electronics", difficulty: "medium", total: 10, viewed: 5 },
+    { name: "Software Engineering", difficulty: "hard", total: 8, viewed: 2 },
+    { name: "Data Structures", difficulty: "easy", total: 12, viewed: 12 }
+  ] : []);
+  const [loading, setLoading] = useState(!isGuestMode);
 
-  const [selectedSubject, setSelectedSubject] = useState(null);
-  const [availableYears, setAvailableYears] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(null);
-  const [unitWeightageData, setUnitWeightageData] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(isGuestMode ? { name: "Digital Electronics", difficulty: "medium" } : null);
+  const [availableYears, setAvailableYears] = useState(isGuestMode ? [2024, 2023, 2022] : []);
+  const [selectedYear, setSelectedYear] = useState(isGuestMode ? 2024 : null);
+  const [unitWeightageData, setUnitWeightageData] = useState(isGuestMode ? {
+    totalPaperMarks: 98,
+    units: [
+      {
+        unitSerial: 1,
+        unitName: 'Number Systems & Boolean Algebra',
+        totalMarks: 28,
+        weightagePercentage: 28.5,
+        weightageRatio: '28/98',
+        youtubePlaylistUrl: null,
+        questions: [
+          { qCode: 'Q1(a)', text: 'Convert the decimal number 156.375 to binary and hexadecimal.', marks: 7 },
+          { qCode: 'Q2(b)', text: 'Simplify the Boolean expression: F = AB\'C + ABC\' + A\'BC using K-Map.', marks: 7 },
+        ]
+      },
+      {
+        unitSerial: 2,
+        unitName: 'Combinational Logic Circuits',
+        totalMarks: 21,
+        weightagePercentage: 21.4,
+        weightageRatio: '21/98',
+        youtubePlaylistUrl: null,
+        questions: [
+          { qCode: 'Q3(a)', text: 'Design a 4-bit binary adder using full adders.', marks: 7 },
+        ]
+      },
+      {
+        unitSerial: 3,
+        unitName: 'Sequential Logic Circuits',
+        totalMarks: 21,
+        weightagePercentage: 21.4,
+        weightageRatio: '21/98',
+        youtubePlaylistUrl: null,
+        questions: [
+          { qCode: 'Q4(a)', text: 'Explain the working of a JK Flip-Flop with truth table and timing diagram.', marks: 7 },
+        ]
+      },
+    ]
+  } : null);
   const [yearsLoading, setYearsLoading] = useState(false);
   const [weightageLoading, setWeightageLoading] = useState(false);
 
   useEffect(() => {
+    // Skip login redirect if in guest mode (tour)
+    if (isGuestMode) return;
+    
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
       return;
     }
     fetchSubjects();
-  }, [navigate]);
+  }, [navigate, isGuestMode]);
 
   const fetchSubjects = async () => {
     try {
@@ -99,13 +147,19 @@ const RTUExams = () => {
   const handleSubjectClick = async (subject) => {
     setSelectedSubject(subject);
     setViewState("years");
-    await fetchAvailableYears(subject.name);
+    // Skip API call in guest mode - we already have dummy years
+    if (!isGuestMode) {
+      await fetchAvailableYears(subject.name);
+    }
   };
 
   const handleYearSelect = async (year) => {
     setSelectedYear(year);
     setViewState("unitWeightage");
-    await fetchUnitWeightage(selectedSubject.name, year);
+    // Skip API call in guest mode - we already have dummy weightage data
+    if (!isGuestMode) {
+      await fetchUnitWeightage(selectedSubject.name, year);
+    }
   };
 
   const handleBack = () => {
@@ -183,6 +237,7 @@ const RTUExams = () => {
              initial={{ opacity: 0, y: -10 }}
              animate={{ opacity: 1, y: 0 }}
              className="max-w-2xl"
+             data-tour="rtu-exams"
            >
               <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-3">
                  {getHeaderTitle()}
@@ -194,7 +249,7 @@ const RTUExams = () => {
         </div>
 
         <AnimatePresence mode="wait">
-          {/* Semesters View */}
+           {/* Semesters View */}
           {viewState === "semesters" && (
              <motion.div
                key="semesters"
@@ -203,7 +258,11 @@ const RTUExams = () => {
                exit={{ opacity: 0, y: -20 }}
                className="flex justify-center"
              >
-                <div onClick={() => setViewState("subjects")} className="cursor-pointer group">
+                <div 
+                  data-tour="rtu-semester"
+                  onClick={() => setViewState("subjects")} 
+                  className="cursor-pointer group"
+                >
                    <Card className="w-full max-w-sm flex flex-col items-center p-10 gap-4 hover:border-indigo-400 transition-all hover:shadow-xl hover:-translate-y-1">
                       <div className="p-5 bg-indigo-50 text-indigo-600 rounded-full group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                          <FaUniversity size={40} />
@@ -221,6 +280,7 @@ const RTUExams = () => {
           {/* Subjects View */}
           {viewState === "subjects" && (
              <motion.div
+               data-tour="rtu-subjects"
                key="subjects"
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
@@ -289,7 +349,7 @@ const RTUExams = () => {
 
           {/* Years View */}
           {viewState === "years" && (
-             <motion.div key="years" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+             <motion.div data-tour="rtu-years" key="years" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <YearSelector
                    years={availableYears}
                    selectedYear={selectedYear}
@@ -306,7 +366,7 @@ const RTUExams = () => {
                    <div className="flex justify-center py-20"><Loader /></div>
                 ) : unitWeightageData ? (
                    <div className="max-w-4xl mx-auto">
-                      <div className="bg-white rounded-2xl p-6 mb-8 shadow-md border-2 border-indigo-100 relative overflow-hidden">
+                      <div data-tour="rtu-weightage" className="bg-white rounded-2xl p-6 mb-8 shadow-md border-2 border-indigo-100 relative overflow-hidden">
                          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
                          <h3 className="text-xl font-bold text-slate-900 relative z-10">Exam Strategy Analysis</h3>
                          <p className="text-slate-600 text-sm relative z-10 mt-1">

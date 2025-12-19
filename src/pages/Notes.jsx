@@ -9,16 +9,29 @@ import { FaBook, FaGlobe, FaSearch, FaUpload, FaPlus, FaCloudUploadAlt, FaFileAl
 
 const API_BASE = `${import.meta.env.VITE_BACKEND_URL}`;
 
+import { useTour } from "../context/TourContext";
+
 const Notes = () => {
+  const { isGuestMode } = useTour();
   const [activeTab, setActiveTab] = useState("my-notes"); // "my-notes" | "explore"
-  const [notes, setNotes] = useState([]);
-  const [publicNotes, setPublicNotes] = useState([]);
-  const [subjects, setSubjects] = useState([]);
+  const [notes, setNotes] = useState(isGuestMode ? [
+    { _id: '1', title: 'Cell Biology Notes', content: 'Discussion on mitochondria and nucleus...', createdAt: new Date(), isPublic: false },
+    { _id: '2', title: 'Compiler Design', content: 'Lexical analysis and parsing techniques...', createdAt: new Date(), isPublic: true }
+  ] : []);
+  const [publicNotes, setPublicNotes] = useState(isGuestMode ? [
+    { _id: 'p1', title: 'Organic Chemistry Basics', content: 'Introduction to carbon compounds...', subject: { _id: 'ps1', name: 'Chemistry' }, owner: { name: 'Priya S.' }, likes: ['u1', 'u2'], isPublic: true },
+    { _id: 'p2', title: 'Newton\'s Laws of Motion', content: 'First, second, and third law explained...', subject: { _id: 'ps2', name: 'Physics' }, owner: { name: 'Rahul M.' }, likes: [], isPublic: true },
+    { _id: 'p3', title: 'Data Structures - Trees', content: 'Binary trees, AVL trees, and heaps...', subject: { _id: 'ps3', name: 'Computer Science' }, owner: { name: 'Alex K.' }, likes: ['u1'], isPublic: true }
+  ] : []);
+  const [subjects, setSubjects] = useState(isGuestMode ? [
+    { _id: 's1', name: 'Biology' },
+    { _id: 's2', name: 'Computer Science' }
+  ] : []);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const [loadingNotes, setLoadingNotes] = useState(true);
+  const [loadingNotes, setLoadingNotes] = useState(!isGuestMode);
   const [loadingPublic, setLoadingPublic] = useState(false);
-  const [loadingSubjects, setLoadingSubjects] = useState(true);
+  const [loadingSubjects, setLoadingSubjects] = useState(!isGuestMode);
   const [viewNote, setViewNote] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -363,11 +376,12 @@ const Notes = () => {
               <FaBook /> My Notes
             </button>
             <button
-              onClick={() => setActiveTab("explore")}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              data-tour="explore-tab"
+              onClick={() => { setActiveTab("explore"); fetchPublicNotes(); }}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all ${
                 activeTab === "explore" 
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" 
-                  : "text-slate-500 hover:bg-slate-50"
+                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" 
+                  : "bg-white text-slate-600 border border-slate-200 hover:border-indigo-200"
               }`}
             >
               <FaGlobe /> Explore
@@ -387,10 +401,13 @@ const Notes = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             {/* Left Sidebar: Controls (Create/Upload) */}
-            <div className="lg:col-span-4 space-y-6">
+            <div 
+              data-tour="quick-notes"
+              className="lg:col-span-4 space-y-6"
+            >
               
               {/* Subject Select */}
-              <Card>
+              <Card data-tour="choose-subject">
                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">1. Select Subject</h3>
                 {loadingSubjects ? (
                   <Loader />
@@ -412,7 +429,7 @@ const Notes = () => {
               </Card>
 
               {/* Upload */}
-              <Card>
+              <Card data-tour="upload-note">
                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Or Upload File</h3>
                 <div className="space-y-4">
                   <input
@@ -448,7 +465,7 @@ const Notes = () => {
               </Card>
 
               {/* Create Text Note */}
-              <Card>
+              <Card data-tour="text-note">
                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Or Write Note</h3>
                  <TextNoteForm onSubmit={handleTextNoteSubmit} />
               </Card>
@@ -567,7 +584,7 @@ const Notes = () => {
               </div>
             </div>
 
-            <div className="max-w-2xl mx-auto">
+            <div data-tour="explore-search" className="max-w-2xl mx-auto">
                <div className="relative">
                  <FaSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
                  <input
@@ -590,7 +607,7 @@ const Notes = () => {
                  <p className="text-xl font-bold text-slate-400">No public notes found matching your search.</p>
                </div>
             ) : (
-               <div className="space-y-4">
+               <div data-tour="explore-folders" className="space-y-4">
                  {groupedNotes.map((group) => (
                    <div key={group.subjectId} className="border border-slate-200 rounded-xl bg-white overflow-hidden shadow-sm">
                      <button

@@ -8,12 +8,19 @@ import { FaLayerGroup, FaMagic, FaTrash, FaCheckCircle, FaArrowLeft, FaBrain } f
 
 const API_BASE = `${import.meta.env.VITE_BACKEND_URL}/api`;
 
+import { useTour } from "../context/TourContext";
+
 const Flashcards = () => {
+  const { isGuestMode } = useTour();
   const [view, setView] = useState("topics");
-  const [topics, setTopics] = useState([]);
+  const [topics, setTopics] = useState(isGuestMode ? [
+    { topicName: 'Photosynthesis', subject: 'Biology', total: 20, viewed: 15, difficulty: 'medium' },
+    { topicName: 'Quantum Mechanics', subject: 'Physics', total: 15, viewed: 5, difficulty: 'hard' },
+    { topicName: 'React Basics', subject: 'Computer Science', total: 30, viewed: 30, difficulty: 'easy' }
+  ] : []);
   const [flashcards, setFlashcards] = useState([]);
   const [selectedTopic, setSelectedTopic] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isGuestMode);
   const [error, setError] = useState("");
   
   // Modals
@@ -166,7 +173,10 @@ const Flashcards = () => {
               </Button>
             )}
             <div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+              <h1 
+                data-tour="flashcards"
+                className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3"
+              >
                 {view === "topics" ? (
                   <>
                     <span className="p-2 bg-indigo-100 text-indigo-600 rounded-xl"><FaLayerGroup size={24}/></span>

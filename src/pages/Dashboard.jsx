@@ -19,17 +19,23 @@ import FeatureAnnouncementModal from "../components/Common/FeatureAnnouncementMo
 import DailyPlanWidget from "../components/Dashboard/DailyPlanWidget";
 import TodoList from "../components/Dashboard/TodoList";
 
+import { useTour } from "../context/TourContext";
+
 const Dashboard = () => {
+  const { isGuestMode } = useTour();
   const [stats, setStats] = useState({
-    streak: 0,
-    cardsLearned: 0,
-    accuracy: 0,
-    reviewList: [],
-    quizzesTaken: 0,
-    notesCreated: 0,
+    streak: isGuestMode ? 12 : 0,
+    cardsLearned: isGuestMode ? 142 : 0,
+    accuracy: isGuestMode ? 88 : 0,
+    reviewList: isGuestMode ? [
+      { _id: '1', name: 'Photosynthesis', difficulty: 'medium' },
+      { _id: '2', name: 'Quantum Mechanics', difficulty: 'hard' }
+    ] : [],
+    quizzesTaken: isGuestMode ? 15 : 0,
+    notesCreated: isGuestMode ? 8 : 0,
   });
-  const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState("Student");
+  const [loading, setLoading] = useState(!isGuestMode);
+  const [userName, setUserName] = useState(isGuestMode ? "Alex" : "Student");
   const [showFeatureModal, setShowFeatureModal] = useState(false);
   const [greeting, setGreeting] = useState("Good Morning");
 
@@ -125,7 +131,10 @@ const Dashboard = () => {
             transition={{ delay: 0.1 }}
             className="flex gap-4"
           >
-            <div className="flex items-center gap-3 px-5 py-3 bg-white rounded-2xl shadow-sm border border-slate-200">
+            <div 
+              data-tour="streak-card"
+              className="flex items-center gap-3 px-5 py-3 bg-white rounded-2xl shadow-sm border border-slate-200"
+            >
               <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
                 <FaFire size={20} />
               </div>
@@ -138,7 +147,10 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div 
+          data-tour="quick-actions"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+        >
           {quickActions.map((action, idx) => (
             <Link key={idx} to={action.to}>
               <motion.div
@@ -161,40 +173,48 @@ const Dashboard = () => {
             
             {/* Stats Overview */}
             <div className="grid grid-cols-2 gap-4">
-               <Card className="flex items-center gap-4 bg-gradient-to-br from-indigo-500 to-violet-600 text-white border-none">
-                 <div className="p-3 bg-white/20 rounded-xl">
-                   <FaBook size={24} />
-                 </div>
-                 <div>
-                   <div className="text-3xl font-black">{stats.cardsLearned}</div>
-                   <div className="text-indigo-100 font-medium">Cards Mastered</div>
-                 </div>
-               </Card>
-               <Card className="flex items-center gap-4 bg-white">
-                 <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
-                   <FaChartLine size={24} />
-                 </div>
-                 <div>
-                   <div className="text-3xl font-black text-slate-900">{stats.accuracy}%</div>
-                   <div className="text-slate-500 font-medium">Avg Accuracy</div>
-                 </div>
-               </Card>
+                <Card 
+                  data-tour="cards-mastered"
+                  className="flex items-center gap-4 bg-gradient-to-br from-indigo-500 to-violet-600 text-white border-none"
+                >
+                  <div className="p-3 bg-white/20 rounded-xl">
+                    <FaBook size={24} />
+                  </div>
+                  <div>
+                    <div className="text-3xl font-black">{stats.cardsLearned}</div>
+                    <div className="text-indigo-100 font-medium">Cards Mastered</div>
+                  </div>
+                </Card>
+                <Card 
+                  data-tour="avg-accuracy"
+                  className="flex items-center gap-4 bg-white"
+                >
+                  <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
+                    <FaChartLine size={24} />
+                  </div>
+                  <div>
+                    <div className="text-3xl font-black text-slate-900">{stats.accuracy}%</div>
+                    <div className="text-slate-500 font-medium">Avg Accuracy</div>
+                  </div>
+                </Card>
             </div>
 
             {/* Widgets Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="h-full">
+               <div data-tour="ai-daily-coach" className="h-full">
                   <DailyPlanWidget />
                </div>
-               <div className="h-full">
+               <div data-tour="daily-plan" className="h-full">
                   <TodoList />
                </div>
             </div>
 
-            <SubjectManager />
+            <div data-tour="manage-subjects">
+              <SubjectManager />
+            </div>
 
             {/* Review List */}
-            <Card title="Topics to Review">
+            <Card data-tour="focus-areas" title="Topics to Review">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-900">Focus Areas</h2>
                 <span className="text-sm font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{stats.reviewList.length} Topics</span>

@@ -6,13 +6,23 @@ import Loader from "../components/Common/Loader";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
+import { useTour } from "../context/TourContext";
+
 const Chatbot = () => {
-  const [messages, setMessages] = useState([
+  const { isGuestMode } = useTour();
+  const [messages, setMessages] = useState(isGuestMode ? [
+    { sender: "bot", text: "Hey there! 👋 I'm Medha AI. Since you're on a tour, I've pre-loaded some examples for you!" },
+    { sender: "user", text: "What is photosynthesis?" },
+    { sender: "bot", text: "Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize nutrients from carbon dioxide and water. In plants, photosynthesis generally involves the green pigment chlorophyll and generates oxygen as a byproduct. 🌿" }
+  ] : [
     { sender: "bot", text: "Hey there! 👋 I'm Medha AI, your intelligent study companion. Ask me anything about your syllabus, concepts, or even current events!" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
-  const [sessions, setSessions] = useState([]);
-  const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [sessions, setSessions] = useState(isGuestMode ? [
+    { _id: '1', title: 'Biology Basics', updatedAt: new Date() },
+    { _id: '2', title: 'Calculus Review', updatedAt: new Date() }
+  ] : []);
+  const [currentSessionId, setCurrentSessionId] = useState(isGuestMode ? '1' : null);
   const [showHistory, setShowHistory] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
