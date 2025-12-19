@@ -18,6 +18,7 @@ import StudyTimer from "../components/Dashboard/StudyTimer";
 import FeatureAnnouncementModal from "../components/Common/FeatureAnnouncementModal";
 import DailyPlanWidget from "../components/Dashboard/DailyPlanWidget";
 import TodoList from "../components/Dashboard/TodoList";
+import DailyQuoteWidget from "../components/Dashboard/DailyQuoteWidget";
 
 import { useTour } from "../context/TourContext";
 
@@ -109,6 +110,9 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-slate-50/50">
       <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Daily Inspirational Quote */}
+        <DailyQuoteWidget />
         
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
