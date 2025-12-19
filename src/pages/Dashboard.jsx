@@ -1,24 +1,20 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
-import { 
-  FaFire, FaBook, FaChartLine, FaTrash, 
-  FaPlus, FaBrain, FaFolderOpen, FaLightbulb 
-} from "react-icons/fa";
+import { FaFire, FaBook, FaTrash, FaPlus, FaBrain, FaFolderOpen, FaLightbulb } from "react-icons/fa";
 
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import SubjectManager from "../components/Dashboard/SubjectManager";
-import CalendarWidget from "../components/Dashboard/CalendarWidget";
-import LiveClock from "../components/Dashboard/LiveClock";
-import StudyTimer from "../components/Dashboard/StudyTimer";
+import FloatingToolsSidebar from "../components/Dashboard/FloatingToolsSidebar";
 import FeatureAnnouncementModal from "../components/Common/FeatureAnnouncementModal";
 import DailyPlanWidget from "../components/Dashboard/DailyPlanWidget";
 import TodoList from "../components/Dashboard/TodoList";
 import DailyQuoteWidget from "../components/Dashboard/DailyQuoteWidget";
+import ThoughtDumpCard from "../components/Dashboard/ThoughtDumpCard";
 
 import { useTour } from "../context/TourContext";
 
@@ -27,7 +23,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState({
     streak: isGuestMode ? 12 : 0,
     cardsLearned: isGuestMode ? 142 : 0,
-    accuracy: isGuestMode ? 88 : 0,
+    // accuracy removed
     reviewList: isGuestMode ? [
       { _id: '1', name: 'Photosynthesis', difficulty: 'medium' },
       { _id: '2', name: 'Quantum Mechanics', difficulty: 'hard' }
@@ -39,6 +35,15 @@ const Dashboard = () => {
   const [userName, setUserName] = useState(isGuestMode ? "Alex" : "Student");
   const [showFeatureModal, setShowFeatureModal] = useState(false);
   const [greeting, setGreeting] = useState("Good Morning");
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollIndicator(window.scrollY < 100);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -170,16 +175,19 @@ const Dashboard = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Main Content Column */}
-          <div className="lg:col-span-2 space-y-8">
+        <div className="space-y-8">
+          {/* Top Section: Stats/Daily Plan + Sidebar */}
+          <div className="relative grid grid-cols-1 lg:grid-cols-4 gap-8 items-start pb-10">
             
-            {/* Stats Overview */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Main Content (Stats & Daily Plan) */}
+            <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Left Column: Cards Mastered + AI Daily Coach */}
+              <div className="flex flex-col gap-6 h-full">
+                {/* Stats Card */}
                 <Card 
                   data-tour="cards-mastered"
-                  className="flex items-center gap-4 bg-gradient-to-br from-indigo-500 to-violet-600 text-white border-none"
+                  className="flex items-center gap-4 bg-gradient-to-br from-indigo-500 to-violet-600 text-white border-none shrink-0"
                 >
                   <div className="p-3 bg-white/20 rounded-xl">
                     <FaBook size={24} />
@@ -189,36 +197,54 @@ const Dashboard = () => {
                     <div className="text-indigo-100 font-medium">Cards Mastered</div>
                   </div>
                 </Card>
-                <Card 
-                  data-tour="avg-accuracy"
-                  className="flex items-center gap-4 bg-white"
-                >
-                  <div className="p-3 bg-emerald-100 text-emerald-600 rounded-xl">
-                    <FaChartLine size={24} />
-                  </div>
-                  <div>
-                    <div className="text-3xl font-black text-slate-900">{stats.accuracy}%</div>
-                    <div className="text-slate-500 font-medium">Avg Accuracy</div>
-                  </div>
-                </Card>
-            </div>
 
-            {/* Widgets Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div data-tour="ai-daily-coach" className="h-full">
+                {/* AI Daily Coach */}
+                <div data-tour="ai-daily-coach" className="flex-1 min-h-0">
                   <DailyPlanWidget />
-               </div>
-               <div data-tour="daily-plan" className="h-full">
-                  <TodoList />
-               </div>
+                </div>
+              </div>
+
+              {/* Right Column: Todo List */}
+              <div data-tour="daily-plan" className="h-full">
+                <TodoList />
+              </div>
             </div>
 
-            <div data-tour="manage-subjects">
+          {/* Sidebar (Thought Dump) */}
+            <div className="lg:col-span-1 h-full flex flex-col">
+              <ThoughtDumpCard className="flex-1 min-h-[400px]" />
+            </div>
+
+            {/* Scroll Down Indicator - Overlay Centered */}
+            <AnimatePresence>
+              {showScrollIndicator && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: [0, 5, 0] }}
+                  exit={{ opacity: 0, y: 10, transition: { duration: 0.3 } }}
+                  transition={{ 
+                    opacity: { duration: 0.5 },
+                    y: { delay: 2, duration: 2, repeat: Infinity } 
+                  }}
+                  className="absolute bottom-[11.5rem] left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 text-slate-500 text-xs font-bold z-20 bg-white/90 backdrop-blur-md px-5 py-2 rounded-full shadow-lg border border-slate-200/60 ring-1 ring-slate-100"
+                >
+                  <span>Scroll for more</span>
+                  <svg className="w-3.5 h-3.5 animate-bounce text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Bottom Section: Subject Manager & Focus Areas (Full Width) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div data-tour="manage-subjects" className="h-full">
               <SubjectManager />
             </div>
-
-            {/* Review List */}
-            <Card data-tour="focus-areas" title="Topics to Review">
+            
+            {/* Review List / Focus Areas */}
+            <Card data-tour="focus-areas" title="Topics to Review" className="h-full">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-900">Focus Areas</h2>
                 <span className="text-sm font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{stats.reviewList.length} Topics</span>
@@ -258,24 +284,15 @@ const Dashboard = () => {
               )}
             </Card>
           </div>
-
-          {/* Sidebar Column */}
-          <div className="space-y-6">
-            <Card className="sticky top-24 space-y-6 p-6">
-              <LiveClock />
-              <div className="h-px bg-slate-100 w-full"></div>
-              <CalendarWidget />
-              <div className="h-px bg-slate-100 w-full"></div>
-              <StudyTimer />
-            </Card>
-          </div>
-
         </div>
       </div>
       <FeatureAnnouncementModal 
         isOpen={showFeatureModal} 
         onClose={() => setShowFeatureModal(false)} 
       />
+      
+      {/* Floating Clock & Timer Sidebar */}
+      <FloatingToolsSidebar />
     </div>
   );
 };
