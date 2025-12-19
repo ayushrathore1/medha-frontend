@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   FaPaperPlane, FaSearch, FaUserCircle, FaBroadcastTower, 
   FaArrowLeft, FaTimes, FaSpinner, FaCheck, FaCheckDouble,
-  FaCrown, FaUsers, FaCommentDots, FaEnvelope
+  FaCrown, FaUsers, FaCommentDots, FaEnvelope, FaTrash
 } from "react-icons/fa";
 import Card from "../components/Common/Card";
 import Loader from "../components/Common/Loader";
@@ -30,6 +30,7 @@ const Messages = () => {
   const [showBroadcast, setShowBroadcast] = useState(false);
   const [broadcastMessage, setBroadcastMessage] = useState("");
   const [broadcastSending, setBroadcastSending] = useState(false);
+  const [deletingMessageId, setDeletingMessageId] = useState(null);
 
   const messagesEndRef = useRef(null);
   const token = localStorage.getItem("token");
@@ -193,6 +194,31 @@ const Messages = () => {
       alert(error.response?.data?.error || "Failed to broadcast message");
     } finally {
       setBroadcastSending(false);
+    }
+  };
+
+  // Delete message (Admin only)
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm("Are you sure you want to delete this message?")) return;
+    
+    setDeletingMessageId(messageId);
+    try {
+      await axios.delete(
+        `${BACKEND_URL}/api/chats/messages/${messageId}`,
+        { headers }
+      );
+      
+      // Remove message from local state
+      setMessages(prev => prev.filter(m => m._id !== messageId));
+      
+      // Refresh conversations to update last message preview
+      const convRes = await axios.get(`${BACKEND_URL}/api/chats/conversations`, { headers });
+      setConversations(convRes.data.conversations || []);
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      alert(error.response?.data?.error || "Failed to delete message");
+    } finally {
+      setDeletingMessageId(null);
     }
   };
 
@@ -376,7 +402,7 @@ const Messages = () => {
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   {messages.length === 0 ? (
                     <div className="text-center py-12" style={{ color: "var(--text-secondary)" }}>
-                      <p>No messages yet. Say hello! 👋</p>
+                      <p>{selectedConv?.isBroadcast && !isAdmin ? 'No announcements yet.' : 'No messages yet. Say hello! 👋'}</p>
                     </div>
                   ) : (
                     messages.map((msg, idx) => {
@@ -384,30 +410,48 @@ const Messages = () => {
                       return (
                         <div
                           key={msg._id || idx}
-                          className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+                          className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}
                         >
-                          <div
-                            className={`max-w-[75%] rounded-2xl px-4 py-2 ${
-                              isOwn 
-                                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-br-md' 
-                                : 'bg-white/10 rounded-bl-md'
-                            }`}
-                            style={!isOwn ? { color: "var(--text-primary)" } : {}}
-                          >
-                            {!isOwn && msg.sender?.isAdmin && (
-                              <div className="flex items-center gap-1 text-xs text-amber-400 mb-1">
-                                <FaCrown /> Admin
-                              </div>
-                            )}
-                            <p style={{ whiteSpace: "pre-wrap" }}>{msg.text}</p>
-                            <div className={`text-xs mt-1 flex items-center gap-1 ${isOwn ? 'text-white/70 justify-end' : ''}`}
-                              style={!isOwn ? { color: "var(--text-secondary)" } : {}}
+                          <div className="relative">
+                            <div
+                              className={`max-w-[75%] rounded-2xl px-4 py-2 ${
+                                isOwn 
+                                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-br-md' 
+                                  : 'bg-white/10 rounded-bl-md'
+                              }`}
+                              style={!isOwn ? { color: "var(--text-primary)" } : {}}
                             >
-                              {formatTime(msg.createdAt)}
-                              {isOwn && (
-                                msg.readBy?.length > 1 ? <FaCheckDouble className="text-blue-300" /> : <FaCheck />
+                              {!isOwn && msg.sender?.isAdmin && (
+                                <div className="flex items-center gap-1 text-xs text-amber-400 mb-1">
+                                  <FaCrown /> Admin
+                                </div>
                               )}
+                              <p style={{ whiteSpace: "pre-wrap" }}>{msg.text}</p>
+                              <div className={`text-xs mt-1 flex items-center gap-1 ${isOwn ? 'text-white/70 justify-end' : ''}`}
+                                style={!isOwn ? { color: "var(--text-secondary)" } : {}}
+                              >
+                                {formatTime(msg.createdAt)}
+                                {isOwn && (
+                                  msg.readBy?.length > 1 ? <FaCheckDouble className="text-blue-300" /> : <FaCheck />
+                                )}
+                              </div>
                             </div>
+                            
+                            {/* Admin Delete Button */}
+                            {isAdmin && (
+                              <button
+                                onClick={() => handleDeleteMessage(msg._id)}
+                                disabled={deletingMessageId === msg._id}
+                                className={`absolute -top-2 ${isOwn ? '-left-8' : '-right-8'} p-1.5 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/40 transition opacity-0 group-hover:opacity-100`}
+                                title="Delete message"
+                              >
+                                {deletingMessageId === msg._id ? (
+                                  <FaSpinner className="animate-spin text-xs" />
+                                ) : (
+                                  <FaTrash className="text-xs" />
+                                )}
+                              </button>
+                            )}
                           </div>
                         </div>
                       );
@@ -416,31 +460,41 @@ const Messages = () => {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Message Input */}
-                <form 
-                  onSubmit={handleSendMessage}
-                  className="p-4 border-t flex gap-3"
-                  style={{ borderColor: "var(--accent-secondary)" }}
-                >
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type a message..."
-                    className="flex-1 px-4 py-3 rounded-xl bg-white/5 border focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    style={{ 
-                      borderColor: "var(--accent-secondary)", 
-                      color: "var(--text-primary)" 
-                    }}
-                  />
-                  <button
-                    type="submit"
-                    disabled={!newMessage.trim() || sending}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold disabled:opacity-50 transition hover:shadow-lg"
+                {/* Message Input - Hidden for non-admin in broadcast conversations */}
+                {selectedConv?.isBroadcast && !isAdmin ? (
+                  <div 
+                    className="p-4 border-t text-center"
+                    style={{ borderColor: "var(--accent-secondary)", color: "var(--text-secondary)" }}
                   >
-                    {sending ? <FaSpinner className="animate-spin" /> : <FaPaperPlane />}
-                  </button>
-                </form>
+                    <FaBroadcastTower className="inline-block mr-2 text-purple-400" />
+                    <span>Announcements are posted by admin only</span>
+                  </div>
+                ) : (
+                  <form 
+                    onSubmit={handleSendMessage}
+                    className="p-4 border-t flex gap-3"
+                    style={{ borderColor: "var(--accent-secondary)" }}
+                  >
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Type a message..."
+                      className="flex-1 px-4 py-3 rounded-xl bg-white/5 border focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      style={{ 
+                        borderColor: "var(--accent-secondary)", 
+                        color: "var(--text-primary)" 
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={!newMessage.trim() || sending}
+                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold disabled:opacity-50 transition hover:shadow-lg"
+                    >
+                      {sending ? <FaSpinner className="animate-spin" /> : <FaPaperPlane />}
+                    </button>
+                  </form>
+                )}
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center" style={{ color: "var(--text-secondary)" }}>
