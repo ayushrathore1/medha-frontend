@@ -5,20 +5,38 @@ import axios from "axios";
 import { FaCrown } from "react-icons/fa";
 import { PlayCircle } from "lucide-react";
 import { useTour } from "../../context/TourContext";
+import { getAvatarByIndex } from "../../utils/avatarUtils";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const NOTIFICATION_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
 
-const baseNavItems = [
-  { path: "/dashboard", label: "Dashboard" },
-  { path: "/notes", label: "Notes" },
-  { path: "/rtu-exams", label: "RTU Exams" },
-  { path: "/flashcards", label: "Flashcards" },
-  { path: "/quiz", label: "Quiz" },
-  { path: "/chatbot", label: "Chatbot" },
-  { path: "/notifications", label: "Notifications" },
-  { path: "/messages", label: "Messages" },
-];
+// Known universities for label display
+const KNOWN_UNIVERSITIES = ["RTU", "GGSIPU", "DTU", "AKTU"];
+
+const getBaseNavItems = (userUniversity) => {
+  // Determine exam tab label based on user's university
+  let examLabel = "Exams";
+  if (userUniversity) {
+    if (KNOWN_UNIVERSITIES.includes(userUniversity)) {
+      examLabel = `${userUniversity} Exams`;
+    } else {
+      examLabel = "University Exams";
+    }
+  } else {
+    examLabel = "Exams";
+  }
+
+  return [
+    { path: "/dashboard", label: "Dashboard" },
+    { path: "/notes", label: "Notes" },
+    { path: "/exams", label: examLabel },
+    { path: "/flashcards", label: "Flashcards" },
+    { path: "/quiz", label: "Quiz" },
+    { path: "/chatbot", label: "Chatbot" },
+    { path: "/notifications", label: "Notifications" },
+    { path: "/messages", label: "Messages" },
+  ];
+};
 
 const linkVariants = {
   inactive: { scale: 1, color: "var(--text-secondary)" },
@@ -47,6 +65,9 @@ const Navbar = ({ user, onLogout }) => {
   const [unreadCount, setUnreadCount] = useState(0); // Messages
   const [unreadNotifications, setUnreadNotifications] = useState(0); // Notifications
   const prevUnreadNotifications = useRef(0);
+
+  // Generate nav items based on user's university
+  const baseNavItems = getBaseNavItems(user?.university);
 
   // Sound effect for new notifications
   useEffect(() => {
@@ -245,23 +266,24 @@ const Navbar = ({ user, onLogout }) => {
               className="ml-2 h-10 w-10 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 hover:bg-white/80 shadow-sm transition overflow-hidden flex items-center justify-center"
               title="Profile"
             >
-              {user?.avatar || user?.profilePic ? (
-                <img
-                  alt="Profile"
-                  src={user.avatar || user.profilePic}
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src =
-                      "https://ik.imagekit.io/ayushrathore1/image(1).png?updatedAt=1761828486524";
-                  }}
-                  draggable="false"
-                />
-              ) : (
-                <div className="h-full w-full rounded-full flex items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-[var(--action-primary)] to-[var(--accent-secondary)]">
-                  {isGuestMode ? "G" : (user?.name?.[0]?.toUpperCase() || "U")}
-                </div>
-              )}
+              <img
+                alt="Profile"
+                src={getAvatarByIndex(
+                  user?.email || user?._id || 'default',
+                  user?.gender || 'Other',
+                  user?.avatarIndex || 0
+                )}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+                draggable="false"
+              />
+              <div className="h-full w-full rounded-full items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-[var(--action-primary)] to-[var(--accent-secondary)] hidden">
+                {isGuestMode ? "G" : (user?.name?.[0]?.toUpperCase() || "U")}
+              </div>
             </button>
 
             <button
@@ -319,17 +341,23 @@ const Navbar = ({ user, onLogout }) => {
               onClick={handleProfileClick}
               className="h-9 w-9 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 overflow-hidden"
             >
-               {user?.avatar || user?.profilePic ? (
-                <img
-                  src={user.avatar || user.profilePic}
-                  className="h-full w-full object-cover"
-                  onError={(e) => { e.target.onerror = null; e.target.src = "https://ik.imagekit.io/ayushrathore1/image(1).png?updatedAt=1761828486524"; }}
-                />
-               ) : (
-                 <div className="h-full w-full flex items-center justify-center bg-gray-200 text-xs font-bold">
-                   {isGuestMode ? "G" : (user?.name?.[0] || "U")}
-                 </div>
-               )}
+              <img
+                src={getAvatarByIndex(
+                  user?.email || user?._id || 'default',
+                  user?.gender || 'Other',
+                  user?.avatarIndex || 0
+                )}
+                alt="Profile"
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+              <div className="h-full w-full items-center justify-center bg-gray-200 text-xs font-bold hidden">
+                {isGuestMode ? "G" : (user?.name?.[0] || "U")}
+              </div>
             </button>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

@@ -133,6 +133,49 @@ const Chatbot = () => {
     }
   };
 
+  // Handle editing a user message
+  const handleEditMessage = async (idx, newText) => {
+    // Remove the edited message and all subsequent messages
+    const newMessages = messages.slice(0, idx);
+    setMessages(newMessages);
+    
+    // Send the edited message as a new message
+    await handleSendMessage(newText);
+  };
+
+  // Handle regenerating a bot response
+  const handleRegenerateResponse = async (idx) => {
+    // Find the user message before this bot response
+    let userMessageIdx = idx - 1;
+    while (userMessageIdx >= 0 && messages[userMessageIdx].sender !== "user") {
+      userMessageIdx--;
+    }
+    
+    if (userMessageIdx < 0) return;
+    
+    const userMessage = messages[userMessageIdx].text;
+    
+    // Remove the bot response and resend the user message
+    const newMessages = messages.slice(0, idx);
+    setMessages(newMessages);
+    setIsTyping(true);
+
+    try {
+      const response = await axios.post(
+        `${BACKEND_URL}/api/chatbot/ask`,
+        { input: userMessage, sessionId: currentSessionId },
+        { headers }
+      );
+
+      setMessages(prev => [...prev, { sender: "bot", text: response.data.answer }]);
+    } catch (error) {
+      console.error("Error regenerating:", error);
+      setMessages(prev => [...prev, { sender: "bot", text: "Oops! Regeneration failed. Please try again." }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
   return (
     <div className="fixed top-16 left-0 right-0 h-[calc(100vh-4rem)] flex bg-white z-0">
       
@@ -265,6 +308,8 @@ const Chatbot = () => {
          <ChatbotWidget
             messages={messages}
             onSendMessage={handleSendMessage}
+            onEditMessage={handleEditMessage}
+            onRegenerateResponse={handleRegenerateResponse}
             isTyping={isTyping}
          />
       </div>

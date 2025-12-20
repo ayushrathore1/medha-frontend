@@ -23,8 +23,10 @@ import Notes from "./pages/Notes";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import RTUExams from "./pages/RTUExams";
+import ExamsPage from "./pages/ExamsPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import Messages from "./pages/Messages";
+import PersonalizationSetup from "./pages/PersonalizationSetup";
 
 // Providers
 import { AuthProvider } from "./AuthProvider";
@@ -51,6 +53,22 @@ const App = () => {
               <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
 
               {/* Protected routes */}
+              <Route
+                path="/personalize"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><PersonalizationSetup /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/exams"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><ExamsPage /></PageTransition>
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/rtu-exams"
                 element={

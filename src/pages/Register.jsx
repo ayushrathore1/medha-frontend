@@ -49,7 +49,7 @@ const Register = () => {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
         login(data.user);
-        navigate("/dashboard");
+        navigate("/personalize");
       } else {
         setError(data.message || "Registration failed");
       }

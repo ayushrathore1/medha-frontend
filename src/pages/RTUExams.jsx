@@ -256,24 +256,47 @@ const RTUExams = () => {
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                exit={{ opacity: 0, y: -20 }}
-               className="flex justify-center"
+               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
              >
-                <div 
-                  data-tour="rtu-semester"
-                  onClick={() => setViewState("subjects")} 
-                  className="cursor-pointer group"
-                >
-                   <Card className="w-full max-w-sm flex flex-col items-center p-10 gap-4 hover:border-indigo-400 transition-all hover:shadow-xl hover:-translate-y-1">
-                      <div className="p-5 bg-indigo-50 text-indigo-600 rounded-full group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                         <FaUniversity size={40} />
-                      </div>
-                      <h2 className="text-2xl font-bold text-slate-800">3rd Semester</h2>
-                      <p className="text-slate-500 font-medium">Computer Science & Engineering</p>
-                      <div className="px-4 py-1.5 bg-slate-100 text-slate-500 rounded-full text-xs font-bold uppercase tracking-wide group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                         Click to Open
-                      </div>
-                   </Card>
-                </div>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => {
+                  const isActive = sem === 3;
+                  return (
+                    <motion.div
+                      key={sem}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: sem * 0.05 }}
+                      data-tour={sem === 3 ? "rtu-semester" : undefined}
+                      onClick={isActive ? () => setViewState("subjects") : undefined}
+                      className={isActive ? "cursor-pointer group" : ""}
+                    >
+                      <Card className={`w-full flex flex-col items-center p-8 gap-3 transition-all ${
+                        isActive 
+                          ? "hover:border-indigo-400 hover:shadow-xl hover:-translate-y-1" 
+                          : "opacity-70 cursor-not-allowed"
+                      }`}>
+                        <div className={`p-4 rounded-full transition-colors ${
+                          isActive 
+                            ? "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white" 
+                            : "bg-slate-100 text-slate-400"
+                        }`}>
+                          <FaUniversity size={32} />
+                        </div>
+                        <h2 className={`text-xl font-bold whitespace-nowrap ${isActive ? "text-slate-800" : "text-slate-500"}`}>
+                          {sem === 1 ? "1st" : sem === 2 ? "2nd" : sem === 3 ? "3rd" : `${sem}th`} Semester
+                        </h2>
+                        <p className="text-slate-500 font-medium text-sm text-center">Computer Science & Engineering</p>
+                        <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide transition-colors ${
+                          isActive 
+                            ? "bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600" 
+                            : "bg-amber-50 text-amber-600"
+                        }`}>
+                          {isActive ? "Click to Open" : "Coming Soon"}
+                        </div>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
              </motion.div>
           )}
 
