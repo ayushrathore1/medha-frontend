@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { getBarGradient } from "../../utils/unitWeightageUtils";
-import { FaYoutube, FaChevronDown, FaChevronUp, FaMagic, FaEye, FaSpinner, FaTimes, FaBookOpen } from "react-icons/fa";
+import { FaYoutube, FaChevronDown, FaChevronUp, FaMagic, FaEye, FaSpinner, FaTimes, FaBookOpen, FaPlay, FaList } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -10,6 +10,16 @@ import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+// Helper function to convert YouTube playlist URL to embed URL
+const getYouTubeEmbedUrl = (url) => {
+  if (!url) return null;
+  const match = url.match(/[?&]list=([^&]+)/);
+  if (match && match[1]) {
+    return `https://www.youtube.com/embed/videoseries?list=${match[1]}`;
+  }
+  return null;
+};
 
 const UnitWeightageBar = ({
   unitSerial,
@@ -27,14 +37,35 @@ const UnitWeightageBar = ({
   const [solutions, setSolutions] = useState({});
   const [loadingIdx, setLoadingIdx] = useState(null);
   const [viewingIdx, setViewingIdx] = useState(null);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [activePlaylistIndex, setActivePlaylistIndex] = useState(0);
 
   const barWidth = Math.min(weightagePercentage, 100);
 
+  // Parse multiple playlists (separated by " | "), each as "URL::ChannelName"
+  const playlists = useMemo(() => {
+    if (!youtubePlaylistUrl) return [];
+    return youtubePlaylistUrl.split(" | ").map((entry, idx) => {
+      const [url, channelName] = entry.trim().split("::");
+      return {
+        url: url?.trim(),
+        embedUrl: getYouTubeEmbedUrl(url?.trim()),
+        label: channelName?.trim() || `Playlist ${idx + 1}`
+      };
+    }).filter(p => p.embedUrl);
+  }, [youtubePlaylistUrl]);
+
   const handleWatchLecture = (e) => {
     e.stopPropagation();
-    if (youtubePlaylistUrl) {
-      window.open(youtubePlaylistUrl, "_blank", "noopener,noreferrer");
+    if (playlists.length > 0) {
+      setActivePlaylistIndex(0);
+      setShowVideoModal(true);
     }
+  };
+
+  const closeVideoModal = (e) => {
+    if (e) e.stopPropagation();
+    setShowVideoModal(false);
   };
 
   const toggleExpand = () => {
@@ -268,6 +299,90 @@ const UnitWeightageBar = ({
                  </div>
               </motion.div>
            </div>
+        )}
+      </AnimatePresence>
+
+      {/* YouTube Video Player Modal */}
+      <AnimatePresence>
+        {showVideoModal && playlists.length > 0 && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" 
+            onClick={closeVideoModal}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-700"
+            >
+              {/* Modal Header */}
+              <div className="flex justify-between items-center p-4 border-b border-slate-700 bg-red-700">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 text-white rounded-lg">
+                    <FaYoutube size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-lg drop-shadow-md">Video Lectures</h3>
+                    <p className="text-sm text-white/90 font-medium drop-shadow-sm">
+                      {subjectName} • Unit {unitSerial}: {unitName}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={closeVideoModal} 
+                  className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+
+              {/* Playlist Tabs (if multiple playlists) */}
+              {playlists.length > 1 && (
+                <div className="flex gap-2 p-3 bg-slate-800/50 border-b border-slate-700">
+                  {playlists.map((playlist, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActivePlaylistIndex(idx)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                        activePlaylistIndex === idx
+                          ? "bg-red-600 text-white shadow-lg"
+                          : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                      }`}
+                    >
+                      <FaList size={12} />
+                      {playlist.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* YouTube Iframe */}
+              <div className="w-full h-[60vh] bg-black">
+                <iframe
+                  src={playlists[activePlaylistIndex]?.embedUrl}
+                  title={`${subjectName} - Unit ${unitSerial} Lectures`}
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+
+              {/* Footer */}
+              <div className="p-3 bg-slate-800/50 border-t border-slate-700 text-center space-y-1">
+                <p className="text-sm text-white font-semibold">
+                  ❤️ Credits: <span className="text-red-400">{playlists[activePlaylistIndex]?.label}</span>
+                </p>
+                <p className="text-xs text-yellow-400 font-semibold">
+                  💡 Click the playlist icon (≡) on top-right of the video to see all videos
+                </p>
+                <p className="text-xs text-slate-500 font-medium">
+                  🎓 Watch lectures directly in MEDHA • <span className="text-slate-400">Powered by YouTube</span>
+                </p>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>
