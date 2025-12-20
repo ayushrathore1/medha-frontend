@@ -15,6 +15,7 @@ import DailyPlanWidget from "../components/Dashboard/DailyPlanWidget";
 import TodoList from "../components/Dashboard/TodoList";
 import DailyQuoteWidget from "../components/Dashboard/DailyQuoteWidget";
 import ThoughtDumpCard from "../components/Dashboard/ThoughtDumpCard";
+import ActivityCalendar from "../components/Dashboard/ActivityCalendar";
 
 import { useTour } from "../context/TourContext";
 
@@ -285,6 +286,9 @@ const Dashboard = () => {
             </Card>
           </div>
         </div>
+        
+        {/* Activity Calendar - at the bottom */}
+        {!isGuestMode && <ActivityCalendar />}
       </div>
       <FeatureAnnouncementModal 
         isOpen={showFeatureModal} 

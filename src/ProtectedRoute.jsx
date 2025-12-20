@@ -13,9 +13,16 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/" replace />;
   }
 
+  // Check if user has completed personalization
+  // Use explicit checks for non-empty strings
+  const hasUniversity = user?.university && user.university.trim().length > 0;
+  const hasBranch = user?.branch && user.branch.trim().length > 0;
+  const hasGender = user?.gender && user.gender.trim().length > 0;
+  const isPersonalized = hasUniversity && hasBranch && hasGender;
+
   // If user exists but hasn't completed personalization, redirect to /personalize
   // Skip this check if already on /personalize to prevent redirect loop
-  if (user && (!user.university || !user.branch || !user.gender)) {
+  if (user && !isPersonalized) {
     if (location.pathname !== "/personalize") {
       return <Navigate to="/personalize" replace />;
     }
@@ -25,3 +32,5 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default ProtectedRoute;
+
+
