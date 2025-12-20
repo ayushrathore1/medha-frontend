@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle, Sparkles, Zap, BookOpen, MessageSquare, Brain, Target, Users, Star, Rocket, Layers } from "lucide-react";
 import { useTour } from "../context/TourContext";
+import axios from "axios";
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 // Components (Assuming these exist based on context)
 // If not, we can use simple HTML, but the original file imported them.
@@ -11,12 +14,26 @@ import { useTour } from "../context/TourContext";
 const Welcome = () => {
   const { startTour } = useTour();
   const [activeFeature, setActiveFeature] = useState(0);
+  const [userCount, setUserCount] = useState(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % 4);
     }, 4000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Fetch real user count
+  useEffect(() => {
+    const fetchUserCount = async () => {
+      try {
+        const res = await axios.get(`${BACKEND_URL}/api/users/stats`);
+        setUserCount(res.data.totalUsers);
+      } catch (err) {
+        console.error("Failed to fetch user stats");
+      }
+    };
+    fetchUserCount();
   }, []);
 
   const features = [
@@ -52,28 +69,28 @@ const Welcome = () => {
 
   const testimonials = [
     {
-      name: "Aryan Mehta",
-      role: "Engineering Student",
-      text: "I used to drown in PDFs before exams. MEDHA Organizing everything and generating the flashcards literally saved my semester.",
-      avatar: "AM",
+      name: "Priya Sharma",
+      role: "CSE, 3rd Semester",
+      text: "MEDHA completely changed how I prepare for exams. The PYQ analysis and AI solutions saved me during my midsems!",
+      avatar: "PS",
       rating: 5,
       uni: "RTU"
     },
     {
-      name: "Sarah Jenkins",
-      role: "Medical Student",
-      text: "The AI tutor explains concepts from my own handwritten notes better than some professors. It's wildly accurate.",
-      avatar: "SJ",
+      name: "Rohan Verma",
+      role: "AIDS, 3rd Semester",
+      text: "The AI tutor explains DSA concepts better than YouTube tutorials. I finally understood recursion thanks to MEDHA!",
+      avatar: "RV",
       rating: 5,
-      uni: "Harvard"
+      uni: "RTU"
     },
     {
-      name: "David Chen",
-      role: "Computer Science",
-      text: "Finally, a platform that understands exam patterns. The past paper analysis is a cheat code for high grades.",
-      avatar: "DC",
+      name: "Ananya Singh",
+      role: "CSE, 5th Semester",
+      text: "Unit-wise weightage analysis is a game changer. I know exactly what topics to focus on. My grades have improved so much!",
+      avatar: "AS",
       rating: 5,
-      uni: "MIT"
+      uni: "RTU"
     },
   ];
 
@@ -157,7 +174,7 @@ const Welcome = () => {
                     </div>
                   ))}
                 </div>
-                <p>Trusted by 10,000+ students</p>
+                <p>Trusted by {userCount ? `${userCount.toLocaleString()}+` : '...'} students</p>
               </div>
             </motion.div>
 
