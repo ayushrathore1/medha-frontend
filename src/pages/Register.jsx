@@ -162,7 +162,12 @@ const Register = () => {
               </div>
             </div>
 
-            <div className="pt-4">
+            {/* Email Consent Note */}
+            <p className="text-xs text-slate-500 text-center leading-relaxed">
+              By creating an account, you agree to receive important updates, feature announcements, and occasional emails from Medha AI. We respect your inbox! 📬
+            </p>
+
+            <div className="pt-2">
               <Button
                 type="submit"
                 disabled={loading}
