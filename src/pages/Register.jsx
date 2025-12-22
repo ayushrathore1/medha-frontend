@@ -79,7 +79,9 @@ const Register = () => {
   };
 
   // Helper function to create backend account after Clerk verification
-  const createBackendAccount = async (clerkSignUp) => {
+  const createBackendAccount = async (clerkSignUp, retryCount = 0) => {
+    const maxRetries = 3;
+    
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`, {
         method: "POST",
@@ -89,7 +91,7 @@ const Register = () => {
           email: formData.email,
           password: formData.password,
           emailVerified: true,
-          clerkUserId: clerkSignUp.createdUserId,
+          clerkUserId: clerkSignUp.createdUserId || clerkSignUp.id,
         }),
       });
 
@@ -98,7 +100,12 @@ const Register = () => {
       if (response.ok) {
         // Set Clerk session active (if session ID exists)
         if (clerkSignUp.createdSessionId) {
-          await setActive({ session: clerkSignUp.createdSessionId });
+          try {
+            await setActive({ session: clerkSignUp.createdSessionId });
+          } catch (sessionErr) {
+            console.warn("Session activation warning:", sessionErr);
+            // Continue anyway - session is optional
+          }
         }
         
         // Store JWT and user data from our backend
@@ -106,13 +113,48 @@ const Register = () => {
         localStorage.setItem("user", JSON.stringify(data.user));
         login(data.user);
         navigate("/personalize");
+      } else if (response.status === 409) {
+        // User already exists - try to login instead
+        console.log("User already exists, attempting login...");
+        const loginResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        });
+        
+        const loginData = await loginResponse.json();
+        if (loginResponse.ok) {
+          localStorage.setItem("token", loginData.token);
+          localStorage.setItem("user", JSON.stringify(loginData.user));
+          login(loginData.user);
+          navigate("/personalize");
+        } else {
+          setError("Account exists but login failed. Try logging in manually.");
+          setLoading(false);
+        }
+      } else if (response.status >= 500 && retryCount < maxRetries) {
+        // Server error - retry with backoff
+        console.log(`Backend error (attempt ${retryCount + 1}/${maxRetries}), retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+        return createBackendAccount(clerkSignUp, retryCount + 1);
       } else {
         setError(data.message || "Failed to create account in our system");
+        setLoading(false);
       }
     } catch (err) {
       console.error("Backend registration error:", err);
+      
+      // Retry on network errors
+      if (retryCount < maxRetries) {
+        console.log(`Network error (attempt ${retryCount + 1}/${maxRetries}), retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+        return createBackendAccount(clerkSignUp, retryCount + 1);
+      }
+      
       setError("Failed to complete registration. Please try again.");
-    } finally {
       setLoading(false);
     }
   };

@@ -20,6 +20,9 @@ const Profile = () => {
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteStep, setDeleteStep] = useState(1); // 1 = reason, 2 = confirm
+  const [deleteReason, setDeleteReason] = useState("");
+  const [otherReason, setOtherReason] = useState("");
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [formData, setFormData] = useState({ 
@@ -32,6 +35,18 @@ const Profile = () => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Deletion reason options
+  const DELETE_REASONS = [
+    "Not using the app anymore",
+    "Found a better alternative",
+    "Too many notifications",
+    "Privacy concerns",
+    "App is too complicated",
+    "Missing features I need",
+    "Just exploring, not a student",
+    "Other"
+  ];
 
   useEffect(() => {
     fetchProfile();
@@ -103,11 +118,15 @@ const Profile = () => {
     
     try {
       const token = localStorage.getItem("token");
+      const finalReason = deleteReason === "Other" ? otherReason : deleteReason;
       
-      // Delete from backend first
+      // Delete from backend first (include reason for analytics)
       await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/api/users/me`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          data: { reason: finalReason }
+        }
       );
       
       // Delete from Clerk if user exists
@@ -116,7 +135,6 @@ const Profile = () => {
           await clerkUser.delete();
         } catch (clerkErr) {
           console.error("Clerk deletion error (may not exist):", clerkErr);
-          // Continue even if Clerk deletion fails - backend is source of truth
         }
       }
       
@@ -132,6 +150,15 @@ const Profile = () => {
       alert("Failed to delete account. Please try again.");
       setDeleting(false);
     }
+  };
+
+  // Reset delete modal state
+  const resetDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteStep(1);
+    setDeleteReason("");
+    setOtherReason("");
+    setDeleteConfirmText("");
   };
 
   // Get gender icon component
@@ -445,51 +472,121 @@ const Profile = () => {
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="max-w-md w-full shadow-2xl">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-                  <FaTrash className="text-2xl text-red-500" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900">Delete Account?</h3>
-                <p className="text-slate-500 mt-2">
-                  This action cannot be undone. All your data will be permanently removed.
-                </p>
-              </div>
+            <Card className="max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+              
+              {/* Step 1: Select Reason */}
+              {deleteStep === 1 && (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+                      <span className="text-2xl">💔</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900">We're sad to see you go!</h3>
+                    <p className="text-slate-500 mt-2">
+                      Before you leave, please tell us why. Your feedback helps us improve.
+                    </p>
+                  </div>
 
-              <div className="mb-6">
-                <label className="block mb-2 text-sm font-bold text-slate-700">
-                  Type <span className="text-red-600">DELETE</span> to confirm
-                </label>
-                <input
-                  type="text"
-                  value={deleteConfirmText}
-                  onChange={(e) => setDeleteConfirmText(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-300 bg-slate-50 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
-                  placeholder="DELETE"
-                />
-              </div>
+                  <div className="space-y-2 mb-6">
+                    {DELETE_REASONS.map((reason) => (
+                      <button
+                        key={reason}
+                        onClick={() => setDeleteReason(reason)}
+                        className={`w-full text-left px-4 py-3 rounded-xl border-2 font-medium transition-all ${
+                          deleteReason === reason
+                            ? "bg-red-50 border-red-400 text-red-700"
+                            : "bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300"
+                        }`}
+                      >
+                        {reason}
+                      </button>
+                    ))}
+                  </div>
 
-              <div className="flex gap-4">
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setDeleteConfirmText("");
-                  }}
-                  fullWidth
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleDeleteAccount}
-                  disabled={deleteConfirmText !== "DELETE" || deleting}
-                  loading={deleting}
-                  fullWidth
-                  className="bg-red-600 hover:bg-red-700 border-red-600 text-white"
-                >
-                  Delete Forever
-                </Button>
-              </div>
+                  {deleteReason === "Other" && (
+                    <div className="mb-6">
+                      <textarea
+                        value={otherReason}
+                        onChange={(e) => setOtherReason(e.target.value)}
+                        placeholder="Please tell us more..."
+                        className="w-full px-4 py-3 rounded-xl border-2 border-slate-300 bg-slate-50 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 resize-none"
+                        rows={3}
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex gap-4">
+                    <Button
+                      variant="ghost"
+                      onClick={resetDeleteModal}
+                      fullWidth
+                    >
+                      Never mind
+                    </Button>
+                    <Button
+                      onClick={() => setDeleteStep(2)}
+                      disabled={!deleteReason || (deleteReason === "Other" && !otherReason.trim())}
+                      fullWidth
+                      className="bg-red-600 hover:bg-red-700 border-red-600 text-white"
+                    >
+                      Continue
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {/* Step 2: Confirm Deletion */}
+              {deleteStep === 2 && (
+                <>
+                  <div className="text-center mb-6">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+                      <FaTrash className="text-2xl text-red-500" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900">Final Confirmation</h3>
+                    <p className="text-slate-500 mt-2">
+                      This action cannot be undone. All your data will be permanently removed.
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-50 rounded-xl p-4 mb-6">
+                    <p className="text-sm text-slate-600">
+                      <strong>Reason:</strong> {deleteReason === "Other" ? otherReason : deleteReason}
+                    </p>
+                  </div>
+
+                  <div className="mb-6">
+                    <label className="block mb-2 text-sm font-bold text-slate-700">
+                      Type <span className="text-red-600">DELETE</span> to confirm
+                    </label>
+                    <input
+                      type="text"
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-slate-300 bg-slate-50 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+                      placeholder="DELETE"
+                    />
+                  </div>
+
+                  <div className="flex gap-4">
+                    <Button
+                      variant="ghost"
+                      onClick={() => setDeleteStep(1)}
+                      fullWidth
+                    >
+                      ← Back
+                    </Button>
+                    <Button
+                      onClick={handleDeleteAccount}
+                      disabled={deleteConfirmText !== "DELETE" || deleting}
+                      loading={deleting}
+                      fullWidth
+                      className="bg-red-600 hover:bg-red-700 border-red-600 text-white"
+                    >
+                      Delete Forever
+                    </Button>
+                  </div>
+                </>
+              )}
             </Card>
           </div>
         )}
