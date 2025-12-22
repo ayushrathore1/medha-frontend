@@ -27,13 +27,15 @@ const AdminDashboard = () => {
   // Email System State
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
-  const [emailMode, setEmailMode] = useState("individual"); // 'all' or 'individual'
+  const [emailMode, setEmailMode] = useState("individual"); // 'all', 'individual', or 'unverified'
   const [selectedUser, setSelectedUser] = useState(null);
   const [emailSubject, setEmailSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [userSort, setUserSort] = useState("newest"); // 'name' or 'newest'
+  const [universityFilter, setUniversityFilter] = useState(""); // University filter
+  const [verificationFilter, setVerificationFilter] = useState(""); // 'verified', 'unverified', ''
   
   // AI Generator State
   const [aiPrompt, setAiPrompt] = useState("");
@@ -205,7 +207,15 @@ const AdminDashboard = () => {
       alert("Please select a user to send the email to.");
       return;
     }
-    if (!window.confirm(`Are you sure you want to send this email to ${emailMode === "all" ? "ALL USERS" : selectedUser?.email}?`)) {
+    
+    // Different confirmation messages based on mode
+    const recipientText = emailMode === "all" 
+      ? `ALL USERS (${users.length})` 
+      : emailMode === "unverified"
+        ? `UNVERIFIED USERS (${getVerificationStats().unverified})`
+        : selectedUser?.email;
+    
+    if (!window.confirm(`Are you sure you want to send this email to ${recipientText}?`)) {
       return;
     }
 
@@ -244,6 +254,18 @@ const AdminDashboard = () => {
       );
     }
 
+    // University Filter
+    if (universityFilter) {
+      result = result.filter(u => u.university === universityFilter);
+    }
+
+    // Verification Filter
+    if (verificationFilter === "verified") {
+      result = result.filter(u => u.emailVerified === true);
+    } else if (verificationFilter === "unverified") {
+      result = result.filter(u => !u.emailVerified);
+    }
+
     // Sort
     if (userSort === "name") {
       result.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
@@ -253,6 +275,49 @@ const AdminDashboard = () => {
     }
 
     return result;
+  };
+
+  // Get unique universities from users
+  const getUniqueUniversities = () => {
+    const universities = [...new Set(users.map(u => u.university).filter(Boolean))];
+    return universities.sort();
+  };
+
+  // Get verification stats
+  const getVerificationStats = () => {
+    const verified = users.filter(u => u.emailVerified === true).length;
+    const unverified = users.filter(u => !u.emailVerified).length;
+    return { verified, unverified, total: users.length };
+  };
+
+  // Default email template for non-verified users
+  const loadVerificationReminderTemplate = () => {
+    setEmailSubject("Complete Your MEDHA Account Verification 🔐");
+    setEmailBody(`<div style="font-family: 'Inter', Arial, sans-serif; background: #f8fafc; padding: 32px 24px; text-align: center;">
+  <div style="background: #fff; border-radius: 16px; max-width: 500px; margin: auto; padding: 40px 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+    <div style="font-size: 48px; margin-bottom: 16px;">📧</div>
+    <h2 style="color: #1e293b; margin: 0 0 8px 0; font-size: 24px;">Complete Your Verification</h2>
+    <p style="color: #4F46E5; font-size: 14px; margin: 0 0 24px 0; font-weight: 600;">MEDHA - Your AI Study Companion</p>
+    
+    <p style="color: #475569; font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">
+      Hey <b>{{name}}</b>! 👋<br><br>
+      We noticed your MEDHA account isn't verified yet. Verify your email to unlock all features and keep your account secure!
+    </p>
+    
+    <a href="https://medharevisionapp.pages.dev/verify-email" style="display: inline-block; background: linear-gradient(135deg, #4F46E5, #7C3AED); color: #fff; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 15px; margin-bottom: 24px;">
+      Verify My Email →
+    </a>
+    
+    <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 24px 0 0 0;">
+      If you're having trouble, just reply to this email.<br>
+      We're always here to help! 💜
+    </p>
+    
+    <hr style="margin: 24px 0; border: none; border-top: 1px solid #e2e8f0;">
+    <p style="color: #94a3b8; font-size: 12px; margin: 0;">Team MEDHA 🎓</p>
+  </div>
+</div>`);
+    setEmailMode("unverified");
   };
 
   const fetchEmailHistory = async () => {
@@ -447,8 +512,24 @@ const AdminDashboard = () => {
             <Card className="lg:col-span-1 flex flex-col h-full overflow-hidden">
               <div className="p-4 border-b border-gray-200">
                 <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                   <FaUser className="text-indigo-600" /> Users ({users.length})
+                   <FaUser className="text-indigo-600" /> Users ({getFilteredUsers().length}/{users.length})
                 </h2>
+                
+                {/* Verification Stats */}
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="bg-green-50 rounded-lg p-2 text-center border border-green-100">
+                    <div className="text-lg font-bold text-green-600">{getVerificationStats().verified}</div>
+                    <div className="text-xs text-green-700">Verified</div>
+                  </div>
+                  <div className="bg-red-50 rounded-lg p-2 text-center border border-red-100">
+                    <div className="text-lg font-bold text-red-600">{getVerificationStats().unverified}</div>
+                    <div className="text-xs text-red-700">Unverified</div>
+                  </div>
+                  <div className="bg-purple-50 rounded-lg p-2 text-center border border-purple-100">
+                    <div className="text-lg font-bold text-purple-600">{getVerificationStats().total}</div>
+                    <div className="text-xs text-purple-700">Total</div>
+                  </div>
+                </div>
                 
                 {/* Search */}
                 <div className="relative mb-3">
@@ -461,6 +542,29 @@ const AdminDashboard = () => {
                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-purple-500 text-gray-700 bg-gray-50 focus:bg-white transition-colors"
                    />
                 </div>
+
+                {/* University Filter */}
+                <select
+                  value={universityFilter}
+                  onChange={(e) => setUniversityFilter(e.target.value)}
+                  className="w-full mb-3 px-3 py-2 rounded-lg border border-gray-200 text-gray-700 bg-gray-50 focus:outline-none focus:border-purple-500 text-sm"
+                >
+                  <option value="">All Universities</option>
+                  {getUniqueUniversities().map(uni => (
+                    <option key={uni} value={uni}>{uni}</option>
+                  ))}
+                </select>
+
+                {/* Verification Filter */}
+                <select
+                  value={verificationFilter}
+                  onChange={(e) => setVerificationFilter(e.target.value)}
+                  className="w-full mb-3 px-3 py-2 rounded-lg border border-gray-200 text-gray-700 bg-gray-50 focus:outline-none focus:border-purple-500 text-sm"
+                >
+                  <option value="">All Verification Status</option>
+                  <option value="verified">✅ Verified Only</option>
+                  <option value="unverified">❌ Unverified Only</option>
+                </select>
 
                 {/* Sort Toggle */}
                 <div className="flex gap-2">
@@ -493,8 +597,18 @@ const AdminDashboard = () => {
                        }}
                        className={`p-3 rounded-lg cursor-pointer border transition-all ${selectedUser?._id === user._id && emailMode === "individual" ? "bg-white border-purple-500 shadow-sm ring-1 ring-purple-500" : "bg-white border-gray-200 hover:border-purple-300 hover:shadow-sm"}`}
                      >
-                       <div className="font-semibold text-sm truncate" style={{ color: "var(--text-primary)" }}>{user.name}</div>
+                       <div className="flex items-center justify-between">
+                         <div className="font-semibold text-sm truncate" style={{ color: "var(--text-primary)" }}>{user.name}</div>
+                         {user.emailVerified ? (
+                           <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">✓ Verified</span>
+                         ) : (
+                           <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">✗ Unverified</span>
+                         )}
+                       </div>
                        <div className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>{user.email}</div>
+                       {user.university && (
+                         <div className="text-xs mt-1 text-purple-600 font-medium">{user.university}</div>
+                       )}
                      </div>
                    ))
                  )}
@@ -509,7 +623,7 @@ const AdminDashboard = () => {
                   </h2>
                   
                   {/* Mode Toggle */}
-                  <div className="flex gap-4 mb-4">
+                  <div className="flex flex-wrap gap-4 mb-4">
                      <label className="flex items-center cursor-pointer gap-2">
                        <input 
                          type="radio" 
@@ -530,13 +644,35 @@ const AdminDashboard = () => {
                        />
                        <span className="text-gray-700 font-medium">All Users</span>
                      </label>
+                     <label className="flex items-center cursor-pointer gap-2">
+                       <input 
+                         type="radio" 
+                         name="mode" 
+                         checked={emailMode === "unverified"} 
+                         onChange={() => setEmailMode("unverified")}
+                         className="accent-red-600 w-4 h-4"
+                       />
+                       <span className="text-red-600 font-medium">❌ Unverified Only ({getVerificationStats().unverified})</span>
+                     </label>
                   </div>
+
+                  {/* Quick Template Button for Unverified */}
+                  {emailMode === "unverified" && (
+                    <button
+                      onClick={loadVerificationReminderTemplate}
+                      className="mb-4 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium border border-red-200 transition-colors"
+                    >
+                      📧 Load Verification Reminder Template
+                    </button>
+                  )}
 
                   {/* Recipient Display */}
                   <div className="mb-4">
                      <span className="text-gray-500 font-medium mr-2">To:</span>
                      {emailMode === "all" ? (
                        <span className="bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1 rounded text-sm font-bold">ALL USERS ({users.length})</span>
+                     ) : emailMode === "unverified" ? (
+                       <span className="bg-red-100 text-red-700 border border-red-200 px-3 py-1 rounded text-sm font-bold">UNVERIFIED USERS ({getVerificationStats().unverified})</span>
                      ) : (
                        selectedUser ? (
                          <span className="bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1 rounded text-sm font-bold">{selectedUser.name} &lt;{selectedUser.email}&gt;</span>
