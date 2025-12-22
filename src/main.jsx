@@ -20,18 +20,11 @@ const clerkAppearance = {
   },
 }
 
-// Proxy URL for Cloudflare Pages (when DNS records can't be added)
-// In production, Clerk API calls go through /.clerk/ path
-const proxyUrl = import.meta.env.PROD 
-  ? '/.clerk' 
-  : undefined
-
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ClerkProvider 
       publishableKey={PUBLISHABLE_KEY}
       appearance={clerkAppearance}
-      proxyUrl={proxyUrl}
     >
       <BrowserRouter>
         <App />
@@ -39,4 +32,5 @@ createRoot(document.getElementById('root')).render(
     </ClerkProvider>
   </StrictMode>,
 )
+
 
