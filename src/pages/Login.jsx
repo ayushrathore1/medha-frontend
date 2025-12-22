@@ -25,6 +25,19 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
+        // Check if user needs email verification
+        if (!data.user.emailVerified) {
+          // Redirect to email verification page
+          navigate("/verify-email", {
+            state: {
+              userData: data.user,
+              token: data.token,
+            },
+          });
+          return;
+        }
+
+        // User is verified, proceed normally
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
         login(data.user);

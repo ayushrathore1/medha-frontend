@@ -16,9 +16,11 @@ import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import EmailVerification from "./pages/EmailVerification";
 import Subjects from "./pages/Subjects";
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
+import WelcomeDark from "./pages/WelcomeDark";
 import Notes from "./pages/Notes";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -34,23 +36,29 @@ import { AuthProvider } from "./AuthProvider";
 import ProtectedRoute from "./ProtectedRoute";
 
 import { TourProvider } from "./context/TourContext";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 
-const App = () => {
+const AppContent = () => {
   const location = useLocation();
+  const { theme } = useTheme();
+
+  // Choose Welcome page based on theme
+  const WelcomePage = theme === 'premium-dark' ? WelcomeDark : Welcome;
 
   return (
     <AuthProvider>
       <Analytics />
       <TourProvider>
-        <MainLayout>
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              {/* Public routes */}
-              <Route path="/" element={<PageTransition><Welcome /></PageTransition>} />
+      <MainLayout>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            {/* Public routes */}
+            <Route path="/" element={<PageTransition><WelcomePage /></PageTransition>} />
               <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
               <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
               <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
               <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
+              <Route path="/verify-email" element={<PageTransition><EmailVerification /></PageTransition>} />
 
               {/* Protected routes */}
               <Route
@@ -162,9 +170,16 @@ const App = () => {
             </Routes>
           </AnimatePresence>
         </MainLayout>
-      </TourProvider>
-    </AuthProvider>
+        </TourProvider>
+      </AuthProvider>
   );
 };
+
+// Main App component wraps everything with ThemeProvider
+const App = () => (
+  <ThemeProvider>
+    <AppContent />
+  </ThemeProvider>
+);
 
 export default App;

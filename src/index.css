@@ -115,3 +115,92 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-slate-400);
 }
+
+/* Premium Dark Theme Overrides */
+.premium-dark {
+  /* Dynamic Backgrounds */
+  --bg-primary: #0f172a; /* Slate 900 */
+  --bg-secondary: #020617; /* Slate 950 - Main App Bg */
+  --bg-tertiary: #1e293b; /* Slate 800 - Cards */
+  
+  /* High Contrast Text */
+  --text-primary: #f8fafc; /* Slate 50 */
+  --text-secondary: #cbd5e1; /* Slate 300 */
+  --text-tertiary: #94a3b8; /* Slate 400 */
+  
+  /* Electric Accents */
+  --action-primary: #3b82f6; /* Blue 500 */
+  --action-hover: #60a5fa; /* Blue 400 */
+  --accent-secondary: #8b5cf6; /* Violet 500 */
+
+  /* Glassmorphism Tokens */
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(59, 130, 246, 0.2);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  
+  color-scheme: dark;
+}
+
+.premium-dark body {
+  background-color: var(--bg-secondary);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%), 
+    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+}
+
+.premium-dark .glass-card {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.premium-dark .glass-panel {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+}
+
+/* Aurora Background Animation */
+@keyframes aurora {
+  0% {
+    background-position: 50% 50%, 50% 50%;
+  }
+  66% {
+    background-position: 100% 0%, 0% 100%;
+  }
+  100% {
+    background-position: 50% 50%, 50% 50%;
+  }
+}
+
+.aurora-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.aurora-bg::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  z-index: -1;
+  background-image: 
+    radial-gradient(at 100% 0%, hsla(250,100%,70%,0.2) 0px, transparent 50%),
+    radial-gradient(at 0% 0%, hsla(210,100%,60%,0.2) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(280,100%,70%,0.2) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(200,100%,60%,0.2) 0px, transparent 50%);
+  background-size: 140% 140%;
+  animation: aurora 15s ease infinite alternate;
+  filter: blur(80px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* Ensure mix-blend-mode doesn't break text in light mode */
+:root[class~="dark"] .aurora-bg::before,
+.premium-dark .aurora-bg::before {
+  opacity: 0.6;
+}

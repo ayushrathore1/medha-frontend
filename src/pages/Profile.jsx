@@ -1,20 +1,27 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useUser } from "@clerk/clerk-react";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import { AuthContext } from "../AuthContext";
 import { generateAvatarOptions, getAvatarByIndex } from "../utils/avatarUtils";
-import { FaMars, FaVenus, FaGenderless } from "react-icons/fa";
+import { FaMars, FaVenus, FaGenderless, FaTrash } from "react-icons/fa";
 
 const UNIVERSITIES = ["RTU", "GGSIPU", "DTU", "AKTU"];
 const BRANCHES = ["CSE", "IT", "ECE", "EE", "ME", "Civil", "AIDS"];
 const GENDERS = ["Male", "Female", "Other"];
 
 const Profile = () => {
-  const { setUser } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { user: clerkUser } = useUser();
+  const { setUser, logout } = useContext(AuthContext);
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const [formData, setFormData] = useState({ 
     name: "", 
     email: "",
@@ -87,6 +94,43 @@ const Profile = () => {
       console.error("Error updating profile:", error);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Handle account deletion
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    
+    try {
+      const token = localStorage.getItem("token");
+      
+      // Delete from backend first
+      await axios.delete(
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/me`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Delete from Clerk if user exists
+      if (clerkUser) {
+        try {
+          await clerkUser.delete();
+        } catch (clerkErr) {
+          console.error("Clerk deletion error (may not exist):", clerkErr);
+          // Continue even if Clerk deletion fails - backend is source of truth
+        }
+      }
+      
+      // Clear local storage and logout
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      logout();
+      
+      // Redirect to home
+      navigate("/");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      alert("Failed to delete account. Please try again.");
+      setDeleting(false);
     }
   };
 
@@ -379,6 +423,76 @@ const Profile = () => {
             </div>
           )}
         </Card>
+
+        {/* Danger Zone - Account Deletion */}
+        <Card className="mt-6 shadow-lg border-red-200 bg-red-50">
+          <div className="flex items-center gap-3 mb-4">
+            <FaTrash className="text-red-500" />
+            <h3 className="text-lg font-bold text-red-700">Danger Zone</h3>
+          </div>
+          <p className="text-sm text-red-600 mb-4">
+            Once you delete your account, there is no going back. This will permanently delete your account and all associated data.
+          </p>
+          <Button
+            variant="ghost"
+            onClick={() => setShowDeleteModal(true)}
+            className="border-red-300 text-red-600 hover:bg-red-100 hover:border-red-400"
+          >
+            Delete Account
+          </Button>
+        </Card>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="max-w-md w-full shadow-2xl">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+                  <FaTrash className="text-2xl text-red-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">Delete Account?</h3>
+                <p className="text-slate-500 mt-2">
+                  This action cannot be undone. All your data will be permanently removed.
+                </p>
+              </div>
+
+              <div className="mb-6">
+                <label className="block mb-2 text-sm font-bold text-slate-700">
+                  Type <span className="text-red-600">DELETE</span> to confirm
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-300 bg-slate-50 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+                  placeholder="DELETE"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeleteConfirmText("");
+                  }}
+                  fullWidth
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteConfirmText !== "DELETE" || deleting}
+                  loading={deleting}
+                  fullWidth
+                  className="bg-red-600 hover:bg-red-700 border-red-600 text-white"
+                >
+                  Delete Forever
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

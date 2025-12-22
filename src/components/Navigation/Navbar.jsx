@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { FaCrown } from "react-icons/fa";
+import { FaCrown, FaMoon, FaSun } from "react-icons/fa";
 import { PlayCircle } from "lucide-react";
 import { useTour } from "../../context/TourContext";
+import { useTheme } from "../../context/ThemeContext";
 import { getAvatarByIndex } from "../../utils/avatarUtils";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -58,6 +59,7 @@ const underlineVariants = {
 };
 
 const Navbar = ({ user, onLogout }) => {
+  const { theme, toggleTheme, isDarkThemeEnabled } = useTheme();
   const { isGuestMode, startTour, isTourEnabled } = useTour();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -259,6 +261,19 @@ const Navbar = ({ user, onLogout }) => {
               </NavLink>
             ))}
 
+            {/* Theme Toggle - only show when dark theme is enabled */}
+            {isDarkThemeEnabled && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleTheme}
+                className="p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--color-slate-200)] hover:border-[var(--accent-secondary)] transition-colors text-[var(--action-primary)] ml-2"
+                aria-label="Toggle Theme"
+              >
+                {theme === "premium-dark" ? <FaSun size={20} /> : <FaMoon size={20} />}
+              </motion.button>
+            )}
+
             {/* Profile avatar */}
             <button
               onClick={handleProfileClick}
@@ -301,6 +316,19 @@ const Navbar = ({ user, onLogout }) => {
         {/* Non-logged in nav items */}
         {(!user && !isGuestMode) && (
           <div className="flex items-center gap-4">
+            {/* Theme Toggle - only show when dark theme is enabled */}
+            {isDarkThemeEnabled && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleTheme}
+                className="p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--color-slate-200)] hover:border-[var(--accent-secondary)] transition-colors text-[var(--action-primary)]"
+                aria-label="Toggle Theme"
+              >
+                {theme === "premium-dark" ? <FaSun size={20} /> : <FaMoon size={20} />}
+              </motion.button>
+            )}
+
             {/* Show Take a Tour button only when tour feature is enabled */}
             {isTourEnabled && (
               <motion.button
@@ -411,6 +439,20 @@ const Navbar = ({ user, onLogout }) => {
               </span>
             </NavLink>
           ))}
+          {/* Theme Toggle Mobile - only show when dark theme is enabled */}
+          {isDarkThemeEnabled && (
+            <button
+              onClick={() => {
+                toggleTheme();
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-4 py-3 rounded-xl font-medium text-[var(--text-primary)] hover:bg-[var(--accent-secondary)]/10 flex items-center gap-2"
+            >
+              {theme === "premium-dark" ? <FaSun className="text-amber-400" /> : <FaMoon className="text-indigo-600" />}
+              {theme === "premium-dark" ? "Light Mode" : "Dark Mode"}
+            </button>
+          )}
+          
           <button
             onClick={() => { 
               sessionStorage.removeItem("medha_feature_modal_shown");
