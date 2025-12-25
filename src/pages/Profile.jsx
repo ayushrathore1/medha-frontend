@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useUser } from "@clerk/clerk-react";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
@@ -15,7 +14,6 @@ const GENDERS = ["Male", "Female", "Other"];
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user: clerkUser } = useUser();
   const { setUser, logout } = useContext(AuthContext);
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -120,7 +118,8 @@ const Profile = () => {
       const token = localStorage.getItem("token");
       const finalReason = deleteReason === "Other" ? otherReason : deleteReason;
       
-      // Delete from backend first (include reason for analytics)
+      // Delete from backend (MongoDB) - this is the only storage now
+      // Clerk accounts are temporary and abandoned after email verification
       await axios.delete(
         `${import.meta.env.VITE_BACKEND_URL}/api/users/me`,
         { 
@@ -128,15 +127,6 @@ const Profile = () => {
           data: { reason: finalReason }
         }
       );
-      
-      // Delete from Clerk if user exists
-      if (clerkUser) {
-        try {
-          await clerkUser.delete();
-        } catch (clerkErr) {
-          console.error("Clerk deletion error (may not exist):", clerkErr);
-        }
-      }
       
       // Clear local storage and logout
       localStorage.removeItem("token");

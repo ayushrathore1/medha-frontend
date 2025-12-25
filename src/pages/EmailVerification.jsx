@@ -14,7 +14,7 @@ const EmailVerification = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
-  const { isLoaded, signUp, setActive } = useSignUp();
+  // Clerk SignUp hook - only used for email verification (OTP delivery)\n  const { isLoaded, signUp } = useSignUp();
   
   // Get user data passed from login page
   const userData = location.state?.userData;

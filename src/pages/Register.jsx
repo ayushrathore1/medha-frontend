@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useSignUp } from "@clerk/clerk-react";
@@ -20,8 +20,8 @@ const Register = () => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
   
-  // Clerk SignUp hook
-  const { isLoaded, signUp, setActive } = useSignUp();
+  // Clerk SignUp hook - only used for email verification (OTP)
+  const { isLoaded, signUp } = useSignUp();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -45,12 +45,11 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // Create Clerk signup and send verification email
+      // Create Clerk signup for EMAIL VERIFICATION ONLY - no password stored in Clerk
+      // Password will be stored only in MongoDB with bcrypt
       await signUp.create({
         emailAddress: formData.email,
-        password: formData.password,
-        firstName: formData.name.split(" ")[0],
-        lastName: formData.name.split(" ").slice(1).join(" ") || undefined,
+        // Note: No password sent to Clerk - Clerk is only used for email OTP
       });
 
       // Prepare email verification
@@ -89,24 +88,17 @@ const Register = () => {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          password: formData.password,
+          password: formData.password, // Password goes to backend only (bcrypt hashed)
           emailVerified: true,
-          clerkUserId: clerkSignUp.createdUserId || clerkSignUp.id,
+          // Note: clerkUserId removed - Clerk is only used for email verification
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Set Clerk session active (if session ID exists)
-        if (clerkSignUp.createdSessionId) {
-          try {
-            await setActive({ session: clerkSignUp.createdSessionId });
-          } catch (sessionErr) {
-            console.warn("Session activation warning:", sessionErr);
-            // Continue anyway - session is optional
-          }
-        }
+        // Note: No Clerk session activation - we use our own JWT for auth
+        // Clerk was only used for email verification OTP
         
         // Store JWT and user data from our backend
         localStorage.setItem("token", data.token);
