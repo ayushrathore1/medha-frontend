@@ -45,6 +45,10 @@ const AdminDashboard = () => {
   // Email History State
   const [emailHistory, setEmailHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState(null); // For viewing recipients
+
+  // Password Reset State
+  const [resettingPassword, setResettingPassword] = useState(null); // email of user being reset
 
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
@@ -332,6 +336,36 @@ const AdminDashboard = () => {
     }
   };
 
+  // Check if a user has already received the current email being composed
+  const hasUserReceivedCurrentEmail = (userEmail) => {
+    if (!emailSubject || !emailBody || !userEmail) return false;
+    
+    // Find matching email in history by subject and body
+    const matchingLog = emailHistory.find(
+      log => log.subject === emailSubject && log.htmlBody === emailBody
+    );
+    
+    if (!matchingLog || !matchingLog.recipients) return false;
+    
+    return matchingLog.recipients.includes(userEmail.toLowerCase());
+  };
+
+  // Handle password reset for a user (admin only)
+  const handlePasswordReset = async (email, userName) => {
+    if (!window.confirm(`Send password reset link to ${userName} (${email})?`)) return;
+    
+    setResettingPassword(email);
+    try {
+      const res = await axios.post(`${BACKEND_URL}/api/auth/admin/trigger-reset`, { email }, { headers });
+      alert(`✅ ${res.data.message}`);
+    } catch (error) {
+      console.error("Error sending reset:", error);
+      alert(`❌ Failed: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setResettingPassword(null);
+    }
+  };
+
   // ==================== RENDER ====================
 
   if (loading) return <Loader fullScreen />;
@@ -588,29 +622,55 @@ const AdminDashboard = () => {
                  {loadingUsers ? (
                    <div className="flex justify-center py-8"><FaSpinner className="animate-spin text-2xl text-purple-500" /></div>
                  ) : (
-                   getFilteredUsers().map(user => (
-                     <div 
-                       key={user._id}
-                       onClick={() => {
-                         setEmailMode("individual");
-                         setSelectedUser(user);
-                       }}
-                       className={`p-3 rounded-lg cursor-pointer border transition-all ${selectedUser?._id === user._id && emailMode === "individual" ? "bg-white border-purple-500 shadow-sm ring-1 ring-purple-500" : "bg-white border-gray-200 hover:border-purple-300 hover:shadow-sm"}`}
-                     >
-                       <div className="flex items-center justify-between">
-                         <div className="font-semibold text-sm truncate" style={{ color: "var(--text-primary)" }}>{user.name}</div>
-                         {user.emailVerified ? (
-                           <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">✓ Verified</span>
-                         ) : (
-                           <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">✗ Unverified</span>
-                         )}
-                       </div>
-                       <div className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>{user.email}</div>
-                       {user.university && (
-                         <div className="text-xs mt-1 text-purple-600 font-medium">{user.university}</div>
-                       )}
-                     </div>
-                   ))
+                   getFilteredUsers().map(user => {
+                     const alreadyReceived = hasUserReceivedCurrentEmail(user.email);
+                     return (
+                       <div 
+                         key={user._id}
+                         onClick={() => {
+                           setEmailMode("individual");
+                           setSelectedUser(user);
+                         }}
+                         className={`p-3 rounded-lg cursor-pointer border transition-all ${selectedUser?._id === user._id && emailMode === "individual" ? "bg-white border-purple-500 shadow-sm ring-1 ring-purple-500" : alreadyReceived ? "bg-blue-50/50 border-blue-200" : "bg-white border-gray-200 hover:border-purple-300 hover:shadow-sm"}`}
+                       >
+                         <div className="flex items-center justify-between gap-2">
+                           <div className="font-semibold text-sm truncate" style={{ color: "var(--text-primary)" }}>{user.name}</div>
+                           <div className="flex items-center gap-1 flex-shrink-0">
+                             {alreadyReceived && (
+                               <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">✓ Sent</span>
+                             )}
+                             {user.emailVerified ? (
+                               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Verified</span>
+                             ) : (
+                               <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">Unverified</span>
+                             )}
+                           </div>
+                         </div>
+                          <div className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>{user.email}</div>
+                          <div className="flex items-center justify-between mt-1">
+                            {user.university && (
+                              <div className="text-xs text-purple-600 font-medium">{user.university}</div>
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePasswordReset(user.email, user.name);
+                              }}
+                              disabled={resettingPassword === user.email}
+                              className="text-xs px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
+                              title="Send password reset link"
+                            >
+                              {resettingPassword === user.email ? (
+                                <FaSpinner className="animate-spin" />
+                              ) : (
+                                "🔑"
+                              )}
+                              Reset
+                            </button>
+                          </div>
+                        </div>
+                     );
+                   })
                  )}
               </div>
             </Card>
@@ -789,7 +849,7 @@ const AdminDashboard = () => {
                  <tr className="bg-gray-100/50 text-gray-500 text-xs uppercase tracking-wider">
                    <th className="p-4 font-semibold">Subject</th>
                    <th className="p-4 font-semibold text-center">Times Sent</th>
-                   <th className="p-4 font-semibold text-center">Total Recipients</th>
+                   <th className="p-4 font-semibold text-center">Recipients</th>
                    <th className="p-4 font-semibold text-right">Last Sent</th>
                    <th className="p-4 font-semibold text-center">Actions</th>
                  </tr>
@@ -819,9 +879,13 @@ const AdminDashboard = () => {
                          </span>
                        </td>
                        <td className="p-4 text-center">
-                         <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
-                           {log.totalRecipients}
-                         </span>
+                         <button
+                           onClick={() => setSelectedHistoryItem(log)}
+                           className="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded-full text-xs font-bold transition-colors cursor-pointer"
+                           title="Click to view recipients"
+                         >
+                           {log.recipients?.length || log.totalRecipients || 0} 📧
+                         </button>
                        </td>
                        <td className="p-4 text-right text-sm text-gray-500">
                          {new Date(log.lastSentAt).toLocaleString()}
@@ -861,6 +925,124 @@ const AdminDashboard = () => {
              </table>
            </div>
          </Card>
+       )}
+
+       {/* Recipients Modal */}
+       {selectedHistoryItem && (
+         <div 
+           className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+           onClick={() => setSelectedHistoryItem(null)}
+         >
+           <div 
+             className="max-w-2xl w-full max-h-[80vh] flex flex-col bg-white rounded-xl overflow-hidden shadow-2xl"
+             onClick={(e) => e.stopPropagation()}
+           >
+             {/* Modal Header */}
+             <div className="p-4 border-b bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+               <div className="flex justify-between items-center">
+                 <div>
+                   <span className="text-xs font-bold uppercase tracking-widest opacity-80">Email Recipients</span>
+                   <h3 className="text-lg font-bold truncate max-w-md">
+                      {selectedHistoryItem.subject}
+                   </h3>
+                 </div>
+                 <button 
+                   onClick={() => setSelectedHistoryItem(null)}
+                   className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                 >
+                   <FaTimes />
+                 </button>
+               </div>
+             </div>
+             
+             {/* Stats Row */}
+             <div className="p-4 bg-gray-50 border-b flex gap-4">
+               <div className="flex-1 text-center">
+                 <div className="text-2xl font-bold text-green-600">{selectedHistoryItem.recipients?.length || 0}</div>
+                 <div className="text-xs text-gray-500">Delivered</div>
+               </div>
+               <div className="flex-1 text-center">
+                 <div className="text-2xl font-bold text-gray-600">{users.length - (selectedHistoryItem.recipients?.length || 0)}</div>
+                 <div className="text-xs text-gray-500">Not Received</div>
+               </div>
+               <div className="flex-1 text-center">
+                 <div className="text-2xl font-bold text-purple-600">{users.length}</div>
+                 <div className="text-xs text-gray-500">Total Users</div>
+               </div>
+             </div>
+             
+             {/* Recipients List */}
+             <div className="flex-1 overflow-y-auto p-4">
+               {selectedHistoryItem.recipients && selectedHistoryItem.recipients.length > 0 ? (
+                 <>
+                   <h4 className="text-sm font-bold text-green-700 mb-3 flex items-center gap-2">
+                     <FaCheckCircle /> Received ({selectedHistoryItem.recipients.length})
+                   </h4>
+                   <div className="space-y-2 mb-6">
+                     {selectedHistoryItem.recipients.map((email, idx) => {
+                       const user = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+                       return (
+                         <div key={idx} className="flex items-center gap-3 p-2 bg-green-50 rounded-lg border border-green-100">
+                           <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                           <div className="flex-1 min-w-0">
+                             <div className="font-medium text-sm truncate text-gray-800">{user?.name || 'Unknown'}</div>
+                             <div className="text-xs truncate text-gray-500">{email}</div>
+                           </div>
+                         </div>
+                       );
+                     })}
+                   </div>
+                   
+                   {/* Users who didn't receive */}
+                   <h4 className="text-sm font-bold text-red-700 mb-3 flex items-center gap-2">
+                     <FaTimes /> Not Received ({users.filter(u => !selectedHistoryItem.recipients.includes(u.email?.toLowerCase())).length})
+                   </h4>
+                   <div className="space-y-2">
+                     {users
+                       .filter(u => !selectedHistoryItem.recipients.includes(u.email?.toLowerCase()))
+                       .map(user => (
+                         <div key={user._id} className="flex items-center gap-3 p-2 bg-red-50 rounded-lg border border-red-100">
+                           <FaTimes className="text-red-400 flex-shrink-0" />
+                           <div className="flex-1 min-w-0">
+                             <div className="font-medium text-sm truncate text-gray-800">{user.name}</div>
+                             <div className="text-xs truncate text-gray-500">{user.email}</div>
+                           </div>
+                           <button
+                             onClick={() => {
+                               setSelectedUser(user);
+                               setEmailMode("individual");
+                               setEmailSubject(selectedHistoryItem.subject);
+                               setEmailBody(selectedHistoryItem.htmlBody);
+                               setActiveTab("email");
+                               setSelectedHistoryItem(null);
+                             }}
+                             className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded font-bold transition-colors"
+                           >
+                             Send
+                           </button>
+                         </div>
+                       ))}
+                   </div>
+                 </>
+               ) : (
+                 <div className="text-center text-gray-500 py-8">
+                   <p>No recipient data available for this email.</p>
+                   <p className="text-sm mt-2">Recipient tracking was added in a recent update.</p>
+                 </div>
+               )}
+             </div>
+             
+             {/* Footer */}
+             <div className="p-4 border-t bg-gray-50 flex justify-end">
+               <button
+                 onClick={() => setSelectedHistoryItem(null)}
+                 className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors"
+               >
+                 Close
+               </button>
+             </div>
+           </div>
+         </div>
        )}
        
        {/* Email Preview Modal */}

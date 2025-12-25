@@ -66,6 +66,7 @@ const RTUExams = () => {
   } : null);
   const [yearsLoading, setYearsLoading] = useState(false);
   const [weightageLoading, setWeightageLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false); // For admin image upload capability
 
   useEffect(() => {
     // Skip login redirect if in guest mode (tour)
@@ -77,7 +78,23 @@ const RTUExams = () => {
       return;
     }
     fetchSubjects();
+    checkAdminStatus(); // Check if user is admin for image upload capability
   }, [navigate, isGuestMode]);
+
+  const checkAdminStatus = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const res = await axios.get(`${baseUrl}/api/messages/check-admin`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log("Admin status check result:", res.data);
+      setIsAdmin(res.data.isAdmin || false);
+    } catch (e) {
+      console.error("Admin status check failed:", e);
+      setIsAdmin(false);
+    }
+  };
 
   const fetchSubjects = async () => {
     try {
@@ -416,6 +433,8 @@ const RTUExams = () => {
                             index={index}
                             subjectName={selectedSubject?.name || ""}
                             year={selectedYear}
+                            isAdmin={isAdmin}
+                            onQuestionsUpdated={() => fetchUnitWeightage(selectedSubject.name, selectedYear)}
                          />
                       ))}
                    </div>

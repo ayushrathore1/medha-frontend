@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ChatbotWidget from "../components/Chatbot/ChatbotWidget";
-import { FaPlus, FaHistory, FaTrash, FaEdit, FaCheck, FaTimes, FaComments, FaRobot } from "react-icons/fa";
+import { FaPlus, FaHistory, FaTrash, FaEdit, FaCheck, FaTimes, FaComments, FaRobot, FaBolt, FaChevronDown } from "react-icons/fa";
+import { SiGooglegemini } from "react-icons/si";
 import Loader from "../components/Common/Loader";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -27,6 +28,25 @@ const Chatbot = () => {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [loadingSessions, setLoadingSessions] = useState(false);
+  
+  // AI Model selection state
+  const [selectedModel, setSelectedModel] = useState(() => {
+    return localStorage.getItem("chatbot_model") || "groq";
+  });
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
+
+  // Available AI models
+  const AI_MODELS = {
+    groq: { name: "Groq", subtitle: "Llama 3", icon: FaBolt, color: "text-orange-500" },
+    gemini: { name: "Gemini", subtitle: "Google AI", icon: SiGooglegemini, color: "text-blue-500" }
+  };
+
+  // Persist model selection
+  const handleModelChange = (model) => {
+    setSelectedModel(model);
+    localStorage.setItem("chatbot_model", model);
+    setShowModelDropdown(false);
+  };
 
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
@@ -119,7 +139,7 @@ const Chatbot = () => {
 
       const response = await axios.post(
         `${BACKEND_URL}/api/chatbot/ask`,
-        { input: message, sessionId },
+        { input: message, sessionId, model: selectedModel },
         { headers }
       );
 
@@ -163,7 +183,7 @@ const Chatbot = () => {
     try {
       const response = await axios.post(
         `${BACKEND_URL}/api/chatbot/ask`,
-        { input: userMessage, sessionId: currentSessionId },
+        { input: userMessage, sessionId: currentSessionId, model: selectedModel },
         { headers }
       );
 
@@ -297,12 +317,71 @@ const Chatbot = () => {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col h-full bg-slate-50 relative min-w-0">
-         {/* Mobile Header Toggle */}
-         <div className="md:hidden p-4 bg-white border-b border-slate-200 flex items-center justify-between shadow-sm z-10">
-            <h2 className="font-bold flex items-center gap-2 text-indigo-600"><FaRobot/> Medha AI</h2>
-            <button onClick={() => setShowHistory(true)} className="p-2 bg-slate-100 rounded-lg text-slate-600">
-               <FaHistory />
-            </button>
+         {/* Header with Model Selector */}
+         <div className="p-3 md:p-4 bg-white border-b border-slate-200 flex items-center justify-between shadow-sm z-10">
+            <div className="flex items-center gap-3">
+               {/* Mobile History Toggle */}
+               <button 
+                  onClick={() => setShowHistory(true)} 
+                  className="md:hidden p-2 bg-slate-100 rounded-lg text-slate-600 hover:bg-slate-200 transition-colors"
+               >
+                  <FaHistory />
+               </button>
+               <h2 className="font-bold flex items-center gap-2 text-indigo-600">
+                  <FaRobot/> Medha AI
+               </h2>
+            </div>
+            
+            {/* Model Selector Dropdown */}
+            <div className="relative">
+               <button
+                  onClick={() => setShowModelDropdown(!showModelDropdown)}
+                  className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all text-sm font-medium text-slate-700 border border-slate-200"
+               >
+                  {(() => {
+                     const ModelIcon = AI_MODELS[selectedModel].icon;
+                     return <ModelIcon className={`text-lg ${AI_MODELS[selectedModel].color}`} />;
+                  })()}
+                  <span className="hidden sm:inline">{AI_MODELS[selectedModel].name}</span>
+                  <FaChevronDown className={`text-xs transition-transform ${showModelDropdown ? 'rotate-180' : ''}`} />
+               </button>
+               
+               {/* Dropdown Menu */}
+               {showModelDropdown && (
+                  <>
+                     <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setShowModelDropdown(false)}
+                     />
+                     <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50">
+                        <div className="p-2 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100 px-3">
+                           Select AI Model
+                        </div>
+                        {Object.entries(AI_MODELS).map(([key, model]) => {
+                           const ModelIcon = model.icon;
+                           return (
+                              <button
+                                 key={key}
+                                 onClick={() => handleModelChange(key)}
+                                 className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors ${
+                                    selectedModel === key ? 'bg-indigo-50 border-l-2 border-indigo-500' : ''
+                                 }`}
+                              >
+                                 <ModelIcon className={`text-xl ${model.color}`} />
+                                 <div>
+                                    <p className="font-semibold text-slate-800">{model.name}</p>
+                                    <p className="text-xs text-slate-500">{model.subtitle}</p>
+                                 </div>
+                                 {selectedModel === key && (
+                                    <FaCheck className="ml-auto text-indigo-500 text-sm" />
+                                 )}
+                              </button>
+                           );
+                        })}
+                     </div>
+                  </>
+               )}
+            </div>
          </div>
 
          <ChatbotWidget

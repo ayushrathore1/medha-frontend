@@ -1,127 +1,37 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useSignIn } from "@clerk/clerk-react";
+import { Link } from "react-router-dom";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 
 /**
- * ForgotPassword - Now uses Clerk for password reset
- * Clerk handles email sending and password reset flow
+ * ForgotPassword - Directs users to contact admin via WhatsApp
  */
 const ForgotPassword = () => {
-  const navigate = useNavigate();
-  const { isLoaded, signIn } = useSignIn();
-  
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [step, setStep] = useState("email"); // email, code, newPassword, success
-  const [code, setCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Step 1: Request password reset code
-  const handleRequestCode = async (e) => {
-    e.preventDefault();
-    
-    if (!isLoaded) {
-      setError("Service is loading. Please wait.");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      // Start the password reset flow with Clerk
-      await signIn.create({
-        strategy: "reset_password_email_code",
-        identifier: email,
-      });
-      
-      setStep("code");
-    } catch (err) {
-      console.error("Password reset error:", err);
-      if (err.errors && err.errors.length > 0) {
-        const clerkError = err.errors[0];
-        if (clerkError.code === "form_identifier_not_found") {
-          setError("No account found with this email address.");
-        } else {
-          setError(clerkError.longMessage || clerkError.message || "Failed to send reset code");
-        }
-      } else {
-        setError(err.message || "Failed to send reset code. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
+  const ADMIN_WHATSAPP = "+916377805448";
+  
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  // Step 2: Verify code and set new password
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
+  const handleWhatsAppClick = () => {
+    if (!email.trim()) {
+      setError("Please enter your email address");
+      return;
+    }
     
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address");
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
-    }
-
-    setLoading(true);
     setError("");
-
-    try {
-      // Attempt to reset password with the code
-      const result = await signIn.attemptFirstFactor({
-        strategy: "reset_password_email_code",
-        code,
-        password: newPassword,
-      });
-
-      if (result.status === "complete") {
-        setStep("success");
-        // Redirect to login after 3 seconds
-        setTimeout(() => {
-          navigate("/login");
-        }, 3000);
-      } else {
-        setError("Password reset incomplete. Please try again.");
-      }
-    } catch (err) {
-      console.error("Password reset error:", err);
-      if (err.errors && err.errors.length > 0) {
-        const clerkError = err.errors[0];
-        if (clerkError.code === "form_code_incorrect") {
-          setError("Invalid verification code. Please check and try again.");
-        } else if (clerkError.code === "form_password_pwned") {
-          setError("This password is too common. Please choose a stronger password.");
-        } else {
-          setError(clerkError.longMessage || clerkError.message || "Failed to reset password");
-        }
-      } else {
-        setError(err.message || "Failed to reset password. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Resend code
-  const handleResendCode = async () => {
-    try {
-      await signIn.create({
-        strategy: "reset_password_email_code",
-        identifier: email,
-      });
-      setError("");
-      alert("Reset code resent! Check your email.");
-    } catch (err) {
-      setError("Failed to resend code. Please try again.");
-    }
+    const message = `Hi Admin, I forgot my password for MEDHA.\n\nMy registered email: ${email.trim()}\n\nPlease help me reset my password. Thank you!`;
+    
+    const whatsappUrl = `https://wa.me/${ADMIN_WHATSAPP.replace('+', '')}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   return (
@@ -133,168 +43,72 @@ const ForgotPassword = () => {
       </div>
 
       <Card className="max-w-md w-full shadow-2xl shadow-indigo-500/10 border-indigo-100 p-8">
-        {step === "email" && (
-          <form onSubmit={handleRequestCode}>
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center">
-                <span className="text-3xl">🔐</span>
-              </div>
-              <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
-                Forgot Password
-              </h2>
-              <p className="text-slate-500 mt-2">
-                Enter your email and we'll send you a code to reset your password.
-              </p>
-            </div>
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-100 flex items-center justify-center">
+            <span className="text-3xl">🔐</span>
+          </div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+            Forgot Password
+          </h2>
+          <p className="text-slate-500 mt-2">
+            Enter your email and contact our admin via WhatsApp to reset your password.
+          </p>
+        </div>
 
-            {error && (
-              <div className="p-4 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-200 text-center mb-4">
-                {error}
-              </div>
-            )}
-
-            <input
-              type="email"
-              className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 placeholder-slate-400 font-medium mb-4 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-              placeholder="Email Address"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            
-            <Button
-              type="submit"
-              disabled={loading || !isLoaded}
-              loading={loading}
-              fullWidth
-              className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 border-0"
-            >
-              Send Reset Code
-            </Button>
-            
-            <div className="mt-6 text-center">
-              <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-700">
-                Back to Login
-              </Link>
-            </div>
-          </form>
-        )}
-
-        {step === "code" && (
-          <form onSubmit={handleResetPassword}>
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-                <span className="text-3xl">📧</span>
-              </div>
-              <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
-                Check Your Email
-              </h2>
-              <p className="text-slate-500 mt-2">
-                We sent a code to <strong>{email}</strong>
-              </p>
-            </div>
-
-            {error && (
-              <div className="p-4 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-200 text-center mb-4">
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <label className="block mb-2 text-sm font-bold text-slate-700">
-                  Verification Code
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-4 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 text-center text-2xl font-bold tracking-[0.5em] placeholder-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  placeholder="000000"
-                  maxLength={6}
-                  required
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-sm font-bold text-slate-700">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 placeholder-slate-400 font-medium transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  placeholder="••••••••"
-                  required
-                  minLength={8}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 text-sm font-bold text-slate-700">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 placeholder-slate-400 font-medium transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  placeholder="••••••••"
-                  required
-                  minLength={8}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading || code.length !== 6}
-              loading={loading}
-              fullWidth
-              className="mt-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 border-0"
-            >
-              Reset Password
-            </Button>
-
-            <div className="mt-4 text-center">
-              <button
-                type="button"
-                onClick={handleResendCode}
-                className="text-sm text-indigo-600 font-semibold hover:text-indigo-700 hover:underline"
-              >
-                Didn't receive the code? Resend
-              </button>
-            </div>
-
-            <div className="mt-4 text-center">
-              <button
-                type="button"
-                onClick={() => setStep("email")}
-                className="text-sm text-slate-500 font-medium hover:text-slate-700"
-              >
-                ← Use different email
-              </button>
-            </div>
-          </form>
-        )}
-
-        {step === "success" && (
-          <div className="text-center py-8">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
-              <span className="text-4xl">✅</span>
-            </div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900 mb-2">
-              Password Reset!
-            </h2>
-            <p className="text-slate-500">
-              Your password has been successfully reset.
-            </p>
-            <p className="text-slate-400 text-sm mt-4">
-              Redirecting to login...
-            </p>
+        {error && (
+          <div className="p-4 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-200 text-center mb-4">
+            {error}
           </div>
         )}
+
+        {/* Email input - required */}
+        <div className="mb-4">
+          <label className="block mb-2 text-sm font-bold text-slate-700">
+            Your Email <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="email"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 placeholder-slate-400 font-medium transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+            placeholder="Enter your registered email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setError("");
+            }}
+            required
+          />
+        </div>
+
+        {/* WhatsApp Contact Button */}
+        <button
+          onClick={handleWhatsAppClick}
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-[#25D366] hover:bg-[#20BD5A] text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg 
+            className="w-6 h-6" 
+            fill="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          Contact Admin on WhatsApp
+        </button>
+
+        {/* Privacy Notice */}
+        <div className="mt-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+          <p className="text-center text-emerald-700 font-semibold text-sm">
+            📧 You'll receive a password reset link on your email
+          </p>
+          <p className="text-center text-emerald-600 text-sm mt-2">
+            🔒 Your account is completely secure & private. The admin cannot access your password - they only trigger the reset link.
+          </p>
+        </div>
+
+        <div className="mt-6 text-center">
+          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-700">
+            Back to Login
+          </Link>
+        </div>
       </Card>
     </div>
   );

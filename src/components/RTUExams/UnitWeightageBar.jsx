@@ -2,12 +2,14 @@ import React, { useState, useMemo } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { getBarGradient } from "../../utils/unitWeightageUtils";
-import { FaYoutube, FaChevronDown, FaChevronUp, FaMagic, FaEye, FaSpinner, FaTimes, FaBookOpen, FaPlay, FaList } from "react-icons/fa";
+import { FaYoutube, FaChevronDown, FaChevronUp, FaMagic, FaEye, FaSpinner, FaTimes, FaBookOpen, FaPlay, FaList, FaImage } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
+import QuestionImageUploader from "./QuestionImageUploader";
+import QuestionImageModal from "./QuestionImageModal";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -31,7 +33,9 @@ const UnitWeightageBar = ({
   questions = [],
   index = 0,
   subjectName = "",
-  year = "", // Add year prop with default
+  year = "",
+  isAdmin = false, // Admin can upload images
+  onQuestionsUpdated, // Callback when questions are updated
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [solutions, setSolutions] = useState({});
@@ -39,6 +43,8 @@ const UnitWeightageBar = ({
   const [viewingIdx, setViewingIdx] = useState(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [activePlaylistIndex, setActivePlaylistIndex] = useState(0);
+  const [viewingImageIdx, setViewingImageIdx] = useState(null); // For image modal
+  const [localQuestions, setLocalQuestions] = useState(questions); // Local copy for image updates
 
   const barWidth = Math.min(weightagePercentage, 100);
 
@@ -93,6 +99,7 @@ const UnitWeightageBar = ({
           subject: subjectName,
           unit: `Unit ${unitSerial} - ${unitName}`,
           marks: question.marks,
+          model: localStorage.getItem("chatbot_model") || "groq", // Use user's selected model
         },
         { headers, timeout: 120000 }
       );
@@ -117,6 +124,23 @@ const UnitWeightageBar = ({
   const closeSolution = (e) => {
     e.stopPropagation();
     setViewingIdx(null);
+  };
+
+  // Handle image update from uploader
+  const handleImageUpdated = (qCode, newImageUrl) => {
+    setLocalQuestions(prev => 
+      prev.map(q => 
+        q.qCode === qCode 
+          ? { ...q, imageUrl: newImageUrl } 
+          : q
+      )
+    );
+    onQuestionsUpdated && onQuestionsUpdated();
+  };
+
+  // Close image modal
+  const closeImageModal = () => {
+    setViewingImageIdx(null);
   };
 
   return (
@@ -175,7 +199,7 @@ const UnitWeightageBar = ({
 
         {/* Questions List */}
         <AnimatePresence>
-          {isExpanded && questions.length > 0 && (
+          {isExpanded && localQuestions.length > 0 && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
@@ -183,20 +207,34 @@ const UnitWeightageBar = ({
               transition={{ duration: 0.3 }}
               className="overflow-hidden"
             >
-               <div className="mt-6 pt-6 border-t border-slate-100 space-y-4">
-                  <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <FaBookOpen /> Past Year Questions ({year})
-                  </h5>
+               <div className="mt-6 pt-6 border-t border-slate-100 space-y-4" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                      <FaBookOpen /> Past Year Questions ({year})
+                    </h5>
+                    {isAdmin && (
+                      <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                        Admin Mode
+                      </span>
+                    )}
+                  </div>
 
-                  {questions.map((q, idx) => (
+                  {localQuestions.map((q, idx) => (
                     <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-indigo-200 transition-colors">
                        <div className="flex justify-between items-start mb-3">
                           <span className="font-bold text-indigo-600 text-sm bg-white px-2 py-0.5 rounded border border-indigo-100 shadow-sm">
                              {q.qCode}
                           </span>
-                          <span className="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">
-                             {q.marks} Marks
-                          </span>
+                          <div className="flex items-center gap-2">
+                             {q.imageUrl && (
+                               <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                                 <FaImage className="text-emerald-500" /> Has Image
+                               </span>
+                             )}
+                             <span className="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">
+                                {q.marks} Marks
+                             </span>
+                          </div>
                        </div>
                        
                        <div 
@@ -204,7 +242,18 @@ const UnitWeightageBar = ({
                          dangerouslySetInnerHTML={{ __html: q.text }}
                        />
 
-                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                       <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+                          {/* Show Image button - visible to all users when image exists */}
+                          {q.imageUrl && (
+                            <button
+                              onClick={() => setViewingImageIdx(idx)}
+                              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 transition-all shadow-md hover:shadow-lg"
+                            >
+                              <FaImage /> Show Image
+                            </button>
+                          )}
+                          
+                          {/* Solve button */}
                           <button
                             onClick={(e) => handleSolve(e, q, idx)}
                             disabled={loadingIdx === idx}
@@ -223,6 +272,17 @@ const UnitWeightageBar = ({
                              )}
                           </button>
                        </div>
+
+                       {/* Admin-only image uploader */}
+                       {isAdmin && (
+                         <QuestionImageUploader
+                           question={q}
+                           subjectName={subjectName}
+                           year={year}
+                           unitSerial={unitSerial}
+                           onImageUpdated={handleImageUpdated}
+                         />
+                       )}
                     </div>
                   ))}
                </div>
@@ -385,6 +445,14 @@ const UnitWeightageBar = ({
           </div>
         )}
       </AnimatePresence>
+
+      {/* Question Image Modal */}
+      <QuestionImageModal
+        isOpen={viewingImageIdx !== null}
+        imageUrl={localQuestions[viewingImageIdx]?.imageUrl}
+        questionCode={localQuestions[viewingImageIdx]?.qCode}
+        onClose={closeImageModal}
+      />
     </>
   );
 };
