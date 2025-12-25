@@ -222,9 +222,16 @@ const UnitWeightageBar = ({
                   {localQuestions.map((q, idx) => (
                     <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-indigo-200 transition-colors">
                        <div className="flex justify-between items-start mb-3">
-                          <span className="font-bold text-indigo-600 text-sm bg-white px-2 py-0.5 rounded border border-indigo-100 shadow-sm">
-                             {q.qCode}
-                          </span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-indigo-600 text-sm bg-white px-2 py-0.5 rounded border border-indigo-100 shadow-sm">
+                               {q.qCode}
+                            </span>
+                            {q.topic && (
+                              <span className="text-xs font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded border border-violet-200">
+                                 📌 {q.topic}
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-2">
                              {q.imageUrl && (
                                <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
