@@ -1,15 +1,11 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { getBarGradient } from "../../utils/unitWeightageUtils";
-import { FaYoutube, FaChevronDown, FaChevronUp, FaMagic, FaEye, FaSpinner, FaTimes, FaBookOpen, FaPlay, FaList, FaImage } from "react-icons/fa";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import "katex/dist/katex.min.css";
+import { FaYoutube, FaChevronDown, FaChevronUp, FaMagic, FaEye, FaSpinner, FaTimes, FaBookOpen, FaPlay, FaList, FaImage, FaBolt, FaBrain, FaSync, FaDatabase } from "react-icons/fa";
 import QuestionImageUploader from "./QuestionImageUploader";
 import QuestionImageModal from "./QuestionImageModal";
+import DynamicSolutionRenderer from "./DynamicSolutionRenderer";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -38,13 +34,61 @@ const UnitWeightageBar = ({
   onQuestionsUpdated, // Callback when questions are updated
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [solutions, setSolutions] = useState({});
+  const [solutions, setSolutions] = useState({}); // Stores full response objects
   const [loadingIdx, setLoadingIdx] = useState(null);
   const [viewingIdx, setViewingIdx] = useState(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [activePlaylistIndex, setActivePlaylistIndex] = useState(0);
   const [viewingImageIdx, setViewingImageIdx] = useState(null); // For image modal
   const [localQuestions, setLocalQuestions] = useState(questions); // Local copy for image updates
+  const [solveMode, setSolveMode] = useState("deep"); // "quick" or "deep"
+  const [processingLayer, setProcessingLayer] = useState(""); // Current layer being processed
+  const [hasFetchedCache, setHasFetchedCache] = useState(false); // Track if we've fetched cached solutions
+
+  // Fetch cached solutions when the unit is expanded
+  useEffect(() => {
+    const fetchCachedSolutions = async () => {
+      if (!isExpanded || hasFetchedCache || !localQuestions || localQuestions.length === 0) {
+        return;
+      }
+      
+      try {
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        
+        const response = await axios.post(
+          `${BACKEND_URL}/api/chatbot/solve/check-cache`,
+          {
+            questions: localQuestions,
+            subject: subjectName
+          },
+          { headers, timeout: 10000 }
+        );
+        
+        if (response.data.cachedSolutions && Object.keys(response.data.cachedSolutions).length > 0) {
+          // Map qCode to index and set solutions
+          const solutionsByIdx = {};
+          localQuestions.forEach((q, idx) => {
+            if (response.data.cachedSolutions[q.qCode]) {
+              solutionsByIdx[idx] = response.data.cachedSolutions[q.qCode];
+            }
+          });
+          
+          if (Object.keys(solutionsByIdx).length > 0) {
+            setSolutions(prev => ({ ...prev, ...solutionsByIdx }));
+            console.log(`📦 Loaded ${Object.keys(solutionsByIdx).length} cached solutions`);
+          }
+        }
+        
+        setHasFetchedCache(true);
+      } catch (error) {
+        console.log("Could not fetch cached solutions:", error.message);
+        setHasFetchedCache(true); // Don't retry on error
+      }
+    };
+    
+    fetchCachedSolutions();
+  }, [isExpanded, hasFetchedCache, localQuestions, subjectName]);
 
   const barWidth = Math.min(weightagePercentage, 100);
 
@@ -80,17 +124,51 @@ const UnitWeightageBar = ({
     }
   };
 
-  const handleSolve = async (e, question, idx) => {
+  const handleSolve = async (e, question, idx, forceMode = null, forceRegenerate = false) => {
     e.stopPropagation();
-    if (solutions[idx]) {
+    
+    // If solution exists and not forcing regenerate, just view it
+    if (solutions[idx] && !forceMode && !forceRegenerate) {
       setViewingIdx(idx);
       return;
     }
 
+    const mode = forceMode || solveMode;
     setLoadingIdx(idx);
+    setProcessingLayer(mode === "deep" ? "Analyzing question..." : "Generating solution...");
+    
     try {
       const token = localStorage.getItem("token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      // Simulate layer progress for deep mode
+      if (mode === "deep" && !forceRegenerate) {
+        const layerMessages = [
+          "📊 Layer 1: Analyzing question...",
+          "✍️ Layer 2: Generating initial solution...",
+          "🔍 Layer 3: Reviewing solution...",
+          "🌐 Layer 4: Researching RTU patterns...",
+          "⚡ Layer 5: Optimizing solution...",
+          "🎨 Layer 6: Preparing dynamic UI..."
+        ];
+        
+        let layerIdx = 0;
+        const layerInterval = setInterval(() => {
+          if (layerIdx < layerMessages.length) {
+            setProcessingLayer(layerMessages[layerIdx]);
+            layerIdx++;
+          } else {
+            setProcessingLayer("Finalizing...");
+          }
+        }, 2000);
+        
+        // Store interval ID for cleanup
+        setTimeout(() => clearInterval(layerInterval), 15000);
+      }
+      
+      if (forceRegenerate) {
+        setProcessingLayer("🔄 Regenerating fresh solution...");
+      }
       
       const response = await axios.post(
         `${BACKEND_URL}/api/chatbot/solve`,
@@ -99,25 +177,49 @@ const UnitWeightageBar = ({
           subject: subjectName,
           unit: `Unit ${unitSerial} - ${unitName}`,
           marks: question.marks,
-          model: localStorage.getItem("chatbot_model") || "groq", // Use user's selected model
+          model: localStorage.getItem("chatbot_model") || "groq",
+          quickMode: mode === "quick",
+          forceRegenerate: forceRegenerate
         },
-        { headers, timeout: 120000 }
+        { headers, timeout: mode === "deep" ? 180000 : 120000 }
       );
 
+      // Store full response data with cached status
       setSolutions(prev => ({
         ...prev,
-        [idx]: response.data.solution
+        [idx]: {
+          solution: response.data.solution,
+          analysis: response.data.analysis,
+          feedback: response.data.feedback,
+          uiTemplate: response.data.uiTemplate,
+          metadata: response.data.metadata,
+          mode: response.data.mode || mode,
+          cached: response.data.metadata?.cached || false,
+          isError: false
+        }
       }));
       setViewingIdx(idx);
     } catch (error) {
       console.error("Error solving question:", error);
+      const errorMessage = error.response?.data?.error || 
+        "❌ Failed to generate solution. One of our AI services might be busy. Please try again later.";
       setSolutions(prev => ({
         ...prev,
-        [idx]: "❌ Failed to generate solution. One of our AI services might be busy. Please try again later."
+        [idx]: {
+          solution: errorMessage,
+          analysis: null,
+          feedback: null,
+          uiTemplate: null,
+          metadata: null,
+          mode: mode,
+          cached: false,
+          isError: true
+        }
       }));
       setViewingIdx(idx);
     } finally {
       setLoadingIdx(null);
+      setProcessingLayer("");
     }
   };
 
@@ -260,23 +362,47 @@ const UnitWeightageBar = ({
                             </button>
                           )}
                           
-                          {/* Solve button */}
+                          {/* Quick Solve button */}
                           <button
-                            onClick={(e) => handleSolve(e, q, idx)}
+                            onClick={(e) => handleSolve(e, q, idx, "quick")}
+                            disabled={loadingIdx === idx}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-bold text-white transition-all shadow-md hover:shadow-lg ${
+                              solutions[idx]?.mode === "quick"
+                                ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600" 
+                                : "bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700"
+                            } ${loadingIdx === idx ? "opacity-70 cursor-wait" : ""}`}
+                            title="Quick solve - Single AI, faster"
+                          >
+                            {loadingIdx === idx && solveMode === "quick" ? (
+                              <><FaSpinner className="animate-spin" /> Quick...</>
+                            ) : (
+                              <><FaBolt /> Quick</>
+                            )}
+                          </button>
+                          
+                          {/* Deep Solve button (Multi-Layer AI) */}
+                          <button
+                            onClick={(e) => handleSolve(e, q, idx, "deep")}
                             disabled={loadingIdx === idx}
                             className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white transition-all shadow-md hover:shadow-lg ${
-                               solutions[idx] 
-                                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600" 
-                                  : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
+                              solutions[idx] && !solutions[idx]?.isError
+                                ? solutions[idx]?.cached 
+                                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+                                  : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
+                                : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
                             } ${loadingIdx === idx ? "opacity-70 cursor-wait" : ""}`}
+                            title={solutions[idx]?.cached ? "View saved solution" : "Deep solve - 6 AI layers, best quality"}
                           >
-                             {loadingIdx === idx ? (
-                               <><FaSpinner className="animate-spin" /> Solving...</>
-                             ) : solutions[idx] ? (
-                               <><FaEye /> View Solution</>
-                             ) : (
-                               <><FaMagic /> Solve with Medha</>
-                             )}
+                            {loadingIdx === idx ? (
+                              <><FaSpinner className="animate-spin" /> {processingLayer || "Processing..."}</>
+                            ) : solutions[idx] && !solutions[idx]?.isError ? (
+                              <>
+                                {solutions[idx]?.cached && <FaDatabase className="text-white/80" />}
+                                <FaEye /> View Solution
+                              </>
+                            ) : (
+                              <><FaBrain /> Deep Solve</>
+                            )}
                           </button>
                        </div>
 
@@ -307,62 +433,78 @@ const UnitWeightageBar = ({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden border border-slate-200"
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200"
               >
                  {/* Modal Header */}
-                 <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-white">
+                 <div className={`flex justify-between items-center p-5 border-b border-slate-100 bg-gradient-to-r ${
+                   solutions[viewingIdx]?.mode === "deep" 
+                     ? "from-violet-50 to-indigo-50" 
+                     : "from-amber-50 to-orange-50"
+                 }`}>
                     <div className="flex items-center gap-3">
-                       <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
-                          <FaMagic />
+                       <div className={`p-2 rounded-lg ${
+                         solutions[viewingIdx]?.mode === "deep" 
+                           ? "bg-indigo-100 text-indigo-600" 
+                           : "bg-amber-100 text-amber-600"
+                       }`}>
+                          {solutions[viewingIdx]?.mode === "deep" ? <FaBrain /> : <FaBolt />}
                        </div>
                        <div>
-                          <h3 className="font-bold text-slate-800 text-lg">AI Generated Solution</h3>
-                          <p className="text-xs text-slate-500 font-medium">{subjectName} • Unit {unitSerial}</p>
+                          <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 flex-wrap">
+                            {solutions[viewingIdx]?.mode === "deep" ? (
+                              <>Multi-Layer AI Solution</>
+                            ) : (
+                              <>Quick AI Solution</>
+                            )}
+                            {/* Cached indicator */}
+                            {solutions[viewingIdx]?.cached && (
+                              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                <FaDatabase size={10} /> Saved
+                              </span>
+                            )}
+                            {solutions[viewingIdx]?.metadata?.totalTime && !solutions[viewingIdx]?.cached && (
+                              <span className="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                                {(solutions[viewingIdx].metadata.totalTime / 1000).toFixed(1)}s
+                              </span>
+                            )}
+                          </h3>
+                          <p className="text-xs text-slate-500 font-medium">
+                            {subjectName} • Unit {unitSerial}
+                          </p>
                        </div>
                     </div>
-                    <button onClick={closeSolution} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                       <FaTimes size={20} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                       {/* Regenerate Button */}
+                       <button 
+                         onClick={(e) => {
+                           closeSolution(e);
+                           handleSolve(e, localQuestions[viewingIdx], viewingIdx, solutions[viewingIdx]?.mode, true);
+                         }}
+                         disabled={loadingIdx === viewingIdx}
+                         className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-violet-600 bg-violet-50 hover:bg-violet-100 border border-violet-200 rounded-lg transition-colors disabled:opacity-50"
+                         title="Generate a fresh solution"
+                       >
+                         <FaSync className={loadingIdx === viewingIdx ? "animate-spin" : ""} />
+                         Regenerate
+                       </button>
+                       <button onClick={closeSolution} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+                          <FaTimes size={20} />
+                       </button>
+                    </div>
                  </div>
 
-                 {/* Modal Content */}
+                 {/* Modal Content - Dynamic Solution Renderer */}
                  <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50/50">
-                    <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed font-medium">
-                       <ReactMarkdown
-                          remarkPlugins={[remarkGfm, remarkMath]}
-                          rehypePlugins={[rehypeKatex]}
-                          components={{
-                            h1: ({node, ...props}) => <h1 className="text-2xl font-black text-indigo-700 mb-4 border-b pb-2 border-indigo-100" {...props} />,
-                            h2: ({node, ...props}) => <h2 className="text-xl font-bold text-slate-800 mt-6 mb-3 flex items-center gap-2" {...props} />,
-                            h3: ({node, ...props}) => <h3 className="text-lg font-bold text-slate-700 mt-4 mb-2" {...props} />,
-                            ul: ({node, ...props}) => <ul className="list-disc pl-5 space-y-1 my-4 bg-white p-4 rounded-xl border border-slate-100 shadow-sm" {...props} />,
-                            ol: ({node, ...props}) => <ol className="list-decimal pl-5 space-y-1 my-4 bg-white p-4 rounded-xl border border-slate-100 shadow-sm" {...props} />,
-                            li: ({node, ...props}) => <li className="pl-1" {...props} />,
-                            code: ({node, inline, ...props}) => 
-                              inline ? (
-                                <code className="bg-slate-200 text-slate-800 px-1 py-0.5 rounded text-sm font-mono" {...props} />
-                              ) : (
-                                <code className="block bg-slate-800 text-slate-100 p-4 rounded-xl text-sm font-mono my-4 overflow-x-auto shadow-inner" {...props} />
-                              ),
-                            table: ({node, ...props}) => (
-                               <div className="overflow-x-auto my-6 rounded-xl border border-slate-200 shadow-sm">
-                                  <table className="w-full text-sm text-left" {...props} />
-                               </div>
-                            ),
-                            th: ({node, ...props}) => <th className="bg-slate-100 px-4 py-3 font-bold text-slate-700 border-b border-slate-200" {...props} />,
-                            td: ({node, ...props}) => <td className="px-4 py-3 border-b border-slate-100 bg-white" {...props} />,
-                            blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-indigo-400 pl-4 py-1 my-4 bg-indigo-50/50 text-indigo-900 italic rounded-r-lg" {...props} />,
-                          }}
-                       >
-                          {solutions[viewingIdx]?.replace(/\\\[/g, '$$').replace(/\\\]/g, '$$').replace(/\\\(/g, '$').replace(/\\\)/g, '$')}
-                       </ReactMarkdown>
-                    </div>
-
-                    <div className="mt-8 pt-6 border-t border-slate-200 text-center">
-                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest opacity-70">
-                          AI generated content • Verify with standard textbooks
-                       </p>
-                    </div>
+                    <DynamicSolutionRenderer
+                      solution={solutions[viewingIdx]?.solution || solutions[viewingIdx]}
+                      analysis={solutions[viewingIdx]?.analysis}
+                      feedback={solutions[viewingIdx]?.feedback}
+                      uiTemplate={solutions[viewingIdx]?.uiTemplate}
+                      metadata={solutions[viewingIdx]?.metadata}
+                      subjectName={subjectName}
+                      unitSerial={unitSerial}
+                      marks={localQuestions[viewingIdx]?.marks}
+                    />
                  </div>
               </motion.div>
            </div>
