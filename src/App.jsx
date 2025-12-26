@@ -27,7 +27,12 @@ import ResetPassword from "./pages/ResetPassword";
 import RTUExams from "./pages/RTUExams";
 import ExamsPage from "./pages/ExamsPage";
 import AdminDashboard from "./pages/AdminDashboard";
-import Messages from "./pages/Messages";
+// Feature flag for Charcha (discussion forum)
+const CHARCHA_ENABLED = import.meta.env.VITE_ENABLE_CHARCHA === 'true';
+
+// Conditionally import Charcha components
+const Charcha = CHARCHA_ENABLED ? React.lazy(() => import('./pages/Charcha')) : null;
+const CharchaPost = CHARCHA_ENABLED ? React.lazy(() => import('./pages/CharchaPost')) : null;
 import PersonalizationSetup from "./pages/PersonalizationSetup";
 
 // Providers
@@ -157,14 +162,29 @@ const AppContent = () => {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/messages"
-                element={
-                  <ProtectedRoute>
-                    <PageTransition><Messages /></PageTransition>
-                  </ProtectedRoute>
-                }
-              />
+              {/* Charcha routes - only rendered when feature flag is enabled */}
+              {CHARCHA_ENABLED && (
+                <>
+                  <Route
+                    path="/charcha"
+                    element={
+                      <ProtectedRoute>
+                        <React.Suspense fallback={<div>Loading...</div>}>
+                          <PageTransition><Charcha /></PageTransition>
+                        </React.Suspense>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/charcha/post/:idOrSlug"
+                    element={
+                      <React.Suspense fallback={<div>Loading...</div>}>
+                        <PageTransition><CharchaPost /></PageTransition>
+                      </React.Suspense>
+                    }
+                  />
+                </>
+              )}
               {/* Catch-all 404 */}
               <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
             </Routes>

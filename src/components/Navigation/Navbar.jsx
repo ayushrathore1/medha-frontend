@@ -9,6 +9,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { getAvatarByIndex } from "../../utils/avatarUtils";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const CHARCHA_ENABLED = import.meta.env.VITE_ENABLE_CHARCHA === 'true';
 const NOTIFICATION_SOUND = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
 
 // Known universities for label display
@@ -27,7 +28,7 @@ const getBaseNavItems = (userUniversity) => {
     examLabel = "Exams";
   }
 
-  return [
+  const items = [
     { path: "/dashboard", label: "Dashboard" },
     { path: "/notes", label: "Notes" },
     { path: "/exams", label: examLabel },
@@ -35,8 +36,14 @@ const getBaseNavItems = (userUniversity) => {
     { path: "/quiz", label: "Quiz" },
     { path: "/chatbot", label: "Chatbot" },
     { path: "/notifications", label: "Notifications" },
-    { path: "/messages", label: "Messages" },
   ];
+
+  // Only add Charcha if feature flag is enabled
+  if (CHARCHA_ENABLED) {
+    items.push({ path: "/charcha", label: "Charcha" });
+  }
+
+  return items;
 };
 
 const linkVariants = {
@@ -232,7 +239,7 @@ const Navbar = ({ user, onLogout }) => {
                     {item.isAdmin && <FaCrown className="text-amber-500" />}
                     {item.label}
                     {/* Notification badge for Messages */}
-                    {item.path === "/messages" && unreadCount > 0 && (
+                    {item.path === "/charcha" && unreadCount > 0 && (
                       <span className="absolute -top-1 -right-2 px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
@@ -425,7 +432,7 @@ const Navbar = ({ user, onLogout }) => {
               <span className="relative z-20 flex items-center justify-between">
                 {item.label}
                 {/* Notification badge for Messages in mobile menu */}
-                {item.path === "/messages" && unreadCount > 0 && (
+                {item.path === "/charcha" && unreadCount > 0 && (
                   <span className="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>

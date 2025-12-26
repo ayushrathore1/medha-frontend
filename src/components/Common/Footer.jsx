@@ -2,6 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
+// Feature flag for Charcha
+const CHARCHA_ENABLED = import.meta.env.VITE_ENABLE_CHARCHA === 'true';
+
 // Animate footer link underline on hover
 const linkVariants = {
   rest: { scale: 1, color: "var(--text-secondary)" },
@@ -67,9 +70,10 @@ const Footer = () => (
                   </svg>
                 ),
               },
-              {
-                label: "Messages",
-                href: "/messages",
+              // Charcha link only shown when feature flag is enabled
+              ...(CHARCHA_ENABLED ? [{
+                label: "Charcha",
+                href: "/charcha",
                 isInternal: true,
                 icon: (
                   <svg
@@ -80,7 +84,7 @@ const Footer = () => (
                     <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z" />
                   </svg>
                 ),
-              },
+              }] : []),
             ].map(({ label, href, icon, isInternal }) => (
               isInternal ? (
                 <Link key={label} to={href}>
@@ -126,7 +130,8 @@ const Footer = () => (
               { to: "/feedback", label: "Feedback" },
               { to: "/profile", label: "Profile" },
               { href: "#", label: "Help Center" },
-              { to: "/messages", label: "Contact Us" },
+              // Contact link conditionally points to Charcha or is generic
+              ...(CHARCHA_ENABLED ? [{ to: "/charcha", label: "Contact Us" }] : [{ href: "mailto:support@medha.app", label: "Contact Us" }]),
               { href: "#", label: "Privacy Policy" },
             ],
           },
