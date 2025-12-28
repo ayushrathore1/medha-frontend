@@ -244,7 +244,7 @@ const Register = () => {
         <div className="text-center mb-8">
            <Link to="/">
             <img
-              src="https://ik.imagekit.io/ayushrathore1/logo.png?updatedAt=1758343718570"
+              src="https://ik.imagekit.io/ayushrathore1/Medha/image.png"
               alt="MEDHA logo"
               className="w-16 h-16 mx-auto mb-4 rounded-2xl shadow-lg"
             />

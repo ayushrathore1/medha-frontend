@@ -28,7 +28,7 @@ const Footer = () => (
         <div className="col-span-1 md:col-span-2">
           <div className="flex items-center gap-2 mb-4">
             <img
-              src="https://ik.imagekit.io/ayushrathore1/logo.png?updatedAt=1758343718570"
+              src="https://ik.imagekit.io/ayushrathore1/Medha/image.png"
               alt="MEDHA logo"
               className="w-10 h-10 rounded-xl shadow"
             />

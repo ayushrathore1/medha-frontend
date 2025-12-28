@@ -198,7 +198,7 @@ const Navbar = ({ user, onLogout }) => {
           onClick={handleLogoClick}
         >
           <img
-            src="https://ik.imagekit.io/ayushrathore1/logo.png?updatedAt=1758343718570"
+            src="https://ik.imagekit.io/ayushrathore1/Medha/image.png"
             alt="MEDHA logo"
             className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl shadow-md bg-white"
             draggable="false"
