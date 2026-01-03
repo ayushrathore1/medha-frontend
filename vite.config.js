@@ -15,7 +15,7 @@ export default defineConfig({
           'vendor-ui': ['framer-motion', 'lucide-react', 'react-icons'],
           'vendor-pdf': ['react-pdf'],
           'vendor-utils': ['date-fns', 'axios'],
-          'vendor-auth': ['@clerk/clerk-react', 'firebase'],
+          'vendor-auth': ['@clerk/clerk-react'],
         },
       },
     },
