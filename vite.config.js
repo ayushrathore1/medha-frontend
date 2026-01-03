@@ -8,6 +8,18 @@ export default defineConfig({
   server: {
     port: 3000 , // or your desired port
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-ui': ['framer-motion', 'lucide-react', 'react-icons'],
+          'vendor-pdf': ['react-pdf'],
+          'vendor-utils': ['date-fns', 'axios'],
+          'vendor-auth': ['@clerk/clerk-react', 'firebase'],
+        },
+      },
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',

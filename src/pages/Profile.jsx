@@ -4,7 +4,9 @@ import axios from "axios";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
+import CursorSettingsPanel from "../components/Common/CursorSettingsPanel";
 import { AuthContext } from "../AuthContext";
+import { useCursor } from "../context/CursorContext";
 import { generateAvatarOptions, getAvatarByIndex } from "../utils/avatarUtils";
 import { FaMars, FaVenus, FaGenderless, FaTrash } from "react-icons/fa";
 
@@ -15,6 +17,7 @@ const GENDERS = ["Male", "Female", "Other"];
 const Profile = () => {
   const navigate = useNavigate();
   const { setUser, logout } = useContext(AuthContext);
+  const { isEnabled, setIsEnabled, cursorSpeed, setCursorSpeed } = useCursor();
   const [userData, setUserData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -439,6 +442,18 @@ const Profile = () => {
               </Button>
             </div>
           )}
+        </Card>
+
+        {/* Interface Settings */}
+        <Card className="mt-6 shadow-lg border-indigo-100 bg-white">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="M13 13l6 6"/></svg>
+            </div>
+            <h3 className="text-lg font-bold text-slate-800">Interface Settings</h3>
+          </div>
+
+          <CursorSettingsPanel />
         </Card>
 
         {/* Danger Zone - Account Deletion */}

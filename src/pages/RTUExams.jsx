@@ -7,13 +7,15 @@ import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import YearSelector from "../components/RTUExams/YearSelector";
 import UnitWeightageBar from "../components/RTUExams/UnitWeightageBar";
-import { FaArrowLeft, FaLayerGroup, FaCheckCircle, FaChartBar, FaEnvelope, FaUniversity, FaBook } from "react-icons/fa";
+import { FaArrowLeft, FaLayerGroup, FaCheckCircle, FaChartBar, FaEnvelope, FaUniversity, FaBook, FaPlay, FaGraduationCap } from "react-icons/fa";
+import LearnConcepts from "../components/RTUExams/LearnConcepts";
 
 import { useTour } from "../context/TourContext";
 
 const RTUExams = () => {
   const { isGuestMode } = useTour();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("archives"); // 'archives' or 'learn'
   const [viewState, setViewState] = useState("semesters");
   const [subjects, setSubjects] = useState(isGuestMode ? [
     { name: "Digital Electronics", difficulty: "medium", total: 10, viewed: 5 },
@@ -214,6 +216,7 @@ const RTUExams = () => {
   };
 
   const getHeaderTitle = () => {
+    if (activeTab === 'learn') return "Learn the Concepts";
     switch (viewState) {
       case "semesters": return "The Archives";
       case "subjects": return "3rd Semester";
@@ -224,6 +227,7 @@ const RTUExams = () => {
   };
 
   const getHeaderSubtitle = () => {
+    if (activeTab === 'learn') return "Watch video lectures and download study materials.";
     switch (viewState) {
       case "semesters": return "Access previous year papers and smart analysis.";
       case "subjects": return "Choose a subject to explore exam patterns.";
@@ -241,7 +245,7 @@ const RTUExams = () => {
         
         {/* Header */}
         <div className="flex flex-col items-center text-center relative mb-12">
-           {viewState !== "semesters" && (
+           {activeTab === 'archives' && viewState !== "semesters" && (
               <div className="absolute left-0 top-0">
                  <Button onClick={handleBack} variant="ghost" className="bg-white shadow-sm border border-slate-200 hover:bg-slate-50">
                     <FaArrowLeft className="mr-2" /> Back
@@ -250,7 +254,7 @@ const RTUExams = () => {
            )}
            
            <motion.div
-             key={viewState}
+             key={`${activeTab}-${viewState}`}
              initial={{ opacity: 0, y: -10 }}
              animate={{ opacity: 1, y: 0 }}
              className="max-w-2xl"
@@ -263,8 +267,44 @@ const RTUExams = () => {
                  {getHeaderSubtitle()}
               </p>
            </motion.div>
+
+           {/* Tab Navigation */}
+           {(activeTab === 'learn' || (activeTab === 'archives' && viewState === 'semesters')) && (
+             <div className="flex items-center gap-2 mt-8 bg-white rounded-2xl p-2 shadow-sm border border-slate-200">
+               <button
+                 onClick={() => { setActiveTab('archives'); setViewState('semesters'); }}
+                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+                   activeTab === 'archives'
+                     ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
+                     : 'text-slate-600 hover:bg-slate-100'
+                 }`}
+               >
+                 <FaUniversity size={16} />
+                 The Archives
+               </button>
+               <button
+                 onClick={() => setActiveTab('learn')}
+                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+                   activeTab === 'learn'
+                     ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
+                     : 'text-slate-600 hover:bg-slate-100'
+                 }`}
+               >
+                 <FaGraduationCap size={16} />
+                 Learn the Concepts
+               </button>
+             </div>
+           )}
         </div>
 
+        {/* Learn the Concepts Tab */}
+        {activeTab === 'learn' && (
+          <LearnConcepts />
+        )}
+
+        {/* Archives Tab */}
+        {activeTab === 'archives' && (
+        <>
         <AnimatePresence mode="wait">
            {/* Semesters View */}
           {viewState === "semesters" && (
@@ -459,7 +499,8 @@ const RTUExams = () => {
               <span>Request via Messages</span>
            </button>
         </div>
-
+        </>
+        )}
       </div>
     </div>
   );
