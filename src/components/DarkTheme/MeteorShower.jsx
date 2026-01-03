@@ -1,6 +1,22 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 
 const MeteorShower = ({ count = 20 }) => {
+  // Disable on mobile/touch devices for performance
+  const [isMobile, setIsMobile] = useState(true);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        window.matchMedia('(max-width: 768px)').matches ||
+        window.matchMedia('(pointer: coarse)').matches ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      );
+    };
+    checkMobile();
+  }, []);
+
+  if (isMobile) return null;
+
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       {[...Array(count)].map((_, i) => (

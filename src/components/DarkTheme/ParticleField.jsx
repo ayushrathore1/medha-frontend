@@ -1,8 +1,27 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 // Floating Particles Background
 const ParticleField = ({ count = 50 }) => {
+  // Disable on mobile/touch devices for performance
+  const [isMobile, setIsMobile] = useState(true); // Default to true to avoid flash
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(
+        window.matchMedia('(max-width: 768px)').matches ||
+        window.matchMedia('(pointer: coarse)').matches ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      );
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Don't render on mobile - too heavy
+  if (isMobile) return null;
+
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       {[...Array(count)].map((_, i) => (
@@ -87,6 +106,17 @@ export const ConnectedParticles = ({ count = 30 }) => {
 
 // Glowing Orbs Background
 export const GlowingOrbs = () => {
+  const [isMobile, setIsMobile] = useState(true);
+  
+  useEffect(() => {
+    setIsMobile(
+      window.matchMedia('(max-width: 768px)').matches ||
+      window.matchMedia('(pointer: coarse)').matches
+    );
+  }, []);
+
+  if (isMobile) return null;
+
   const orbs = [
     { x: 20, y: 30, size: 300, color: "rgba(59, 130, 246, 0.15)", duration: 8 },
     { x: 70, y: 60, size: 250, color: "rgba(139, 92, 246, 0.15)", duration: 10 },
