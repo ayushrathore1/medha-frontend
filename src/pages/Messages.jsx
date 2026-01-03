@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { 
-  FaPaperPlane, FaSearch, FaUserCircle, FaBroadcastTower, 
-  FaArrowLeft, FaTimes, FaSpinner, FaCheck, FaCheckDouble,
+  FaPaperPlane, FaMagnifyingGlass, FaUserCircle, FaBroadcastTower, 
+  FaArrowLeft, FaXmark, FaSpinner, FaCheck, FaCheckDouble,
   FaCrown, FaUsers, FaCommentDots, FaEnvelope, FaTrash
-} from "react-icons/fa";
+} from "react-icons/fa6";
 import Card from "../components/Common/Card";
 import Loader from "../components/Common/Loader";
 
@@ -522,13 +522,13 @@ const Messages = () => {
             <div className="p-4 border-b flex justify-between items-center" style={{ borderColor: "var(--accent-secondary)" }}>
               <h3 className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>All Users</h3>
               <button onClick={() => setShowContactList(false)}>
-                <FaTimes style={{ color: "var(--text-secondary)" }} />
+                <FaXmark style={{ color: "var(--text-secondary)" }} />
               </button>
             </div>
             
             <div className="p-4 border-b" style={{ borderColor: "var(--accent-secondary)" }}>
               <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-secondary)" }} />
+                <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-secondary)" }} />
                 <input
                   type="text"
                   value={contactSearch}
@@ -590,7 +590,7 @@ const Messages = () => {
                 <h3 className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>Broadcast to All Users</h3>
               </div>
               <button onClick={() => setShowBroadcast(false)}>
-                <FaTimes style={{ color: "var(--text-secondary)" }} />
+                <FaXmark style={{ color: "var(--text-secondary)" }} />
               </button>
             </div>
             

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { FaFire, FaCalendarAlt } from "react-icons/fa";
+import { FaFire, FaCalendarDays } from "react-icons/fa6";
 import Card from "../Common/Card";
 
 const ActivityCalendar = () => {
@@ -80,7 +80,7 @@ const ActivityCalendar = () => {
   if (loading) {
     return (
       <Card className="animate-pulse">
-        <div className="h-32 bg-slate-100 rounded-xl"></div>
+        <div className="h-32 bg-[var(--bg-tertiary)] rounded-xl"></div>
       </Card>
     );
   }
@@ -90,17 +90,17 @@ const ActivityCalendar = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-            <FaCalendarAlt size={16} />
+          <div className="p-2 bg-[var(--color-success-bg)] text-[var(--color-success-text)] rounded-lg">
+            <FaCalendarDays size={16} />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">Activity</h3>
+          <h3 className="text-lg font-bold text-[var(--text-primary)]">Activity</h3>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm">
-            <FaFire className="text-orange-500" />
-            <span className="font-bold text-slate-700">{streak} day streak</span>
+            <FaFire className="text-[var(--color-warning-text)]" />
+            <span className="font-bold text-[var(--text-primary)]">{streak} day streak</span>
           </div>
-          <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+          <span className="text-xs font-semibold text-[var(--text-tertiary)] bg-[var(--bg-tertiary)] px-2 py-1 rounded-full">
             {totalActiveDays} active days
           </span>
         </div>
@@ -113,7 +113,7 @@ const ActivityCalendar = () => {
           {dayLabels.map((label, idx) => (
             <div 
               key={idx} 
-              className="w-3 h-3 flex items-center justify-center text-[8px] font-bold text-slate-400"
+              className="w-3 h-3 flex items-center justify-center text-[8px] font-bold text-[var(--text-tertiary)]"
             >
               {idx % 2 === 1 ? label : ""}
             </div>
@@ -132,14 +132,14 @@ const ActivityCalendar = () => {
                 title={`${day.date.toLocaleDateString()} ${day.isActive ? '- Active' : ''}`}
                 className={`w-3 h-3 rounded-sm cursor-pointer transition-all hover:scale-125 ${
                   day.isFuture
-                    ? "bg-slate-100"
+                    ? "bg-[var(--bg-tertiary)]/30"
                     : day.isToday
                     ? day.isActive
-                      ? "bg-emerald-500 ring-2 ring-emerald-300"
-                      : "bg-slate-200 ring-2 ring-indigo-300"
+                      ? "bg-[var(--color-success-text)] ring-2 ring-[var(--color-success-bg)]"
+                      : "bg-[var(--bg-tertiary)] ring-2 ring-[var(--action-primary)]/50"
                     : day.isActive
-                    ? "bg-emerald-500 hover:bg-emerald-400"
-                    : "bg-slate-200 hover:bg-slate-300"
+                    ? "bg-[var(--color-success-text)] hover:opacity-80"
+                    : "bg-[var(--bg-tertiary)] hover:bg-[var(--text-tertiary)]/20"
                 }`}
               />
             ))}
@@ -148,11 +148,11 @@ const ActivityCalendar = () => {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-end gap-2 mt-3 text-xs text-slate-500">
+      <div className="flex items-center justify-end gap-2 mt-3 text-xs text-[var(--text-tertiary)]">
         <span>Less</span>
-        <div className="w-3 h-3 rounded-sm bg-slate-200"></div>
-        <div className="w-3 h-3 rounded-sm bg-emerald-300"></div>
-        <div className="w-3 h-3 rounded-sm bg-emerald-500"></div>
+        <div className="w-3 h-3 rounded-sm bg-[var(--bg-tertiary)]"></div>
+        <div className="w-3 h-3 rounded-sm bg-[var(--color-success-text)]/50"></div>
+        <div className="w-3 h-3 rounded-sm bg-[var(--color-success-text)]"></div>
         <span>More</span>
       </div>
     </Card>

@@ -7,7 +7,7 @@ import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import YearSelector from "../components/RTUExams/YearSelector";
 import UnitWeightageBar from "../components/RTUExams/UnitWeightageBar";
-import { FaArrowLeft, FaLayerGroup, FaCheckCircle, FaChartBar, FaEnvelope, FaUniversity, FaBook, FaPlay, FaGraduationCap } from "react-icons/fa";
+import { FaArrowLeft, FaLayerGroup, FaCircleCheck, FaChartBar, FaEnvelope, FaBuildingColumns, FaBook, FaPlay, FaGraduationCap } from "react-icons/fa6";
 import LearnConcepts from "../components/RTUExams/LearnConcepts";
 
 import { useTour } from "../context/TourContext";
@@ -240,14 +240,14 @@ const RTUExams = () => {
   if (loading && subjects.length === 0) return <Loader fullScreen />;
 
   return (
-    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-slate-50/50">
+    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-transparent">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
         <div className="flex flex-col items-center text-center relative mb-12">
            {activeTab === 'archives' && viewState !== "semesters" && (
               <div className="absolute left-0 top-0">
-                 <Button onClick={handleBack} variant="ghost" className="bg-white shadow-sm border border-slate-200 hover:bg-slate-50">
+                 <Button onClick={handleBack} variant="ghost" className="bg-[var(--bg-secondary)] shadow-sm border border-[var(--border-default)] hover:bg-[var(--bg-tertiary)] text-[var(--text-secondary)]">
                     <FaArrowLeft className="mr-2" /> Back
                  </Button>
               </div>
@@ -260,34 +260,34 @@ const RTUExams = () => {
              className="max-w-2xl"
              data-tour="rtu-exams"
            >
-              <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-3">
+              <h1 className="text-4xl md:text-5xl font-black text-[var(--text-primary)] tracking-tight mb-3">
                  {getHeaderTitle()}
               </h1>
-              <p className="text-lg text-slate-500 font-medium">
+              <p className="text-lg text-[var(--text-secondary)] font-medium">
                  {getHeaderSubtitle()}
               </p>
            </motion.div>
 
            {/* Tab Navigation */}
            {(activeTab === 'learn' || (activeTab === 'archives' && viewState === 'semesters')) && (
-             <div className="flex items-center gap-2 mt-8 bg-white rounded-2xl p-2 shadow-sm border border-slate-200">
+             <div className="flex items-center gap-2 mt-8 bg-[var(--bg-secondary)] rounded-2xl p-2 shadow-sm border border-[var(--border-default)]">
                <button
                  onClick={() => { setActiveTab('archives'); setViewState('semesters'); }}
                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
                    activeTab === 'archives'
-                     ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
-                     : 'text-slate-600 hover:bg-slate-100'
+                     ? 'bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-hover)] text-white shadow-md'
+                     : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
                  }`}
                >
-                 <FaUniversity size={16} />
+                 <FaBuildingColumns size={16} />
                  The Archives
                </button>
                <button
                  onClick={() => setActiveTab('learn')}
                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
                    activeTab === 'learn'
-                     ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
-                     : 'text-slate-600 hover:bg-slate-100'
+                     ? 'bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-hover)] text-white shadow-md'
+                     : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
                  }`}
                >
                  <FaGraduationCap size={16} />
@@ -327,26 +327,26 @@ const RTUExams = () => {
                       onClick={isActive ? () => setViewState("subjects") : undefined}
                       className={isActive ? "cursor-pointer group" : ""}
                     >
-                      <Card className={`w-full flex flex-col items-center p-8 gap-3 transition-all ${
+                      <Card className={`w-full flex flex-col items-center p-8 gap-3 transition-all bg-[var(--bg-secondary)] border-[var(--border-default)] ${
                         isActive 
-                          ? "hover:border-indigo-400 hover:shadow-xl hover:-translate-y-1" 
+                          ? "hover:border-[var(--action-primary)] hover:shadow-xl hover:-translate-y-1" 
                           : "opacity-70 cursor-not-allowed"
                       }`}>
                         <div className={`p-4 rounded-full transition-colors ${
                           isActive 
-                            ? "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white" 
-                            : "bg-slate-100 text-slate-400"
+                            ? "bg-[var(--action-primary)]/10 text-[var(--action-primary)] group-hover:bg-[var(--action-primary)] group-hover:text-white" 
+                            : "bg-[var(--bg-tertiary)] text-[var(--text-tertiary)]"
                         }`}>
-                          <FaUniversity size={32} />
+                          <FaBuildingColumns size={32} />
                         </div>
-                        <h2 className={`text-xl font-bold whitespace-nowrap ${isActive ? "text-slate-800" : "text-slate-500"}`}>
+                        <h2 className={`text-xl font-bold whitespace-nowrap ${isActive ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"}`}>
                           {sem === 1 ? "1st" : sem === 2 ? "2nd" : sem === 3 ? "3rd" : `${sem}th`} Semester
                         </h2>
-                        <p className="text-slate-500 font-medium text-sm text-center">Computer Science & Engineering</p>
+                        <p className="text-[var(--text-tertiary)] font-medium text-sm text-center">Computer Science & Engineering</p>
                         <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide transition-colors ${
                           isActive 
-                            ? "bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600" 
-                            : "bg-amber-50 text-amber-600"
+                            ? "bg-[var(--bg-tertiary)] text-[var(--text-secondary)] group-hover:bg-[var(--action-primary)]/10 group-hover:text-[var(--action-primary)]" 
+                            : "bg-[var(--color-warning-bg)]/10 text-[var(--color-warning-text)]"
                         }`}>
                           {isActive ? "Click to Open" : "Coming Soon"}
                         </div>
@@ -376,18 +376,18 @@ const RTUExams = () => {
                    >
                      <Card 
                        onClick={() => handleSubjectClick(subject)}
-                       className="cursor-pointer group h-full flex flex-col justify-between hover:border-indigo-400 hover:shadow-lg transition-all"
+                       className="cursor-pointer group h-full flex flex-col justify-between hover:border-[var(--action-primary)] hover:shadow-lg transition-all bg-[var(--bg-secondary)] border-[var(--border-default)]"
                      >
                         <div>
                            <div className="flex justify-between items-start mb-4">
-                              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                              <div className="p-2.5 bg-[var(--action-primary)]/10 text-[var(--action-primary)] rounded-xl">
                                  <FaBook size={20} />
                               </div>
                               {subject.viewed === subject.total && subject.total > 0 && (
-                                 <FaCheckCircle className="text-emerald-500" title="Completed"/>
+                                 <FaCircleCheck className="text-emerald-500" title="Completed"/>
                               )}
                            </div>
-                           <h3 className="text-xl font-bold text-slate-800 mb-2 line-clamp-2 leading-tight group-hover:text-indigo-600 transition-colors">
+                           <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 line-clamp-2 leading-tight group-hover:text-[var(--action-primary)] transition-colors">
                               {subject.name}
                            </h3>
                            
@@ -400,21 +400,25 @@ const RTUExams = () => {
                               "Technical Communication",
                               "Managerial Economics and Financial Accounting",
                            ].includes(subject.name) && (
-                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-violet-50 text-violet-600 rounded-lg text-xs font-bold border border-violet-100 mb-4">
+                              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--action-primary)]/10 text-[var(--action-primary)] rounded-lg text-xs font-bold border border-[var(--action-primary)]/20 mb-4">
                                  <FaChartBar /> Includes Analysis
                               </div>
                            )}
                         </div>
 
-                        <div className="pt-4 mt-2 border-t border-slate-100 flex gap-2" onClick={(e) => e.stopPropagation()}>
+                        <div className="pt-4 mt-2 border-t border-[var(--border-default)] flex gap-2" onClick={(e) => e.stopPropagation()}>
                            {['easy', 'medium', 'hard'].map(d => (
                               <button
                                 key={d}
                                 onClick={() => handleDifficultyChange(subject.name, d)}
                                 className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
                                   subject.difficulty === d 
-                                    ? (d === 'easy' ? 'bg-emerald-100 text-emerald-700' : d === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700')
-                                    : 'bg-slate-50 text-slate-400 hover:bg-slate-200'
+                                    ? (d === 'easy' 
+                                        ? 'bg-[var(--color-success-bg)]/20 text-[var(--color-success-text)]' 
+                                        : d === 'medium' 
+                                            ? 'bg-[var(--color-warning-bg)]/20 text-[var(--color-warning-text)]' 
+                                            : 'bg-[var(--color-danger-bg)]/20 text-[var(--color-danger-text)]')
+                                    : 'bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)]/80'
                                 }`}
                               >
                                 {d}
@@ -446,14 +450,14 @@ const RTUExams = () => {
                    <div className="flex justify-center py-20"><Loader /></div>
                 ) : unitWeightageData ? (
                    <div className="max-w-4xl mx-auto">
-                      <div data-tour="rtu-weightage" className="bg-white rounded-2xl p-6 mb-8 shadow-md border-2 border-indigo-100 relative overflow-hidden">
-                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
-                         <h3 className="text-xl font-bold text-slate-900 relative z-10">Exam Strategy Analysis</h3>
-                         <p className="text-slate-600 text-sm relative z-10 mt-1">
+                      <div data-tour="rtu-weightage" className="bg-[var(--bg-secondary)] rounded-2xl p-6 mb-8 shadow-md border-2 border-[var(--action-primary)]/20 relative overflow-hidden">
+                         <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--action-primary)]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
+                         <h3 className="text-xl font-bold text-[var(--text-primary)] relative z-10">Exam Strategy Analysis</h3>
+                         <p className="text-[var(--text-secondary)] text-sm relative z-10 mt-1">
                             Units are sorted by weightage. Focus on the top units first to maximize your score.
                          </p>
-                         <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl relative z-10">
-                            <p className="text-xs text-amber-800 font-medium">
+                         <div className="mt-4 p-3 bg-[var(--color-warning-bg)]/10 border border-[var(--color-warning-bg)]/20 rounded-xl relative z-10">
+                            <p className="text-xs text-[var(--color-warning-text)] font-medium">
                                <span className="font-bold">📋 Note:</span> The {unitWeightageData?.totalPaperMarks || 98} marks shown include all questions (including optional ones). 
                                Students typically attempt only 70 marks worth based on paper instructions.
                             </p>
@@ -480,20 +484,20 @@ const RTUExams = () => {
                    </div>
                 ) : (
                    <div className="text-center py-20">
-                      <p className="text-xl font-bold text-slate-400">No analysis data available yet.</p>
+                      <p className="text-xl font-bold text-[var(--text-tertiary)]">No analysis data available yet.</p>
                    </div>
                 )}
              </motion.div>
           )}
         </AnimatePresence>
         
-        <div className="mt-20 text-center pb-8 border-t border-slate-200/50 pt-8 max-w-xl mx-auto">
-           <p className="text-slate-400 font-medium mb-4">
+        <div className="mt-20 text-center pb-8 border-t border-[var(--border-default)] pt-8 max-w-xl mx-auto">
+           <p className="text-[var(--text-tertiary)] font-medium mb-4">
               Missing analysis for your year?
            </p>
            <button
               onClick={() => navigate("/messages")}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-hover)] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
            >
               <FaEnvelope className="text-xl" />
               <span>Request via Messages</span>

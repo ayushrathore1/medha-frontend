@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { getBarGradient } from "../../utils/unitWeightageUtils";
-import { FaYoutube, FaChevronDown, FaChevronUp, FaMagic, FaEye, FaSpinner, FaTimes, FaBookOpen, FaPlay, FaList, FaImage, FaBolt, FaBrain, FaSync, FaDatabase } from "react-icons/fa";
+import { FaYoutube, FaChevronDown, FaChevronUp, FaWandMagicSparkles, FaEye, FaSpinner, FaXmark, FaBookOpen, FaPlay, FaList, FaImage, FaBolt, FaBrain, FaArrowsRotate, FaDatabase } from "react-icons/fa6";
 import QuestionImageUploader from "./QuestionImageUploader";
 import QuestionImageModal from "./QuestionImageModal";
 import DynamicSolutionRenderer from "./DynamicSolutionRenderer";
@@ -251,7 +251,7 @@ const UnitWeightageBar = ({
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, delay: index * 0.1 }}
-        className={`group relative p-6 mb-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all ${
+        className={`group relative p-6 mb-4 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border-default)] shadow-sm hover:shadow-md hover:border-[var(--action-primary)]/50 transition-all ${
           questions.length > 0 ? "cursor-pointer" : ""
         }`}
         onClick={toggleExpand}
@@ -260,12 +260,12 @@ const UnitWeightageBar = ({
           {/* Header */}
           <div className="flex justify-between items-start gap-4">
             <div className="flex-1">
-               <h4 className="text-lg font-bold text-slate-900 mb-2 leading-tight">
-                 Unit {unitSerial} <span className="text-slate-400 font-light mx-2">|</span> {unitName}
+               <h4 className="text-lg font-bold text-[var(--text-primary)] mb-2 leading-tight">
+                 Unit {unitSerial} <span className="text-[var(--text-tertiary)] font-light mx-2">|</span> {unitName}
                </h4>
                
                <div className="flex flex-wrap items-center gap-3">
-                 <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+                 <span className="text-xs font-bold text-[var(--action-primary)] bg-[var(--action-primary)]/10 px-3 py-1 rounded-full border border-[var(--action-primary)]/20">
                     {totalMarks} Marks • {weightagePercentage.toFixed(1)}% Weightage
                  </span>
                  
@@ -281,14 +281,14 @@ const UnitWeightageBar = ({
             </div>
 
             {questions.length > 0 && (
-              <div className={`text-slate-400 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
+              <div className={`text-[var(--text-tertiary)] transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
                 <FaChevronDown />
               </div>
             )}
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="w-full h-2.5 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
              <motion.div
                initial={{ width: 0 }}
                animate={{ width: `${barWidth}%` }}
@@ -309,9 +309,9 @@ const UnitWeightageBar = ({
               transition={{ duration: 0.3 }}
               className="overflow-hidden"
             >
-               <div className="mt-6 pt-6 border-t border-slate-100 space-y-4" onClick={(e) => e.stopPropagation()}>
+               <div className="mt-6 pt-6 border-t border-[var(--border-default)] space-y-4" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-between">
-                    <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <h5 className="text-xs font-bold text-[var(--text-tertiary)] uppercase tracking-wider flex items-center gap-2">
                       <FaBookOpen /> Past Year Questions ({year})
                     </h5>
                     {isAdmin && (
@@ -322,14 +322,14 @@ const UnitWeightageBar = ({
                   </div>
 
                   {localQuestions.map((q, idx) => (
-                    <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-indigo-200 transition-colors">
+                    <div key={idx} className="bg-[var(--bg-tertiary)] p-4 rounded-xl border border-[var(--border-default)] hover:border-[var(--action-primary)]/50 transition-colors">
                        <div className="flex justify-between items-start mb-3">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-bold text-indigo-600 text-sm bg-white px-2 py-0.5 rounded border border-indigo-100 shadow-sm">
+                            <span className="font-bold text-[var(--action-primary)] text-sm bg-[var(--bg-secondary)] px-2 py-0.5 rounded border border-[var(--action-primary)]/20 shadow-sm">
                                {q.qCode}
                             </span>
                             {q.topic && (
-                              <span className="text-xs font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded border border-violet-200">
+                              <span className="text-xs font-bold text-[var(--action-primary)] bg-[var(--action-primary)]/10 px-2 py-0.5 rounded border border-[var(--action-primary)]/20">
                                  📌 {q.topic}
                               </span>
                             )}
@@ -340,14 +340,14 @@ const UnitWeightageBar = ({
                                  <FaImage className="text-emerald-500" /> Has Image
                                </span>
                              )}
-                             <span className="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">
+                             <span className="text-xs font-bold text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-2 py-1 rounded border border-[var(--border-default)]">
                                 {q.marks} Marks
                              </span>
                           </div>
                        </div>
                        
                        <div 
-                         className="prose prose-sm prose-slate max-w-none text-slate-600 mb-4 font-medium leading-relaxed"
+                         className="prose prose-sm prose-slate max-w-none text-[var(--text-secondary)] mb-4 font-medium leading-relaxed"
                          dangerouslySetInnerHTML={{ __html: q.text }}
                        />
 
@@ -433,24 +433,25 @@ const UnitWeightageBar = ({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200"
+                className="rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden border"
+                style={{ backgroundColor: "var(--bg-secondary)", borderColor: "var(--border-default)" }}
               >
                  {/* Modal Header */}
-                 <div className={`flex justify-between items-center p-5 border-b border-slate-100 bg-gradient-to-r ${
+                 <div className={`flex justify-between items-center p-5 border-b bg-gradient-to-r ${
                    solutions[viewingIdx]?.mode === "deep" 
-                     ? "from-violet-50 to-indigo-50" 
-                     : "from-amber-50 to-orange-50"
-                 }`}>
+                     ? "from-[var(--action-primary)]/10 to-[var(--action-hover)]/10" 
+                     : "from-[var(--color-warning-bg)]/10 to-[var(--color-warning-bg)]/20"
+                 }`} style={{ borderColor: "var(--border-default)" }}>
                     <div className="flex items-center gap-3">
                        <div className={`p-2 rounded-lg ${
                          solutions[viewingIdx]?.mode === "deep" 
-                           ? "bg-indigo-100 text-indigo-600" 
-                           : "bg-amber-100 text-amber-600"
+                           ? "bg-[var(--action-primary)]/20 text-[var(--action-primary)]" 
+                           : "bg-[var(--color-warning-bg)]/20 text-[var(--color-warning-text)]"
                        }`}>
                           {solutions[viewingIdx]?.mode === "deep" ? <FaBrain /> : <FaBolt />}
                        </div>
                        <div>
-                          <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 flex-wrap">
+                          <h3 className="font-bold text-lg flex items-center gap-2 flex-wrap" style={{ color: "var(--text-primary)" }}>
                             {solutions[viewingIdx]?.mode === "deep" ? (
                               <>Multi-Layer AI Solution</>
                             ) : (
@@ -458,17 +459,24 @@ const UnitWeightageBar = ({
                             )}
                             {/* Cached indicator */}
                             {solutions[viewingIdx]?.cached && (
-                              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                               <span className="text-xs font-bold px-2 py-0.5 rounded-full border flex items-center gap-1"
+                                     style={{ 
+                                       backgroundColor: "var(--color-success-bg)", 
+                                       color: "var(--color-success-text)",
+                                       borderColor: "transparent",
+                                       opacity: 0.9
+                                     }}>
                                 <FaDatabase size={10} /> Saved
                               </span>
                             )}
                             {solutions[viewingIdx]?.metadata?.totalTime && !solutions[viewingIdx]?.cached && (
-                              <span className="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                               <span className="text-xs font-normal px-2 py-0.5 rounded-full"
+                                     style={{ backgroundColor: "var(--bg-tertiary)", color: "var(--text-secondary)" }}>
                                 {(solutions[viewingIdx].metadata.totalTime / 1000).toFixed(1)}s
                               </span>
                             )}
                           </h3>
-                          <p className="text-xs text-slate-500 font-medium">
+                          <p className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
                             {subjectName} • Unit {unitSerial}
                           </p>
                        </div>
@@ -481,20 +489,25 @@ const UnitWeightageBar = ({
                            handleSolve(e, localQuestions[viewingIdx], viewingIdx, solutions[viewingIdx]?.mode, true);
                          }}
                          disabled={loadingIdx === viewingIdx}
-                         className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-violet-600 bg-violet-50 hover:bg-violet-100 border border-violet-200 rounded-lg transition-colors disabled:opacity-50"
+                         className="flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-lg transition-colors disabled:opacity-50 border hover:bg-[var(--action-primary)]/10"
+                         style={{ 
+                           backgroundColor: "var(--bg-tertiary)", 
+                           color: "var(--action-primary)",
+                           borderColor: "var(--border-default)"
+                         }}
                          title="Generate a fresh solution"
                        >
-                         <FaSync className={loadingIdx === viewingIdx ? "animate-spin" : ""} />
+                         <FaArrowsRotate className={loadingIdx === viewingIdx ? "animate-spin" : ""} />
                          Regenerate
                        </button>
-                       <button onClick={closeSolution} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                          <FaTimes size={20} />
+                       <button onClick={closeSolution} className="p-2 rounded-full transition-colors hover:bg-[var(--bg-tertiary)]" style={{ color: "var(--text-tertiary)" }}>
+                          <FaXmark size={20} />
                        </button>
                     </div>
                  </div>
 
                  {/* Modal Content - Dynamic Solution Renderer */}
-                 <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50/50">
+                 <div className="flex-1 overflow-y-auto p-6 md:p-8" style={{ backgroundColor: "var(--bg-primary)" }}>
                     <DynamicSolutionRenderer
                       solution={solutions[viewingIdx]?.solution || solutions[viewingIdx]}
                       analysis={solutions[viewingIdx]?.analysis}
@@ -542,7 +555,7 @@ const UnitWeightageBar = ({
                   onClick={closeVideoModal} 
                   className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-full transition-colors"
                 >
-                  <FaTimes size={20} />
+                  <FaXmark size={20} />
                 </button>
               </div>
 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
-import { FaDownload, FaSpinner } from "react-icons/fa";
+import { FaDownload, FaSpinner } from "react-icons/fa6";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 

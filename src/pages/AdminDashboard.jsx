@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { 
-  FaInbox, FaEnvelopeOpen, FaBug, FaLightbulb, FaCheckCircle, 
-  FaClock, FaSpinner, FaTrash, FaTimes, 
-  FaFilter, FaSync, FaPaperPlane, FaUser, FaSortAlphaDown, FaCalendarAlt, FaSearch, FaMagic, FaEye
-} from "react-icons/fa";
+  FaInbox, FaEnvelopeOpen, FaBug, FaLightbulb, FaCircleCheck, 
+  FaClock, FaSpinner, FaTrash, FaXmark, 
+  FaFilter, FaArrowsRotate, FaPaperPlane, FaUser, FaArrowDownAZ, FaCalendarDays, FaMagnifyingGlass, FaWandMagicSparkles, FaEye
+} from "react-icons/fa6";
 import Card from "../components/Common/Card";
 import Loader from "../components/Common/Loader";
 
@@ -482,7 +482,7 @@ const AdminDashboard = () => {
                   onClick={fetchMessages}
                   className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2 shadow-sm"
                 >
-                  <FaSync /> Refresh
+                  <FaArrowsRotate /> Refresh
                 </button>
               </div>
             </Card>
@@ -544,36 +544,36 @@ const AdminDashboard = () => {
             
             {/* Left Col: User List */}
             <Card className="lg:col-span-1 flex flex-col h-full overflow-hidden">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                   <FaUser className="text-indigo-600" /> Users ({getFilteredUsers().length}/{users.length})
+              <div className="p-4 border-b border-[var(--border-default)]">
+                <h2 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                   <FaUser className="text-[var(--action-primary)]" /> Users ({getFilteredUsers().length}/{users.length})
                 </h2>
                 
                 {/* Verification Stats */}
                 <div className="grid grid-cols-3 gap-2 mb-3">
-                  <div className="bg-green-50 rounded-lg p-2 text-center border border-green-100">
-                    <div className="text-lg font-bold text-green-600">{getVerificationStats().verified}</div>
-                    <div className="text-xs text-green-700">Verified</div>
+                  <div className="bg-[var(--color-success-bg)]/20 rounded-lg p-2 text-center border border-[var(--color-success-bg)]/30">
+                    <div className="text-lg font-bold text-[var(--color-success-text)]">{getVerificationStats().verified}</div>
+                    <div className="text-xs text-[var(--text-secondary)]">Verified</div>
                   </div>
-                  <div className="bg-red-50 rounded-lg p-2 text-center border border-red-100">
-                    <div className="text-lg font-bold text-red-600">{getVerificationStats().unverified}</div>
-                    <div className="text-xs text-red-700">Unverified</div>
+                  <div className="bg-[var(--color-danger-bg)]/20 rounded-lg p-2 text-center border border-[var(--color-danger-bg)]/30">
+                    <div className="text-lg font-bold text-[var(--color-danger-text)]">{getVerificationStats().unverified}</div>
+                    <div className="text-xs text-[var(--text-secondary)]">Unverified</div>
                   </div>
-                  <div className="bg-purple-50 rounded-lg p-2 text-center border border-purple-100">
-                    <div className="text-lg font-bold text-purple-600">{getVerificationStats().total}</div>
-                    <div className="text-xs text-purple-700">Total</div>
+                  <div className="bg-[var(--action-primary)]/10 rounded-lg p-2 text-center border border-[var(--action-primary)]/20">
+                    <div className="text-lg font-bold text-[var(--action-primary)]">{getVerificationStats().total}</div>
+                    <div className="text-xs text-[var(--text-secondary)]">Total</div>
                   </div>
                 </div>
                 
                 {/* Search */}
                 <div className="relative mb-3">
-                   <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                   <FaMagnifyingGlass className="absolute left-3 top-3 text-[var(--text-tertiary)]" />
                    <input 
                      type="text"
                      placeholder="Search name or email..."
                      value={userSearch}
                      onChange={(e) => setUserSearch(e.target.value)}
-                     className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-purple-500 text-gray-700 bg-gray-50 focus:bg-white transition-colors"
+                     className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--border-default)] focus:outline-none focus:border-[var(--action-primary)] bg-[var(--bg-tertiary)] focus:bg-[var(--bg-secondary)] text-[var(--text-primary)] transition-colors"
                    />
                 </div>
 
@@ -581,7 +581,7 @@ const AdminDashboard = () => {
                 <select
                   value={universityFilter}
                   onChange={(e) => setUniversityFilter(e.target.value)}
-                  className="w-full mb-3 px-3 py-2 rounded-lg border border-gray-200 text-gray-700 bg-gray-50 focus:outline-none focus:border-purple-500 text-sm"
+                  className="w-full mb-3 px-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-tertiary)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--action-primary)] text-sm"
                 >
                   <option value="">All Universities</option>
                   {getUniqueUniversities().map(uni => (
@@ -593,7 +593,7 @@ const AdminDashboard = () => {
                 <select
                   value={verificationFilter}
                   onChange={(e) => setVerificationFilter(e.target.value)}
-                  className="w-full mb-3 px-3 py-2 rounded-lg border border-gray-200 text-gray-700 bg-gray-50 focus:outline-none focus:border-purple-500 text-sm"
+                  className="w-full mb-3 px-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-tertiary)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--action-primary)] text-sm"
                 >
                   <option value="">All Verification Status</option>
                   <option value="verified">✅ Verified Only</option>
@@ -604,23 +604,23 @@ const AdminDashboard = () => {
                 <div className="flex gap-2">
                    <button 
                      onClick={() => setUserSort("name")}
-                     className={`flex-1 py-1 text-sm rounded border transition-colors ${userSort === 'name' ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}
+                     className={`flex-1 py-1 text-sm rounded border transition-colors ${userSort === 'name' ? 'bg-[var(--action-primary)]/10 text-[var(--action-primary)] border-[var(--action-primary)]/30' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-default)] hover:bg-[var(--bg-tertiary)]'}`}
                    >
-                     <FaSortAlphaDown className="inline mr-1" /> Name
+                     <FaArrowDownAZ className="inline mr-1" /> Name
                    </button>
                    <button 
                      onClick={() => setUserSort("newest")}
-                     className={`flex-1 py-1 text-sm rounded border transition-colors ${userSort === 'newest' ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}
+                     className={`flex-1 py-1 text-sm rounded border transition-colors ${userSort === 'newest' ? 'bg-[var(--action-primary)]/10 text-[var(--action-primary)] border-[var(--action-primary)]/30' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] border-[var(--border-default)] hover:bg-[var(--bg-tertiary)]'}`}
                    >
-                     <FaCalendarAlt className="inline mr-1" /> Newest
+                     <FaCalendarDays className="inline mr-1" /> Newest
                    </button>
                 </div>
               </div>
 
               {/* User List */}
-              <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-gray-50/50">
+              <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-[var(--bg-primary)]/50">
                  {loadingUsers ? (
-                   <div className="flex justify-center py-8"><FaSpinner className="animate-spin text-2xl text-purple-500" /></div>
+                   <div className="flex justify-center py-8"><FaSpinner className="animate-spin text-2xl text-[var(--action-primary)]" /></div>
                  ) : (
                    getFilteredUsers().map(user => {
                      const alreadyReceived = hasUserReceivedCurrentEmail(user.email);
@@ -631,25 +631,25 @@ const AdminDashboard = () => {
                            setEmailMode("individual");
                            setSelectedUser(user);
                          }}
-                         className={`p-3 rounded-lg cursor-pointer border transition-all ${selectedUser?._id === user._id && emailMode === "individual" ? "bg-white border-purple-500 shadow-sm ring-1 ring-purple-500" : alreadyReceived ? "bg-blue-50/50 border-blue-200" : "bg-white border-gray-200 hover:border-purple-300 hover:shadow-sm"}`}
+                         className={`p-3 rounded-lg cursor-pointer border transition-all ${selectedUser?._id === user._id && emailMode === "individual" ? "bg-[var(--bg-secondary)] border-[var(--action-primary)] shadow-sm ring-1 ring-[var(--action-primary)]" : alreadyReceived ? "bg-[var(--action-hover)]/10 border-[var(--action-hover)]/30" : "bg-[var(--bg-secondary)] border-[var(--border-default)] hover:border-[var(--action-primary)]/50 hover:shadow-sm"}`}
                        >
                          <div className="flex items-center justify-between gap-2">
                            <div className="font-semibold text-sm truncate" style={{ color: "var(--text-primary)" }}>{user.name}</div>
                            <div className="flex items-center gap-1 flex-shrink-0">
                              {alreadyReceived && (
-                               <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">✓ Sent</span>
+                               <span className="text-xs px-2 py-0.5 bg-[var(--action-hover)]/20 text-[var(--action-hover)] rounded-full font-medium">✓ Sent</span>
                              )}
                              {user.emailVerified ? (
-                               <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Verified</span>
+                               <span className="text-xs px-2 py-0.5 bg-[var(--color-success-bg)]/20 text-[var(--color-success-text)] rounded-full font-medium">Verified</span>
                              ) : (
-                               <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">Unverified</span>
+                               <span className="text-xs px-2 py-0.5 bg-[var(--color-danger-bg)]/20 text-[var(--color-danger-text)] rounded-full font-medium">Unverified</span>
                              )}
                            </div>
                          </div>
                           <div className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>{user.email}</div>
                           <div className="flex items-center justify-between mt-1">
                             {user.university && (
-                              <div className="text-xs text-purple-600 font-medium">{user.university}</div>
+                              <div className="text-xs font-medium" style={{ color: "var(--action-primary)" }}>{user.university}</div>
                             )}
                             <button
                               onClick={(e) => {
@@ -657,7 +657,7 @@ const AdminDashboard = () => {
                                 handlePasswordReset(user.email, user.name);
                               }}
                               disabled={resettingPassword === user.email}
-                              className="text-xs px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
+                              className="text-xs px-2 py-1 bg-[var(--color-warning-bg)]/20 hover:bg-[var(--color-warning-bg)]/30 text-[var(--color-warning-text)] rounded font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
                               title="Send password reset link"
                             >
                               {resettingPassword === user.email ? (
@@ -677,9 +677,9 @@ const AdminDashboard = () => {
 
             {/* Right Col: Compose */}
             <Card className="lg:col-span-2 flex flex-col h-full overflow-hidden">
-               <div className="p-4 border-b border-gray-200 bg-gray-50/80">
-                  <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-gray-800">
-                     <FaPaperPlane className="text-indigo-600" /> Compose Email
+               <div className="p-4 border-b border-[var(--border-default)] bg-[var(--bg-tertiary)]">
+                  <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-[var(--text-primary)]">
+                     <FaPaperPlane className="text-[var(--action-primary)]" /> Compose Email
                   </h2>
                   
                   {/* Mode Toggle */}
@@ -690,9 +690,9 @@ const AdminDashboard = () => {
                          name="mode" 
                          checked={emailMode === "individual"} 
                          onChange={() => setEmailMode("individual")}
-                         className="accent-purple-600 w-4 h-4"
+                         className="accent-[var(--action-primary)] w-4 h-4"
                        />
-                       <span className="text-gray-700 font-medium">Single User</span>
+                       <span className="font-medium text-[var(--text-secondary)]">Single User</span>
                      </label>
                      <label className="flex items-center cursor-pointer gap-2">
                        <input 
@@ -700,9 +700,9 @@ const AdminDashboard = () => {
                          name="mode" 
                          checked={emailMode === "all"} 
                          onChange={() => setEmailMode("all")}
-                         className="accent-purple-600 w-4 h-4"
+                         className="accent-[var(--action-primary)] w-4 h-4"
                        />
-                       <span className="text-gray-700 font-medium">All Users</span>
+                       <span className="font-medium text-[var(--text-secondary)]">All Users</span>
                      </label>
                      <label className="flex items-center cursor-pointer gap-2">
                        <input 
@@ -710,9 +710,9 @@ const AdminDashboard = () => {
                          name="mode" 
                          checked={emailMode === "unverified"} 
                          onChange={() => setEmailMode("unverified")}
-                         className="accent-red-600 w-4 h-4"
+                         className="accent-[var(--color-danger-bg)] w-4 h-4"
                        />
-                       <span className="text-red-600 font-medium">❌ Unverified Only ({getVerificationStats().unverified})</span>
+                       <span className="font-medium text-[var(--color-danger-text)]">❌ Unverified Only ({getVerificationStats().unverified})</span>
                      </label>
                   </div>
 
@@ -720,7 +720,7 @@ const AdminDashboard = () => {
                   {emailMode === "unverified" && (
                     <button
                       onClick={loadVerificationReminderTemplate}
-                      className="mb-4 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium border border-red-200 transition-colors"
+                      className="mb-4 px-4 py-2 bg-[var(--color-danger-bg)]/20 hover:bg-[var(--color-danger-bg)]/30 text-[var(--color-danger-text)] rounded-lg text-sm font-medium border border-[var(--color-danger-bg)]/30 transition-colors"
                     >
                       📧 Load Verification Reminder Template
                     </button>
@@ -728,16 +728,16 @@ const AdminDashboard = () => {
 
                   {/* Recipient Display */}
                   <div className="mb-4">
-                     <span className="text-gray-500 font-medium mr-2">To:</span>
+                     <span className="font-medium mr-2 text-[var(--text-tertiary)]">To:</span>
                      {emailMode === "all" ? (
-                       <span className="bg-purple-100 text-purple-700 border border-purple-200 px-3 py-1 rounded text-sm font-bold">ALL USERS ({users.length})</span>
+                       <span className="bg-[var(--action-primary)]/20 text-[var(--action-primary)] border border-[var(--action-primary)]/30 px-3 py-1 rounded text-sm font-bold">ALL USERS ({users.length})</span>
                      ) : emailMode === "unverified" ? (
-                       <span className="bg-red-100 text-red-700 border border-red-200 px-3 py-1 rounded text-sm font-bold">UNVERIFIED USERS ({getVerificationStats().unverified})</span>
+                       <span className="bg-[var(--color-danger-bg)]/20 text-[var(--color-danger-text)] border border-[var(--color-danger-bg)]/30 px-3 py-1 rounded text-sm font-bold">UNVERIFIED USERS ({getVerificationStats().unverified})</span>
                      ) : (
                        selectedUser ? (
-                         <span className="bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1 rounded text-sm font-bold">{selectedUser.name} &lt;{selectedUser.email}&gt;</span>
+                         <span className="bg-[var(--action-hover)]/20 text-[var(--action-hover)] border border-[var(--action-hover)]/30 px-3 py-1 rounded text-sm font-bold">{selectedUser.name} &lt;{selectedUser.email}&gt;</span>
                        ) : (
-                         <span className="text-red-500 italic text-sm">Please select a user from the list</span>
+                         <span className="text-[var(--color-danger-text)] italic text-sm">Please select a user from the list</span>
                        )
                      )}
                   </div>
@@ -748,7 +748,7 @@ const AdminDashboard = () => {
                        placeholder="Subject..."
                        value={emailSubject}
                        onChange={(e) => setEmailSubject(e.target.value)}
-                       className="w-full text-lg p-3 rounded border-none focus:ring-1 focus:ring-purple-500 mb-0 font-medium"
+                       className="w-full text-lg p-3 rounded border-none focus:ring-1 focus:ring-[var(--action-primary)] mb-0 font-medium"
                        style={{
                          backgroundColor: "var(--bg-secondary)", 
                          color: "var(--text-primary)",
@@ -764,8 +764,8 @@ const AdminDashboard = () => {
                   >
                     
                     {/* AI Prompt Bar */}
-                    <div className="p-3 flex gap-2 items-center border-b border-gray-200">
-                       <FaMagic className="text-yellow-500" />
+                    <div className="p-3 flex gap-2 items-center border-b border-[var(--border-default)]">
+                       <FaWandMagicSparkles className="text-[var(--color-warning-text)]" />
                        <input 
                          type="text" 
                          placeholder="Ask AI to write this email (e.g., 'Announce the new Chatbot feature')..."
@@ -778,7 +778,7 @@ const AdminDashboard = () => {
                        <button 
                          onClick={handleGenerateAI}
                          disabled={generatingAI || !aiPrompt}
-                         className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 rounded text-xs font-bold text-white uppercase tracking-wider transition-colors disabled:opacity-50"
+                         className="px-3 py-1 bg-[var(--action-primary)] hover:bg-[var(--action-hover)] rounded text-xs font-bold text-white uppercase tracking-wider transition-colors disabled:opacity-50"
                        >
                          {generatingAI ? <FaSpinner className="animate-spin" /> : "Generate"}
                        </button>
@@ -794,7 +794,7 @@ const AdminDashboard = () => {
                   </div>
  
                   {/* Footer Action */}
-                  <div className="p-4 border-t border-gray-200 flex justify-end items-center gap-3" style={{ backgroundColor: "var(--bg-secondary)" }}>
+                  <div className="p-4 border-t border-[var(--border-default)] flex justify-end items-center gap-3" style={{ backgroundColor: "var(--bg-secondary)" }}>
                      <div className="text-xs italic" style={{ color: "var(--text-secondary)" }}>
                         {emailMode === "all" ? "Note: Massive bulk operations may take time." : "Preview before sending."}
                      </div>
@@ -830,23 +830,23 @@ const AdminDashboard = () => {
        {/* ======================= HISTORY TAB ======================= */}
        {activeTab === "history" && (
          <Card className="overflow-hidden">
-           <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-               <FaClock className="text-purple-600" /> Sent Email History
+           <div className="p-4 border-b border-[var(--border-default)] flex justify-between items-center bg-[var(--bg-tertiary)]">
+             <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+               <FaClock className="text-[var(--action-primary)]" /> Sent Email History
              </h2>
              <button 
                onClick={fetchEmailHistory}
-               className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+               className="p-2 hover:bg-[var(--bg-primary)] rounded-full transition-colors"
                title="Refresh History"
              >
-               <FaSync className={loadingHistory ? "animate-spin text-purple-600" : "text-gray-500"} />
+               <FaArrowsRotate className={loadingHistory ? "animate-spin text-[var(--action-primary)]" : "text-[var(--text-tertiary)]"} />
              </button>
            </div>
            
            <div className="overflow-x-auto">
              <table className="w-full text-left border-collapse">
                <thead>
-                 <tr className="bg-gray-100/50 text-gray-500 text-xs uppercase tracking-wider">
+                 <tr className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-xs uppercase tracking-wider">
                    <th className="p-4 font-semibold">Subject</th>
                    <th className="p-4 font-semibold text-center">Times Sent</th>
                    <th className="p-4 font-semibold text-center">Recipients</th>
@@ -854,40 +854,40 @@ const AdminDashboard = () => {
                    <th className="p-4 font-semibold text-center">Actions</th>
                  </tr>
                </thead>
-               <tbody className="divide-y divide-gray-100">
+               <tbody className="divide-y divide-[var(--border-default)]">
                  {loadingHistory ? (
                    <tr>
-                     <td colSpan="5" className="p-8 text-center text-gray-500">
+                     <td colSpan="5" className="p-8 text-center text-[var(--text-tertiary)]">
                        <FaSpinner className="animate-spin inline text-2xl" /> Loading history...
                      </td>
                    </tr>
                  ) : emailHistory.length === 0 ? (
                    <tr>
-                     <td colSpan="5" className="p-8 text-center text-gray-500 italic">
+                     <td colSpan="5" className="p-8 text-center text-[var(--text-tertiary)] italic">
                        No email history found. Start sending emails to see logs here.
                      </td>
                    </tr>
                  ) : (
                    emailHistory.map((log) => (
-                     <tr key={log._id} className="hover:bg-gray-50/50 transition-colors">
+                     <tr key={log._id} className="hover:bg-[var(--bg-tertiary)]/50 transition-colors">
                        <td className="p-4 font-medium" style={{ color: "var(--text-primary)" }}>
                          {log.subject}
                        </td>
                        <td className="p-4 text-center">
-                         <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">
+                         <span className="px-2 py-1 bg-[var(--action-hover)]/10 text-[var(--action-hover)] rounded-full text-xs font-bold">
                            {log.sentCount}
                          </span>
                        </td>
                        <td className="p-4 text-center">
                          <button
                            onClick={() => setSelectedHistoryItem(log)}
-                           className="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded-full text-xs font-bold transition-colors cursor-pointer"
+                           className="px-3 py-1 bg-[var(--color-success-bg)]/20 text-[var(--color-success-text)] hover:bg-[var(--color-success-bg)]/30 rounded-full text-xs font-bold transition-colors cursor-pointer"
                            title="Click to view recipients"
                          >
                            {log.recipients?.length || log.totalRecipients || 0} 📧
                          </button>
                        </td>
-                       <td className="p-4 text-right text-sm text-gray-500">
+                       <td className="p-4 text-right text-sm text-[var(--text-tertiary)]">
                          {new Date(log.lastSentAt).toLocaleString()}
                        </td>
                        <td className="p-4 text-center">
@@ -899,7 +899,7 @@ const AdminDashboard = () => {
                                setEmailMode("all"); // Default to dummy mode for preview
                                setShowPreview(true);
                              }}
-                             className="text-purple-600 hover:text-purple-800 text-sm font-bold flex items-center gap-1"
+                             className="text-[var(--action-primary)] hover:text-[var(--action-hover)] text-sm font-bold flex items-center gap-1"
                              title="Preview content"
                            >
                              <FaEye /> View
@@ -911,7 +911,7 @@ const AdminDashboard = () => {
                                setActiveTab("email"); // Switch to Compose tab
                                // Optional: specific mode setting if desired, currently stays as is or user sets it
                              }}
-                             className="text-blue-600 hover:text-blue-800 text-sm font-bold flex items-center gap-1"
+                             className="text-[var(--action-hover)] hover:text-[var(--action-primary)] text-sm font-bold flex items-center gap-1"
                              title="Load this template to Composer"
                            >
                              <FaPaperPlane className="transform rotate-12" /> Use
@@ -934,11 +934,11 @@ const AdminDashboard = () => {
            onClick={() => setSelectedHistoryItem(null)}
          >
            <div 
-             className="max-w-2xl w-full max-h-[80vh] flex flex-col bg-white rounded-xl overflow-hidden shadow-2xl"
+             className="max-w-2xl w-full max-h-[80vh] flex flex-col bg-[var(--bg-primary)] rounded-xl overflow-hidden shadow-2xl"
              onClick={(e) => e.stopPropagation()}
            >
              {/* Modal Header */}
-             <div className="p-4 border-b bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+             <div className="p-4 border-b text-white shadow-sm" style={{ backgroundColor: "var(--color-success-bg)" }}>
                <div className="flex justify-between items-center">
                  <div>
                    <span className="text-xs font-bold uppercase tracking-widest opacity-80">Email Recipients</span>
@@ -950,24 +950,24 @@ const AdminDashboard = () => {
                    onClick={() => setSelectedHistoryItem(null)}
                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
                  >
-                   <FaTimes />
+                   <FaXmark />
                  </button>
                </div>
              </div>
              
              {/* Stats Row */}
-             <div className="p-4 bg-gray-50 border-b flex gap-4">
+             <div className="p-4 border-b border-[var(--border-default)] bg-[var(--bg-tertiary)] flex gap-4">
                <div className="flex-1 text-center">
-                 <div className="text-2xl font-bold text-green-600">{selectedHistoryItem.recipients?.length || 0}</div>
-                 <div className="text-xs text-gray-500">Delivered</div>
+                 <div className="text-2xl font-bold text-[var(--color-success-text)]">{selectedHistoryItem.recipients?.length || 0}</div>
+                 <div className="text-xs text-[var(--text-tertiary)]">Delivered</div>
                </div>
                <div className="flex-1 text-center">
-                 <div className="text-2xl font-bold text-gray-600">{users.length - (selectedHistoryItem.recipients?.length || 0)}</div>
-                 <div className="text-xs text-gray-500">Not Received</div>
+                 <div className="text-2xl font-bold text-[var(--text-secondary)]">{users.length - (selectedHistoryItem.recipients?.length || 0)}</div>
+                 <div className="text-xs text-[var(--text-tertiary)]">Not Received</div>
                </div>
                <div className="flex-1 text-center">
-                 <div className="text-2xl font-bold text-purple-600">{users.length}</div>
-                 <div className="text-xs text-gray-500">Total Users</div>
+                 <div className="text-2xl font-bold text-[var(--action-primary)]">{users.length}</div>
+                 <div className="text-xs text-[var(--text-tertiary)]">Total Users</div>
                </div>
              </div>
              
@@ -975,18 +975,18 @@ const AdminDashboard = () => {
              <div className="flex-1 overflow-y-auto p-4">
                {selectedHistoryItem.recipients && selectedHistoryItem.recipients.length > 0 ? (
                  <>
-                   <h4 className="text-sm font-bold text-green-700 mb-3 flex items-center gap-2">
+                   <h4 className="text-sm font-bold text-[var(--color-success-text)] mb-3 flex items-center gap-2">
                      <FaCheckCircle /> Received ({selectedHistoryItem.recipients.length})
                    </h4>
                    <div className="space-y-2 mb-6">
                      {selectedHistoryItem.recipients.map((email, idx) => {
                        const user = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
                        return (
-                         <div key={idx} className="flex items-center gap-3 p-2 bg-green-50 rounded-lg border border-green-100">
-                           <FaCheckCircle className="text-green-500 flex-shrink-0" />
+                         <div key={idx} className="flex items-center gap-3 p-2 bg-[var(--color-success-bg)]/10 rounded-lg border border-[var(--color-success-bg)]/20">
+                           <FaCheckCircle className="text-[var(--color-success-text)] flex-shrink-0" />
                            <div className="flex-1 min-w-0">
-                             <div className="font-medium text-sm truncate text-gray-800">{user?.name || 'Unknown'}</div>
-                             <div className="text-xs truncate text-gray-500">{email}</div>
+                             <div className="font-medium text-sm truncate text-[var(--text-primary)]">{user?.name || 'Unknown'}</div>
+                             <div className="text-xs truncate text-[var(--text-tertiary)]">{email}</div>
                            </div>
                          </div>
                        );
@@ -994,18 +994,18 @@ const AdminDashboard = () => {
                    </div>
                    
                    {/* Users who didn't receive */}
-                   <h4 className="text-sm font-bold text-red-700 mb-3 flex items-center gap-2">
-                     <FaTimes /> Not Received ({users.filter(u => !selectedHistoryItem.recipients.includes(u.email?.toLowerCase())).length})
+                   <h4 className="text-sm font-bold text-[var(--color-danger-text)] mb-3 flex items-center gap-2">
+                     <FaXmark /> Not Received ({users.filter(u => !selectedHistoryItem.recipients.includes(u.email?.toLowerCase())).length})
                    </h4>
                    <div className="space-y-2">
                      {users
                        .filter(u => !selectedHistoryItem.recipients.includes(u.email?.toLowerCase()))
                        .map(user => (
-                         <div key={user._id} className="flex items-center gap-3 p-2 bg-red-50 rounded-lg border border-red-100">
-                           <FaTimes className="text-red-400 flex-shrink-0" />
+                         <div key={user._id} className="flex items-center gap-3 p-2 bg-[var(--color-danger-bg)]/10 rounded-lg border border-[var(--color-danger-bg)]/20">
+                           <FaXmark className="text-[var(--color-danger-bg)] flex-shrink-0" />
                            <div className="flex-1 min-w-0">
-                             <div className="font-medium text-sm truncate text-gray-800">{user.name}</div>
-                             <div className="text-xs truncate text-gray-500">{user.email}</div>
+                             <div className="font-medium text-sm truncate text-[var(--text-primary)]">{user.name}</div>
+                             <div className="text-xs truncate text-[var(--text-tertiary)]">{user.email}</div>
                            </div>
                            <button
                              onClick={() => {
@@ -1016,7 +1016,7 @@ const AdminDashboard = () => {
                                setActiveTab("email");
                                setSelectedHistoryItem(null);
                              }}
-                             className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded font-bold transition-colors"
+                             className="px-2 py-1 bg-[var(--action-primary)] hover:bg-[var(--action-hover)] text-white text-xs rounded font-bold transition-colors"
                            >
                              Send
                            </button>
@@ -1025,7 +1025,7 @@ const AdminDashboard = () => {
                    </div>
                  </>
                ) : (
-                 <div className="text-center text-gray-500 py-8">
+                 <div className="text-center text-[var(--text-tertiary)] py-8">
                    <p>No recipient data available for this email.</p>
                    <p className="text-sm mt-2">Recipient tracking was added in a recent update.</p>
                  </div>
@@ -1033,10 +1033,10 @@ const AdminDashboard = () => {
              </div>
              
              {/* Footer */}
-             <div className="p-4 border-t bg-gray-50 flex justify-end">
+             <div className="p-4 border-t border-[var(--border-default)] bg-[var(--bg-tertiary)] flex justify-end">
                <button
                  onClick={() => setSelectedHistoryItem(null)}
-                 className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors"
+                 className="px-4 py-2 bg-[var(--bg-secondary)] hover:bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-secondary)] rounded-lg font-medium transition-colors"
                >
                  Close
                </button>
@@ -1052,27 +1052,28 @@ const AdminDashboard = () => {
            onClick={() => setShowPreview(false)}
          >
            <div 
-             className="max-w-4xl w-full max-h-[90vh] flex flex-col bg-white rounded-xl overflow-hidden shadow-2xl"
+             className="max-w-4xl w-full max-h-[90vh] flex flex-col rounded-xl overflow-hidden shadow-2xl"
+             style={{ backgroundColor: "var(--bg-primary)" }}
              onClick={(e) => e.stopPropagation()}
            >
              {/* Modal Header */}
-             <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+             <div className="p-4 border-b flex justify-between items-center" style={{ backgroundColor: "var(--bg-secondary)", borderColor: "var(--border-default)" }}>
                <div>
-                 <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Email Preview</span>
-                 <h3 className="text-lg font-bold text-gray-800 truncate max-w-md">
+                 <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--text-secondary)" }}>Email Preview</span>
+                 <h3 className="text-lg font-bold truncate max-w-md" style={{ color: "var(--text-primary)" }}>
                     {emailSubject || "No Subject"}
                  </h3>
                </div>
                <button 
                  onClick={() => setShowPreview(false)}
-                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                 className="p-2 rounded-full transition-colors hover:bg-[var(--bg-tertiary)]"
                >
-                 <FaTimes className="text-gray-600" />
+                 <FaXmark style={{ color: "var(--text-secondary)" }} />
                </button>
              </div>
              
              {/* Modal Content - The actual email preview */}
-             <div className="flex-1 overflow-y-auto bg-gray-100 flex justify-center py-8">
+             <div className="flex-1 overflow-y-auto flex justify-center py-8" style={{ backgroundColor: "var(--bg-tertiary)" }}>
                {/* Container for the email - acts as the email client viewport */}
                <div 
                   className="email-preview-content bg-white shadow-sm w-full max-w-[600px] min-h-[400px]"
@@ -1085,7 +1086,7 @@ const AdminDashboard = () => {
                />
              </div>
              
-             <div className="p-3 border-t bg-gray-50 text-center text-xs text-gray-500">
+             <div className="p-3 border-t text-center text-xs" style={{ backgroundColor: "var(--bg-secondary)", borderColor: "var(--border-default)", color: "var(--text-secondary)" }}>
                 Note: Actual rendering may vary slightly across different email clients.
              </div>
            </div>
@@ -1118,7 +1119,7 @@ const AdminDashboard = () => {
                    </div>
                  </div>
                  <button onClick={() => setSelectedMessage(null)}>
-                   <FaTimes style={{ color: "var(--text-secondary)" }} />
+                   <FaXmark style={{ color: "var(--text-secondary)" }} />
                  </button>
                </div>
              </div>

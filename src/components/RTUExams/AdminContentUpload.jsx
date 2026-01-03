@@ -52,9 +52,6 @@ const AdminContentUpload = ({
   const [uploadStatus, setUploadStatus] = useState('');
   const [error, setError] = useState(null);
   
-  // ImageKit config
-  const [imagekitAuth, setImagekitAuth] = useState(null);
-  
   const mainFileRef = useRef(null);
   const thumbnailRef = useRef(null);
   const audioHindiRef = useRef(null);
@@ -62,11 +59,10 @@ const AdminContentUpload = ({
   
   const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
-  // Fetch subjects and ImageKit auth on open
+  // Fetch subjects on open
   useEffect(() => {
     if (isOpen) {
       fetchSubjects();
-      fetchImageKitAuth();
     }
   }, [isOpen]);
 
@@ -84,20 +80,7 @@ const AdminContentUpload = ({
     }
   };
 
-  const fetchImageKitAuth = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${baseUrl}/api/learn/admin/imagekit-auth`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.data.success) {
-        setImagekitAuth(res.data);
-      }
-    } catch (err) {
-      console.error('Error fetching ImageKit auth:', err);
-      setError('Failed to initialize upload. Please try again.');
-    }
-  };
+
 
   const handleMainFileDrop = useCallback((e) => {
     e.preventDefault();
@@ -150,35 +133,48 @@ const AdminContentUpload = ({
   };
 
   const uploadToImageKit = async (file, folder) => {
-    if (!imagekitAuth) {
-      throw new Error('ImageKit not configured');
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('fileName', `${Date.now()}_${file.name}`);
-    formData.append('folder', folder);
-    formData.append('publicKey', imagekitAuth.publicKey);
-    formData.append('signature', imagekitAuth.signature);
-    formData.append('expire', imagekitAuth.expire);
-    formData.append('token', imagekitAuth.token);
-
-    const response = await axios.post(
-      'https://upload.imagekit.io/api/v1/files/upload',
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percent);
-        }
+    try {
+      // 1. Fetch fresh authentication parameters for THIS specific upload
+      const token = localStorage.getItem('token');
+      const authRes = await axios.get(`${baseUrl}/api/learn/admin/imagekit-auth`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const authData = authRes.data;
+      if (!authData || !authData.token) {
+         throw new Error('Failed to get ImageKit authentication');
       }
-    );
 
-    return {
-      url: response.data.url,
-      fileId: response.data.fileId
-    };
+      // 2. Perform the upload with the fresh auth params
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('fileName', `${Date.now()}_${file.name}`);
+      formData.append('folder', folder);
+      formData.append('publicKey', authData.publicKey);
+      formData.append('signature', authData.signature);
+      formData.append('expire', authData.expire);
+      formData.append('token', authData.token);
+
+      const response = await axios.post(
+        'https://upload.imagekit.io/api/v1/files/upload',
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          }
+        }
+      );
+
+      return {
+        url: response.data.url,
+        fileId: response.data.fileId
+      };
+    } catch (error) {
+       console.error("ImageKit upload error:", error);
+       throw error;
+    }
   };
 
   const handleSubmit = async () => {
@@ -307,12 +303,13 @@ const AdminContentUpload = ({
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl"
+          className="rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl"
+          style={{ backgroundColor: "var(--bg-secondary)" }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-            <h2 className="text-xl font-bold text-slate-800">
+          <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "var(--border-default)" }}>
+            <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
               {step === 'select' && 'Upload Content'}
               {step === 'details' && `Upload ${contentType === 'video' ? 'Video' : 'PDF'}`}
               {step === 'uploading' && 'Uploading...'}
@@ -320,7 +317,8 @@ const AdminContentUpload = ({
             </h2>
             <button
               onClick={handleClose}
-              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              className="p-2 rounded-lg transition-colors hover:bg-[var(--bg-tertiary)]"
+              style={{ color: "var(--text-tertiary)" }}
             >
               <FaTimes size={20} />
             </button>
@@ -338,30 +336,32 @@ const AdminContentUpload = ({
             {/* Step 1: Select Content Type */}
             {step === 'select' && (
               <div className="space-y-4">
-                <p className="text-slate-500 text-center mb-6">
+                <p className="text-center mb-6" style={{ color: "var(--text-secondary)" }}>
                   What would you like to upload?
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={() => { setContentType('video'); setStep('details'); }}
-                    className="flex flex-col items-center gap-4 p-8 border-2 border-dashed border-slate-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50 transition-all group"
+                    className="flex flex-col items-center gap-4 p-8 border-2 border-dashed rounded-2xl transition-all group hover:bg-[var(--action-primary)]/10"
+                    style={{ borderColor: "var(--border-default)" }}
                   >
-                    <div className="p-4 bg-indigo-100 rounded-full group-hover:bg-indigo-500 transition-colors">
+                    <div className="p-4 rounded-full transition-colors bg-indigo-100 group-hover:bg-[var(--action-primary)]">
                       <FaVideo size={32} className="text-indigo-600 group-hover:text-white transition-colors" />
                     </div>
-                    <span className="font-bold text-slate-700">Video Lecture</span>
-                    <span className="text-sm text-slate-400">MP4, WebM, etc.</span>
+                    <span className="font-bold" style={{ color: "var(--text-primary)" }}>Video Lecture</span>
+                    <span className="text-sm" style={{ color: "var(--text-tertiary)" }}>MP4, WebM, etc.</span>
                   </button>
 
                   <button
                     onClick={() => { setContentType('pdf'); setStep('details'); }}
-                    className="flex flex-col items-center gap-4 p-8 border-2 border-dashed border-slate-200 rounded-2xl hover:border-red-400 hover:bg-red-50 transition-all group"
+                    className="flex flex-col items-center gap-4 p-8 border-2 border-dashed rounded-2xl transition-all group hover:bg-red-500/10"
+                    style={{ borderColor: "var(--border-default)" }}
                   >
                     <div className="p-4 bg-red-100 rounded-full group-hover:bg-red-500 transition-colors">
                       <FaFilePdf size={32} className="text-red-600 group-hover:text-white transition-colors" />
                     </div>
-                    <span className="font-bold text-slate-700">PDF Notes</span>
-                    <span className="text-sm text-slate-400">Study materials</span>
+                    <span className="font-bold" style={{ color: "var(--text-primary)" }}>PDF Notes</span>
+                    <span className="text-sm" style={{ color: "var(--text-tertiary)" }}>Study materials</span>
                   </button>
                 </div>
               </div>
@@ -377,9 +377,10 @@ const AdminContentUpload = ({
                   onClick={() => mainFileRef.current?.click()}
                   className={`relative border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
                     mainFile
-                      ? 'border-emerald-400 bg-emerald-50'
-                      : 'border-slate-200 hover:border-indigo-400 hover:bg-indigo-50'
+                      ? 'border-emerald-400 bg-emerald-500/10'
+                      : 'hover:border-indigo-400 hover:bg-[var(--action-primary)]/5'
                   }`}
+                  style={{ borderColor: mainFile ? undefined : "var(--border-default)" }}
                 >
                   <input
                     ref={mainFileRef}
@@ -395,40 +396,41 @@ const AdminContentUpload = ({
                         <FaCheck size={24} className="text-emerald-600" />
                       </div>
                       <div className="text-left">
-                        <p className="font-bold text-slate-800">{mainFile.name}</p>
-                        <p className="text-sm text-slate-500">
+                        <p className="font-bold" style={{ color: "var(--text-primary)" }}>{mainFile.name}</p>
+                        <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>
                           {(mainFile.size / (1024 * 1024)).toFixed(2)} MB
                         </p>
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); setMainFile(null); setMainFilePreview(null); }}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"
                       >
                         <FaTrash size={16} />
                       </button>
                     </div>
                   ) : (
                     <>
-                      <FaCloudUploadAlt size={48} className="mx-auto text-slate-300 mb-4" />
-                      <p className="font-medium text-slate-600">
+                      <FaCloudUploadAlt size={48} className="mx-auto mb-4" style={{ color: "var(--text-tertiary)" }} />
+                      <p className="font-medium" style={{ color: "var(--text-secondary)" }}>
                         Drag and drop your {contentType} here
                       </p>
-                      <p className="text-sm text-slate-400 mt-1">or click to browse</p>
+                      <p className="text-sm mt-1" style={{ color: "var(--text-tertiary)" }}>or click to browse</p>
                     </>
                   )}
                 </div>
 
                 {/* Thumbnail Upload */}
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                  <label className="block text-sm font-bold mb-2" style={{ color: "var(--text-secondary)" }}>
                     <FaImage className="inline mr-2" />
                     Thumbnail (Optional)
                   </label>
                   <div
                     onClick={() => thumbnailRef.current?.click()}
                     className={`relative h-32 border-2 border-dashed rounded-xl cursor-pointer flex items-center justify-center transition-all ${
-                      thumbnailFile ? 'border-emerald-400' : 'border-slate-200 hover:border-indigo-400'
+                      thumbnailFile ? 'border-emerald-400' : 'hover:border-indigo-400'
                     }`}
+                    style={{ borderColor: thumbnailFile ? undefined : "var(--border-default)" }}
                   >
                     <input
                       ref={thumbnailRef}
@@ -440,7 +442,7 @@ const AdminContentUpload = ({
                     {thumbnailPreview ? (
                       <img src={thumbnailPreview} alt="Thumbnail" className="h-full w-auto rounded-lg object-cover" />
                     ) : (
-                      <span className="text-slate-400 text-sm">Click to upload thumbnail</span>
+                      <span className="text-sm" style={{ color: "var(--text-tertiary)" }}>Click to upload thumbnail</span>
                     )}
                   </div>
                 </div>
@@ -448,11 +450,18 @@ const AdminContentUpload = ({
                 {/* Form Fields */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Subject *</label>
+                    <label className="block text-sm font-bold mb-2" style={{ color: "var(--text-secondary)" }}>Subject *</label>
                     <select
                       value={formData.subject}
                       onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                      className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none"
+                      style={{ 
+                        backgroundColor: "var(--bg-tertiary)", 
+                        borderColor: "var(--border-default)", 
+                        color: "var(--text-primary)",
+                        "--tw-ring-color": "var(--action-primary)",
+                        "--tw-border-opacity": "1"
+                      }}
                     >
                       <option value="">Select a subject</option>
                       {subjects.map(sub => (
@@ -462,29 +471,41 @@ const AdminContentUpload = ({
                   </div>
 
                   <div className="col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Title *</label>
+                    <label className="block text-sm font-bold mb-2" style={{ color: "var(--text-secondary)" }}>Title *</label>
                     <input
                       type="text"
                       value={formData.title}
                       onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                       placeholder="Enter title"
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                      className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none"
+                      style={{ 
+                        backgroundColor: "var(--bg-tertiary)", 
+                        borderColor: "var(--border-default)", 
+                        color: "var(--text-primary)",
+                        "--tw-ring-color": "var(--action-primary)"
+                      }}
                     />
                   </div>
 
                   <div className="col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Description</label>
+                    <label className="block text-sm font-bold mb-2" style={{ color: "var(--text-secondary)" }}>Description</label>
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Enter description"
                       rows={3}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none resize-none"
+                      className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none resize-none"
+                      style={{ 
+                        backgroundColor: "var(--bg-tertiary)", 
+                        borderColor: "var(--border-default)", 
+                        color: "var(--text-primary)",
+                        "--tw-ring-color": "var(--action-primary)"
+                      }}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Unit (Optional)</label>
+                    <label className="block text-sm font-bold mb-2" style={{ color: "var(--text-secondary)" }}>Unit (Optional)</label>
                     <input
                       type="number"
                       min="1"
@@ -492,31 +513,49 @@ const AdminContentUpload = ({
                       value={formData.unit}
                       onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
                       placeholder="1-5"
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                      className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none"
+                      style={{ 
+                        backgroundColor: "var(--bg-tertiary)", 
+                        borderColor: "var(--border-default)", 
+                        color: "var(--text-primary)",
+                        "--tw-ring-color": "var(--action-primary)"
+                      }}
                     />
                   </div>
 
                   {contentType === 'video' ? (
                     <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">Duration</label>
+                      <label className="block text-sm font-bold mb-2" style={{ color: "var(--text-secondary)" }}>Duration</label>
                       <input
                         type="text"
                         value={formData.duration}
                         onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
                         placeholder="mm:ss"
-                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                        className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none"
+                        style={{ 
+                          backgroundColor: "var(--bg-tertiary)", 
+                          borderColor: "var(--border-default)", 
+                          color: "var(--text-primary)",
+                          "--tw-ring-color": "var(--action-primary)"
+                        }}
                       />
                     </div>
                   ) : (
                     <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">Page Count</label>
+                      <label className="block text-sm font-bold mb-2" style={{ color: "var(--text-secondary)" }}>Page Count</label>
                       <input
                         type="number"
                         min="1"
                         value={formData.pageCount}
                         onChange={(e) => setFormData(prev => ({ ...prev, pageCount: e.target.value }))}
                         placeholder="Number of pages"
-                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                        className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none"
+                        style={{ 
+                          backgroundColor: "var(--bg-tertiary)", 
+                          borderColor: "var(--border-default)", 
+                          color: "var(--text-primary)",
+                          "--tw-ring-color": "var(--action-primary)"
+                        }}
                       />
                     </div>
                   )}
@@ -524,24 +563,28 @@ const AdminContentUpload = ({
 
                 {/* Audio Explanation Upload (PDF only) */}
                 {contentType === 'pdf' && (
-                  <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <div className="mt-6 p-4 rounded-xl border" style={{ backgroundColor: "var(--color-warning-bg)", backgroundOpacity: 0.1, borderColor: "var(--color-warning-bg)", borderOpacity: 0.2 }}>
                     <div className="flex items-center gap-2 mb-4">
-                      <FaVolumeUp className="text-amber-600" />
-                      <label className="font-bold text-amber-800">Audio Explanations (Optional)</label>
+                      <FaVolumeUp style={{ color: "var(--color-warning-text)" }} />
+                      <label className="font-bold" style={{ color: "var(--color-warning-text)" }}>Audio Explanations (Optional)</label>
                     </div>
-                    <p className="text-sm text-amber-700 mb-4">
+                    <p className="text-sm mb-4" style={{ color: "var(--color-warning-text)", opacity: 0.8 }}>
                       Upload audio files to help students understand the PDF content.
                     </p>
                     
                     <div className="grid grid-cols-2 gap-4">
                       {/* Hindi Audio */}
                       <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-2">🇮🇳 Hindi</label>
+                        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>🇮🇳 Hindi</label>
                         <div 
                           onClick={() => audioHindiRef.current?.click()}
                           className={`p-4 border-2 border-dashed rounded-xl cursor-pointer text-center transition-all ${
-                            audioHindiFile ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 hover:border-amber-400'
+                            audioHindiFile ? 'bg-emerald-500/10' : 'hover:border-amber-400'
                           }`}
+                          style={{ 
+                            borderColor: audioHindiFile ? "var(--color-success-text)" : "var(--border-default)",
+                            "--tw-border-opacity": "1"
+                          }}
                         >
                           <input
                             ref={audioHindiRef}
@@ -552,7 +595,7 @@ const AdminContentUpload = ({
                           />
                           {audioHindiFile ? (
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-emerald-700 truncate">{audioHindiFile.name}</span>
+                              <span className="text-sm text-emerald-600 truncate">{audioHindiFile.name}</span>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); setAudioHindiFile(null); }}
                                 className="text-red-500 p-1"
@@ -561,19 +604,23 @@ const AdminContentUpload = ({
                               </button>
                             </div>
                           ) : (
-                            <span className="text-sm text-slate-400">Click to upload</span>
+                            <span className="text-sm" style={{ color: "var(--text-tertiary)" }}>Click to upload</span>
                           )}
                         </div>
                       </div>
                       
                       {/* English Audio */}
                       <div>
-                        <label className="block text-sm font-medium text-slate-600 mb-2">🇬🇧 English</label>
+                        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>🇬🇧 English</label>
                         <div 
                           onClick={() => audioEnglishRef.current?.click()}
                           className={`p-4 border-2 border-dashed rounded-xl cursor-pointer text-center transition-all ${
-                            audioEnglishFile ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 hover:border-amber-400'
+                            audioEnglishFile ? 'bg-emerald-500/10' : 'hover:border-amber-400'
                           }`}
+                          style={{ 
+                            borderColor: audioEnglishFile ? "var(--color-success-text)" : "var(--border-default)",
+                            "--tw-border-opacity": "1"
+                          }}
                         >
                           <input
                             ref={audioEnglishRef}
@@ -584,7 +631,7 @@ const AdminContentUpload = ({
                           />
                           {audioEnglishFile ? (
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-emerald-700 truncate">{audioEnglishFile.name}</span>
+                              <span className="text-sm text-emerald-600 truncate">{audioEnglishFile.name}</span>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); setAudioEnglishFile(null); }}
                                 className="text-red-500 p-1"
@@ -593,7 +640,7 @@ const AdminContentUpload = ({
                               </button>
                             </div>
                           ) : (
-                            <span className="text-sm text-slate-400">Click to upload</span>
+                            <span className="text-sm" style={{ color: "var(--text-tertiary)" }}>Click to upload</span>
                           )}
                         </div>
                       </div>
@@ -657,23 +704,29 @@ const AdminContentUpload = ({
             {/* Step 4: Complete */}
             {step === 'complete' && (
               <div className="text-center py-12">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 rounded-full mb-6">
-                  <FaCheck size={40} className="text-emerald-600" />
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-6" style={{ backgroundColor: "var(--color-success-bg)" }}>
+                  <FaCheck size={40} className="text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-2">Upload Successful!</h3>
-                <p className="text-slate-500 mb-8">
+                <h3 className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>Upload Successful!</h3>
+                <p className="mb-8" style={{ color: "var(--text-secondary)" }}>
                   Your {contentType} has been uploaded and is now available for students.
                 </p>
                 <div className="flex justify-center gap-4">
                   <button
                     onClick={resetForm}
-                    className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
+                    className="px-6 py-3 rounded-xl font-medium transition-colors border"
+                    style={{ 
+                      backgroundColor: "var(--bg-secondary)", 
+                      color: "var(--text-secondary)",
+                      borderColor: "var(--border-default)"
+                    }}
                   >
                     Upload Another
                   </button>
                   <button
                     onClick={handleClose}
-                    className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+                    className="px-6 py-3 text-white rounded-xl font-medium transition-colors"
+                    style={{ backgroundColor: "var(--action-primary)" }}
                   >
                     Done
                   </button>

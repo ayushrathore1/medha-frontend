@@ -1,5 +1,5 @@
 import React from "react";
-import { FaTimes, FaThumbtack } from "react-icons/fa";
+import { FaXmark, FaThumbtack } from "react-icons/fa6";
 import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 
@@ -33,7 +33,7 @@ const PlanModal = ({ isOpen, onClose, plan }) => {
             onClick={onClose}
             className="p-2 rounded-full hover:bg-red-100 text-red-600 transition-colors"
           >
-            <FaTimes size={24} />
+            <FaXmark size={24} />
           </button>
         </div>
 

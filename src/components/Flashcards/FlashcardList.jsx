@@ -3,7 +3,7 @@ import FlashcardItem from "./FlashcardItem";
 import Card from "../Common/Card";
 import Button from "../Common/Button";
 import { motion } from "framer-motion";
-import { FaArrowLeft, FaArrowRight, FaCheck, FaTimes, FaUndo } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaCheck, FaXmark, FaArrowRotateLeft } from "react-icons/fa6";
 
 const FlashcardList = ({ flashcards, onEdit, onDelete, onMarkDifficulty, studyMode = false }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -54,21 +54,22 @@ const FlashcardList = ({ flashcards, onEdit, onDelete, onMarkDifficulty, studyMo
       
       {/* Header Stats */}
       <div className="flex items-center justify-between">
-         <div className="text-sm font-bold text-slate-500">
+         <div className="text-sm font-bold" style={{ color: "var(--text-secondary)" }}>
             Card {currentIndex + 1} of {flashcards.length}
          </div>
          {studyMode && (
             <div className="flex gap-4 text-xs font-bold">
-               <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Known: {studied.correct}</span>
-               <span className="text-red-600 bg-red-50 px-2 py-1 rounded">Review: {studied.incorrect}</span>
+               <span className="px-2 py-1 rounded bg-[var(--color-success-bg)]/20 text-[var(--color-success-text)]">Known: {studied.correct}</span>
+               <span className="px-2 py-1 rounded bg-[var(--color-danger-bg)]/20 text-[var(--color-danger-text)]">Review: {studied.incorrect}</span>
             </div>
          )}
       </div>
 
       {/* Progress Bar */}
-      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+      <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-tertiary)" }}>
          <motion.div 
-           className="h-full bg-indigo-500"
+           className="h-full"
+           style={{ backgroundColor: "var(--action-primary)" }}
            initial={{ width: 0 }}
            animate={{ width: `${progress}%` }}
            transition={{ duration: 0.3 }}
@@ -91,17 +92,17 @@ const FlashcardList = ({ flashcards, onEdit, onDelete, onMarkDifficulty, studyMo
             <div className="flex gap-4 w-full max-w-sm">
                <Button 
                  onClick={markAsIncorrect}
-                 className="flex-1 bg-white border border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 shadow-lg shadow-red-500/10"
+                 className="flex-1 border bg-[var(--bg-primary)] border-[var(--color-danger-bg)]/30 text-[var(--color-danger-text)] hover:bg-[var(--color-danger-bg)]/10 hover:border-[var(--color-danger-bg)]/50 shadow-lg shadow-[var(--color-danger-bg)]/10"
                  size="lg"
                >
-                 <FaTimes className="mr-2"/> Still Learning
+                 <FaXmark className="mr-2"/> Still Learning
                </Button>
                <Button 
                  onClick={() => {
                    markAsCorrect();
                    if (onMarkDifficulty) onMarkDifficulty(currentFlashcard._id, "viewed");
                  }} 
-                 className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 border-0"
+                 className="flex-1 text-white shadow-lg shadow-[var(--color-success-bg)]/20 border-0 bg-[var(--color-success-bg)] hover:bg-[var(--color-success-bg)]/90"
                  size="lg"
                >
                  <FaCheck className="mr-2"/> Got It
@@ -121,7 +122,7 @@ const FlashcardList = ({ flashcards, onEdit, onDelete, onMarkDifficulty, studyMo
          {currentIndex === flashcards.length - 1 && studyMode && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                <Button onClick={resetStudy} variant="ghost">
-                 <FaUndo className="mr-2"/> Restart Deck
+                 <FaArrowRotateLeft className="mr-2"/> Restart Deck
                </Button>
             </motion.div>
          )}

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import Button from "../Common/Button";
-import { FaPaperPlane, FaRobot, FaUser, FaEdit, FaSync, FaCheck, FaTimes } from "react-icons/fa";
+import { FaPaperPlane, FaRobot, FaUser, FaPenToSquare, FaArrowsRotate, FaCheck, FaXmark } from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -175,7 +175,7 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 relative">
+    <div className="flex flex-col h-full bg-transparent relative">
       
       {/* Chat messages area */}
       <div
@@ -192,7 +192,7 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
           >
             {/* Bot Avatar */}
             {msg.sender === "bot" && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md self-start mt-1">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[var(--action-primary)] to-[var(--action-hover)] flex items-center justify-center shadow-md self-start mt-1">
                 <FaRobot className="text-white text-sm" />
               </div>
             )}
@@ -201,8 +201,8 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
             <div
               className={`max-w-[85%] md:max-w-[70%] px-5 py-4 shadow-sm text-sm md:text-base leading-relaxed ${
                 msg.sender === "user" 
-                  ? "bg-indigo-600 text-white rounded-2xl rounded-tr-sm" 
-                  : "bg-white text-slate-800 border border-slate-200 rounded-2xl rounded-tl-sm"
+                  ? "bg-[var(--action-primary)] text-white rounded-2xl rounded-tr-sm" 
+                  : "bg-[var(--bg-secondary)] text-[var(--text-primary)] border border-[var(--border-default)] rounded-2xl rounded-tl-sm"
               }`}
             >
               {msg.sender === "bot" && idx === animatingIndex ? (
@@ -221,7 +221,7 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
                         components={{
                            // Paragraphs with colored text
                            p: ({node, children, ...props}) => (
-                              <p className="mb-3 last:mb-0 leading-relaxed" {...props}>
+                              <p className="mb-3 last:mb-0 leading-relaxed text-[var(--text-primary)]" {...props}>
                                  {React.Children.map(children, child => 
                                     typeof child === 'string' ? <ColoredText>{child}</ColoredText> : child
                                  )}
@@ -229,19 +229,19 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
                            ),
                            
                            // Links with accent color
-                           a: ({node, ...props}) => <a className="text-indigo-600 font-semibold hover:underline hover:text-indigo-700 transition-colors" target="_blank" rel="noopener noreferrer" {...props} />,
+                           a: ({node, ...props}) => <a className="text-[var(--action-primary)] font-semibold hover:underline hover:text-[var(--action-hover)] transition-colors" target="_blank" rel="noopener noreferrer" {...props} />,
                            
                            // Headings with gradient accent
-                           h1: ({node, ...props}) => <h1 className="text-xl font-black text-slate-900 mt-4 mb-2 pb-1 border-b-2 border-indigo-200" {...props} />,
-                           h2: ({node, ...props}) => <h2 className="text-lg font-bold text-indigo-700 mt-4 mb-2" {...props} />,
-                           h3: ({node, ...props}) => <h3 className="text-base font-bold text-slate-800 mt-3 mb-1" {...props} />,
-                           h4: ({node, ...props}) => <h4 className="text-sm font-bold text-slate-700 mt-2 mb-1" {...props} />,
+                           h1: ({node, ...props}) => <h1 className="text-xl font-black text-[var(--text-primary)] mt-4 mb-2 pb-1 border-b-2 border-[var(--action-primary)]/30" {...props} />,
+                           h2: ({node, ...props}) => <h2 className="text-lg font-bold text-[var(--action-primary)] mt-4 mb-2" {...props} />,
+                           h3: ({node, ...props}) => <h3 className="text-base font-bold text-[var(--text-secondary)] mt-3 mb-1" {...props} />,
+                           h4: ({node, ...props}) => <h4 className="text-sm font-bold text-[var(--text-tertiary)] mt-2 mb-1" {...props} />,
                            
                            // Bold text with color
-                           strong: ({node, ...props}) => <strong className="font-bold text-indigo-600" {...props} />,
+                           strong: ({node, ...props}) => <strong className="font-bold text-[var(--action-primary)]" {...props} />,
                            
                            // Italic text
-                           em: ({node, ...props}) => <em className="italic text-slate-600" {...props} />,
+                           em: ({node, ...props}) => <em className="italic text-[var(--text-secondary)]" {...props} />,
                            
                            // Code - inline and block
                            code: ({node, inline, className, children, ...props}) => {
@@ -249,7 +249,7 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
                               const language = match ? match[1] : '';
                               
                               return inline ? (
-                                 <code className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-mono text-xs font-semibold border border-indigo-100" {...props}>
+                                 <code className="bg-[var(--action-primary)]/10 text-[var(--action-primary)] px-1.5 py-0.5 rounded font-mono text-xs font-semibold border border-[var(--action-primary)]/20" {...props}>
                                     {children}
                                  </code>
                               ) : (
@@ -273,14 +273,14 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
                            
                            // Blockquotes with accent bar
                            blockquote: ({node, ...props}) => (
-                              <blockquote className="border-l-4 border-amber-400 bg-amber-50 pl-4 pr-3 py-2 my-3 rounded-r-lg text-slate-700 italic" {...props} />
+                              <blockquote className="border-l-4 border-[var(--color-warning-bg)] bg-[var(--color-warning-bg)]/10 pl-4 pr-3 py-2 my-3 rounded-r-lg text-[var(--text-secondary)] italic" {...props} />
                            ),
                            
                            // Unordered lists with styled bullets
                            ul: ({node, ...props}) => <ul className="my-2 ml-1 space-y-1" {...props} />,
                            li: ({node, ordered, ...props}) => (
-                              <li className="flex items-start gap-2 text-slate-700">
-                                 <span className={`mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full ${ordered ? 'bg-indigo-500' : 'bg-emerald-500'}`}></span>
+                              <li className="flex items-start gap-2 text-[var(--text-secondary)]">
+                                 <span className={`mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full ${ordered ? 'bg-[var(--action-primary)]' : 'bg-[var(--color-success-bg)]'}`}></span>
                                  <span {...props} />
                               </li>
                            ),
@@ -290,18 +290,18 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
                            
                            // Tables with styling
                            table: ({node, ...props}) => (
-                              <div className="my-3 overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-                                 <table className="min-w-full divide-y divide-slate-200 text-xs" {...props} />
+                              <div className="my-3 overflow-x-auto rounded-xl border border-[var(--border-default)] shadow-sm">
+                                 <table className="min-w-full divide-y divide-[var(--border-default)] text-xs" {...props} />
                               </div>
                            ),
-                           thead: ({node, ...props}) => <thead className="bg-gradient-to-r from-indigo-50 to-violet-50" {...props} />,
-                           th: ({node, ...props}) => <th className="px-3 py-2 text-left font-bold text-indigo-800 uppercase tracking-wider text-[10px]" {...props} />,
-                           tbody: ({node, ...props}) => <tbody className="bg-white divide-y divide-slate-100" {...props} />,
-                           tr: ({node, ...props}) => <tr className="hover:bg-slate-50 transition-colors even:bg-slate-50/50" {...props} />,
-                           td: ({node, ...props}) => <td className="px-3 py-2 text-slate-700 whitespace-nowrap" {...props} />,
+                           thead: ({node, ...props}) => <thead className="bg-[var(--bg-tertiary)]" {...props} />,
+                           th: ({node, ...props}) => <th className="px-3 py-2 text-left font-bold text-[var(--action-primary)] uppercase tracking-wider text-[10px]" {...props} />,
+                           tbody: ({node, ...props}) => <tbody className="bg-[var(--bg-secondary)] divide-y divide-[var(--border-default)]" {...props} />,
+                           tr: ({node, ...props}) => <tr className="hover:bg-[var(--bg-tertiary)] transition-colors even:bg-[var(--bg-tertiary)]/50" {...props} />,
+                           td: ({node, ...props}) => <td className="px-3 py-2 text-[var(--text-secondary)] whitespace-nowrap" {...props} />,
                            
                            // Horizontal rule
-                           hr: ({node, ...props}) => <hr className="my-4 border-t-2 border-slate-200" {...props} />,
+                           hr: ({node, ...props}) => <hr className="my-4 border-t-2 border-[var(--border-default)]" {...props} />,
                            
                            // Images
                            img: ({node, ...props}) => (
@@ -317,7 +317,7 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
                          <textarea
                             value={editText}
                             onChange={(e) => setEditText(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg bg-indigo-700 text-white border border-indigo-400 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none text-sm"
+                            className="w-full px-3 py-2 rounded-lg bg-[var(--action-primary)] text-white border border-[var(--action-primary)]/50 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none text-sm"
                             rows={3}
                             autoFocus
                          />
@@ -326,11 +326,11 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
                                onClick={cancelEditing}
                                className="px-3 py-1.5 text-xs font-medium text-indigo-200 hover:text-white transition-colors flex items-center gap-1"
                             >
-                               <FaTimes size={10} /> Cancel
+                               <FaXmark size={10} /> Cancel
                             </button>
                             <button
                                onClick={() => handleEditSubmit(idx)}
-                               className="px-3 py-1.5 text-xs font-bold bg-white text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors flex items-center gap-1"
+                               className="px-3 py-1.5 text-xs font-bold bg-white text-[var(--action-primary)] rounded-lg hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-1"
                             >
                                <FaCheck size={10} /> Save & Resend
                             </button>
@@ -347,10 +347,10 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
                  <div className="flex justify-end mt-1">
                     <button
                        onClick={() => startEditing(idx, msg.text)}
-                       className="text-[10px] text-indigo-300 hover:text-white flex items-center gap-1 transition-colors"
+                       className="text-[10px] text-indigo-200 hover:text-white flex items-center gap-1 transition-colors"
                        title="Edit message"
                     >
-                       <FaEdit size={10} /> Edit
+                       <FaPenToSquare size={10} /> Edit
                     </button>
                  </div>
               )}
@@ -360,10 +360,10 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
                  <div className="flex justify-start mt-2">
                     <button
                        onClick={() => handleRegenerate(idx)}
-                       className="text-[10px] text-slate-400 hover:text-indigo-600 flex items-center gap-1 transition-colors bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-lg"
+                       className="text-[10px] text-[var(--text-tertiary)] hover:text-[var(--action-primary)] flex items-center gap-1 transition-colors bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] px-2 py-1 rounded-lg"
                        title="Regenerate response"
                     >
-                       <FaSync size={10} /> Regenerate
+                       <FaArrowsRotate size={10} /> Regenerate
                     </button>
                  </div>
               )}
@@ -371,8 +371,8 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
 
             {/* User Avatar */}
             {msg.sender === "user" && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shadow-sm self-start mt-1">
-                <FaUser className="text-slate-500 text-sm" />
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center shadow-sm self-start mt-1">
+                <FaUser className="text-[var(--text-tertiary)] text-sm" />
               </div>
             )}
           </motion.div>
@@ -381,13 +381,13 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
         {/* Typing indicator */}
         {isTyping && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start gap-3 px-2">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[var(--action-primary)] to-[var(--action-hover)] flex items-center justify-center shadow-md">
               <FaRobot className="text-white text-sm" />
             </div>
-            <div className="px-4 py-3 bg-white border border-slate-200 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1">
-               <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span>
-               <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "0.15s" }}></span>
-               <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: "0.3s" }}></span>
+            <div className="px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1">
+               <span className="w-2 h-2 bg-[var(--action-primary)]/70 rounded-full animate-bounce"></span>
+               <span className="w-2 h-2 bg-[var(--action-primary)]/70 rounded-full animate-bounce" style={{ animationDelay: "0.15s" }}></span>
+               <span className="w-2 h-2 bg-[var(--action-primary)]/70 rounded-full animate-bounce" style={{ animationDelay: "0.3s" }}></span>
             </div>
           </motion.div>
         )}
@@ -395,7 +395,7 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
       </div>
 
       {/* Input area */}
-      <div className="p-4 bg-white border-t border-slate-200">
+      <div className="p-4 bg-[var(--bg-secondary)] border-t border-[var(--border-default)]">
          <form
            onSubmit={handleSubmit}
            className="max-w-4xl mx-auto relative flex gap-3 items-end"
@@ -406,19 +406,19 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask anything..."
-                className="w-full pl-5 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-0 transition-colors text-slate-800 font-medium placeholder:text-slate-400"
+                className="w-full pl-5 pr-4 py-3.5 bg-[var(--bg-tertiary)] border-2 border-[var(--border-default)] rounded-xl focus:outline-none focus:border-[var(--action-primary)] focus:ring-0 transition-colors text-[var(--text-primary)] font-medium placeholder:text-[var(--text-tertiary)]"
               />
            </div>
            <Button 
              type="submit" 
              variant="primary" 
              disabled={!input.trim() || isTyping}
-             className={`h-[52px] w-[52px] rounded-xl flex items-center justify-center p-0 transition-transform ${input.trim() ? 'hover:scale-105 active:scale-95 shadow-lg shadow-indigo-500/20' : 'opacity-70'}`}
+             className={`h-[52px] w-[52px] rounded-xl flex items-center justify-center p-0 transition-transform ${input.trim() ? 'hover:scale-105 active:scale-95 shadow-lg shadow-[var(--action-primary)]/20' : 'opacity-70'}`}
            >
               <FaPaperPlane className={`${input.trim() ? 'ml-[-2px]' : ''}`} />
            </Button>
          </form>
-         <p className="text-center text-[10px] sm:text-xs text-slate-400 mt-3 font-medium">
+         <p className="text-center text-[10px] sm:text-xs text-[var(--text-tertiary)] mt-3 font-medium">
             Medha AI can make mistakes. Verify important info.
          </p>
       </div>

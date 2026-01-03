@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Card from "../Common/Card";
 import Button from "../Common/Button";
-import { FaTrash, FaCheck, FaPlus, FaRobot } from "react-icons/fa";
+import { FaTrash, FaCheck, FaPlus, FaRobot } from "react-icons/fa6";
 
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
@@ -131,7 +131,7 @@ const TodoList = () => {
               className="flex items-center justify-between p-3 rounded-lg border transition-all"
               style={{
                 borderColor: "var(--accent-secondary)",
-                backgroundColor: todo.isCompleted ? "rgba(34, 197, 94, 0.1)" : "transparent",
+                backgroundColor: todo.isCompleted ? "var(--color-success-bg)" : "transparent",
                 opacity: todo.isCompleted ? 0.7 : 1,
               }}
             >
@@ -139,10 +139,10 @@ const TodoList = () => {
                 <button
                   onClick={() => handleToggleTodo(todo._id)}
                   className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                    todo.isCompleted ? "bg-green-500 border-green-500" : "border-gray-400"
+                    todo.isCompleted ? "bg-[var(--color-success-text)] border-[var(--color-success-text)]" : "border-[var(--text-tertiary)]"
                   }`}
                 >
-                  {todo.isCompleted && <FaCheck className="text-white text-xs" />}
+                  {todo.isCompleted && <FaCheck className="text-[var(--bg-primary)] text-xs" />}
                 </button>
                 <span
                   className={`truncate ${todo.isCompleted ? "line-through opacity-60" : ""}`}
@@ -153,7 +153,7 @@ const TodoList = () => {
               </div>
               <button
                 onClick={() => handleDeleteTodo(todo._id)}
-                className="text-red-400 hover:text-red-600 transition-colors"
+                className="text-[var(--color-danger-text)] opacity-70 hover:opacity-100 transition-colors"
               >
                 <FaTrash size={14} />
               </button>

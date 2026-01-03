@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import axios from "axios";
-import { FaSpinner, FaCheck, FaTimes, FaTrash, FaPaste, FaImage } from "react-icons/fa";
+import { FaSpinner, FaCheck, FaXmark, FaTrash, FaPaste, FaImage } from "react-icons/fa6";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const IMAGEKIT_PUBLIC_KEY = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY;
@@ -141,10 +141,10 @@ const QuestionImageUploader = ({
       onBlur={handleBlur}
       className={`group relative mt-4 rounded-xl border-2 border-dashed transition-all duration-300 outline-none overflow-hidden ${
         isFocused
-          ? "border-indigo-500 bg-indigo-50/50 ring-4 ring-indigo-100 scale-[1.01]"
+          ? "border-[var(--action-primary)] bg-[var(--action-primary)]/10 ring-4 ring-[var(--action-primary)]/20 scale-[1.01]"
           : question.imageUrl
-            ? "border-emerald-300 bg-emerald-50/30 hover:border-emerald-400"
-            : "border-slate-300 bg-slate-50 hover:border-indigo-400 hover:bg-slate-100"
+            ? "border-[var(--color-success-text)]/50 bg-[var(--color-success-bg)]/20 hover:border-[var(--color-success-text)]"
+            : "border-[var(--border-default)] bg-[var(--bg-tertiary)] hover:border-[var(--action-primary)] hover:bg-[var(--bg-tertiary)]/80"
       }`}
     >
       <div className="p-4 flex flex-col items-center justify-center min-h-[120px] text-center">
@@ -152,16 +152,16 @@ const QuestionImageUploader = ({
         {/* Loading State */}
         {uploading ? (
           <div className="flex flex-col items-center gap-3 animate-pulse">
-            <div className="p-3 bg-white rounded-full shadow-lg">
-              <FaSpinner className="animate-spin text-2xl text-indigo-600" />
+            <div className="p-3 bg-[var(--bg-secondary)] rounded-full shadow-lg">
+              <FaSpinner className="animate-spin text-2xl text-[var(--action-primary)]" />
             </div>
-            <span className="text-sm font-bold text-indigo-600">Uploading Image...</span>
+            <span className="text-sm font-bold text-[var(--action-primary)]">Uploading Image...</span>
           </div>
         ) : question.imageUrl ? (
           // Image Exists State - Show Preview
           <div className="w-full relative">
             <div className="flex items-center gap-4">
-              <div className="relative h-20 w-20 shrink-0 rounded-lg overflow-hidden border-2 border-white shadow-md group-hover:shadow-lg transition-shadow">
+              <div className="relative h-20 w-20 shrink-0 rounded-lg overflow-hidden border-2 border-[var(--bg-secondary)] shadow-md group-hover:shadow-lg transition-shadow">
                 <img 
                   src={question.imageUrl} 
                   alt="Question Diagram" 
@@ -172,29 +172,29 @@ const QuestionImageUploader = ({
               
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">
+                  <span className="flex items-center gap-1 text-xs font-bold text-[var(--color-success-text)] bg-[var(--color-success-bg)] px-2 py-0.5 rounded-full">
                     <FaCheck size={10} /> Attached
                   </span>
                   {isFocused && (
-                    <span className="text-xs font-bold text-indigo-500 animate-pulse">
+                    <span className="text-xs font-bold text-[var(--action-primary)] animate-pulse">
                       Paste to replace
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 font-medium line-clamp-1 break-all">
+                <p className="text-xs text-[var(--text-tertiary)] font-medium line-clamp-1 break-all">
                   {question.imageUrl.split('/').pop()}
                 </p>
                 <div className="flex gap-2 mt-2">
                    <button
                     onClick={(e) => { e.stopPropagation(); window.open(question.imageUrl, '_blank') }}
-                    className="text-xs font-bold text-slate-600 hover:text-indigo-600 hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--action-primary)] hover:underline flex items-center gap-1"
                   >
                     <FaImage /> View Full
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDelete(); }}
                     disabled={deleting}
-                    className="text-xs font-bold text-red-500 hover:text-red-700 hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-[var(--color-danger-text)] hover:text-red-700 hover:underline flex items-center gap-1"
                   >
                     {deleting ? <FaSpinner className="animate-spin" /> : <FaTrash />} Remove
                   </button>
@@ -206,18 +206,18 @@ const QuestionImageUploader = ({
           // Empty State - Call to Action
           <div className="flex flex-col items-center gap-2 transition-transform duration-300 group-hover:-translate-y-1">
             <div className={`p-3 rounded-full transition-colors duration-300 ${
-              isFocused ? "bg-indigo-100 text-indigo-600" : "bg-white text-slate-400 shadow-sm group-hover:text-indigo-500 group-hover:shadow-md"
+              isFocused ? "bg-[var(--action-primary)]/10 text-[var(--action-primary)]" : "bg-[var(--bg-secondary)] text-[var(--text-tertiary)] shadow-sm group-hover:text-[var(--action-primary)] group-hover:shadow-md"
             }`}>
               {isFocused ? <FaPaste size={24} /> : <FaImage size={24} />}
             </div>
             
             <div>
               <p className={`text-sm font-bold transition-colors ${
-                isFocused ? "text-indigo-700" : "text-slate-600 group-hover:text-slate-800"
+                isFocused ? "text-[var(--action-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
               }`}>
                 {isFocused ? "Paste Now (Ctrl+V)" : "Add Question Diagram"}
               </p>
-              <p className="text-xs text-slate-400 font-medium">
+              <p className="text-xs text-[var(--text-tertiary)] font-medium">
                 Click here, then paste an image from clipboard
               </p>
             </div>
@@ -226,15 +226,15 @@ const QuestionImageUploader = ({
 
         {/* Error Message */}
         {error && (
-          <div className="mt-3 w-full p-2 bg-red-50 text-red-600 text-xs font-bold rounded-lg flex items-center justify-center gap-2 border border-red-100 animate-in fade-in slide-in-from-top-1">
-            <FaTimes /> {error}
+          <div className="mt-3 w-full p-2 bg-[var(--color-danger-bg)]/10 text-[var(--color-danger-text)] text-xs font-bold rounded-lg flex items-center justify-center gap-2 border border-[var(--color-danger-bg)]/20 animate-in fade-in slide-in-from-top-1">
+            <FaXmark /> {error}
           </div>
         )}
       </div>
 
       {/* Hover Overlay Hint (only for empty state) */}
       {!question.imageUrl && !uploading && !isFocused && (
-        <div className="absolute inset-0 bg-indigo-50/0 group-hover:bg-indigo-50/30 pointer-events-none transition-colors duration-300" />
+        <div className="absolute inset-0 bg-[var(--action-primary)]/0 group-hover:bg-[var(--action-primary)]/5 pointer-events-none transition-colors duration-300" />
       )}
     </div>
   );

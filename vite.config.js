@@ -12,13 +12,16 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-ui': ['framer-motion', 'lucide-react', 'react-icons'],
+          'vendor-motion': ['framer-motion'],
           'vendor-pdf': ['react-pdf'],
           'vendor-utils': ['date-fns', 'axios'],
           'vendor-auth': ['@clerk/clerk-react'],
+          // Icons (react-icons, lucide-react) removed - will be tree-shaken per-component
         },
       },
     },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 600,
   },
   test: {
     globals: true,

@@ -5,7 +5,7 @@ import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import QuizItem from "../components/Quiz/QuizItem";
-import { FaBrain, FaUniversity, FaKeyboard, FaTrophy, FaRedo, FaList, FaArrowLeft, FaArrowRight, FaCheck } from "react-icons/fa";
+import { FaBrain, FaBuildingColumns, FaKeyboard, FaTrophy, FaArrowRotateRight, FaList, FaArrowLeft, FaArrowRight, FaCheck } from "react-icons/fa6";
 
 import { useTour } from "../context/TourContext";
 
@@ -155,13 +155,13 @@ const Quiz = () => {
   // START SCREEN
   if (!quiz) {
     return (
-      <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-transparent flex items-center justify-center">
         <div className="w-full max-w-4xl">
           <div className="text-center mb-10">
-            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
+            <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight" style={{ color: "var(--text-primary)" }}>
               Quiz Arena
             </h1>
-            <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">
+            <p className="text-xl font-medium max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
               Test your knowledge with AI-generated quizzes from your course material or any topic you choose.
             </p>
           </div>
@@ -169,16 +169,26 @@ const Quiz = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
              {/* Mode Selection */}
              <Card className="md:col-span-2 p-1">
-                <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                <div className="flex gap-2 p-1 rounded-xl" style={{ backgroundColor: "var(--bg-secondary)" }}>
                     <button
                       onClick={() => { setGenerationMode("subject"); setError(""); }}
-                      className={`flex-1 py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-3 transition-all ${generationMode === "subject" ? "bg-white text-indigo-600 shadow-md" : "text-slate-400 hover:text-slate-600"}`}
+                      className={`flex-1 py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-3 transition-all`}
+                      style={{
+                        backgroundColor: generationMode === "subject" ? "var(--bg-primary)" : "transparent",
+                        color: generationMode === "subject" ? "var(--action-primary)" : "var(--text-tertiary)",
+                        boxShadow: generationMode === "subject" ? "0 4px 6px -1px rgba(0, 0, 0, 0.1)" : "none"
+                      }}
                     >
-                       <FaUniversity /> By Subject
+                       <FaBuildingColumns /> By Subject
                     </button>
                     <button
                       onClick={() => { setGenerationMode("topic"); setError(""); }}
-                      className={`flex-1 py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-3 transition-all ${generationMode === "topic" ? "bg-white text-indigo-600 shadow-md" : "text-slate-400 hover:text-slate-600"}`}
+                      className={`flex-1 py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-3 transition-all`}
+                      style={{
+                        backgroundColor: generationMode === "topic" ? "var(--bg-primary)" : "transparent",
+                        color: generationMode === "topic" ? "var(--action-primary)" : "var(--text-tertiary)",
+                        boxShadow: generationMode === "topic" ? "0 4px 6px -1px rgba(0, 0, 0, 0.1)" : "none"
+                      }}
                     >
                        <FaKeyboard /> Custom Topic
                     </button>
@@ -196,16 +206,22 @@ const Quiz = () => {
                       className="space-y-6 max-w-md mx-auto"
                     >
                        <div className="relative">
-                          <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Select Course</label>
+                          <label className="block text-sm font-bold mb-2 uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Select Course</label>
                           <select
                             value={selectedSubject}
                             onChange={(e) => { setSelectedSubject(e.target.value); setError(""); }}
-                            className="w-full px-5 py-4 rounded-2xl border border-slate-300 bg-white text-lg font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 appearance-none shadow-sm"
+                            className="w-full px-5 py-4 rounded-2xl border text-lg font-bold focus:outline-none focus:ring-4 appearance-none shadow-sm"
+                            style={{
+                                backgroundColor: "var(--bg-secondary)",
+                                borderColor: "var(--border-default)",
+                                color: "var(--text-primary)",
+                                outlineColor: "var(--action-primary)"
+                            }}
                           >
                              <option value="">-- Choose Subject --</option>
                              {subjects.map((s) => <option key={s._id} value={s.name}>{s.name}</option>)}
                           </select>
-                          <div className="absolute right-5 bottom-4 pointer-events-none text-slate-500">▼</div>
+                          <div className="absolute right-5 bottom-4 pointer-events-none" style={{ color: "var(--text-tertiary)" }}>▼</div>
                        </div>
                     </motion.div>
                  ) : (
@@ -216,14 +232,20 @@ const Quiz = () => {
                       className="space-y-6 max-w-md mx-auto"
                     >
                        <div>
-                          <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Enter Topic</label>
+                          <label className="block text-sm font-bold mb-2 uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Enter Topic</label>
                           <input
                              type="text"
                              placeholder="e.g. Thermodynamics, React Hooks..."
                              value={topic}
                              onChange={(e) => { setTopic(e.target.value); setError(""); }}
                              onKeyPress={(e) => e.key === 'Enter' && topic.trim() && handleStartQuiz()}
-                             className="w-full px-5 py-4 rounded-2xl border border-slate-300 bg-white text-lg font-bold text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 shadow-sm"
+                             className="w-full px-5 py-4 rounded-2xl border text-lg font-bold focus:outline-none focus:ring-4 shadow-sm"
+                             style={{
+                                backgroundColor: "var(--bg-secondary)",
+                                borderColor: "var(--border-default)",
+                                color: "var(--text-primary)",
+                                outlineColor: "var(--action-primary)"
+                             }}
                           />
                        </div>
                     </motion.div>
@@ -243,7 +265,7 @@ const Quiz = () => {
                     disabled={generationMode === "subject" ? !selectedSubject : !topic.trim()}
                     size="lg" 
                     fullWidth 
-                    className="h-14 text-lg bg-gradient-to-r from-indigo-600 to-violet-600 shadow-xl shadow-indigo-500/30 border-0"
+                    className="h-14 text-lg bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-hover)] shadow-xl shadow-[var(--action-primary)]/30 border-0 text-white"
                  >
                     Start Challenge
                  </Button>
@@ -259,36 +281,37 @@ const Quiz = () => {
   if (showResults) {
     const percentage = Math.round((score / quiz.questions.length) * 100);
     return (
-      <div className="min-h-screen w-full px-4 py-8 bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen w-full px-4 py-8 bg-transparent flex items-center justify-center">
          <motion.div 
            initial={{ scale: 0.9, opacity: 0 }}
            animate={{ scale: 1, opacity: 1 }}
-           className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-8 md:p-12 text-center"
+           className="w-full max-w-2xl rounded-3xl shadow-2xl p-8 md:p-12 text-center"
+           style={{ backgroundColor: "var(--bg-secondary)" }}
          >
             <div className={`w-32 h-32 mx-auto rounded-full flex items-center justify-center mb-6 shadow-xl ${
-               percentage >= 70 ? 'bg-emerald-100 text-emerald-600' :
-               percentage >= 50 ? 'bg-amber-100 text-amber-600' :
-               'bg-red-100 text-red-600'
+               percentage >= 70 ? 'bg-[var(--color-success-bg)]/20 text-[var(--color-success-text)]' :
+               percentage >= 50 ? 'bg-[var(--color-warning-bg)]/20 text-[var(--color-warning-text)]' :
+               'bg-[var(--color-danger-bg)]/20 text-[var(--color-danger-text)]'
             }`}>
                <FaTrophy size={60} />
             </div>
 
-            <h2 className="text-4xl font-black text-slate-900 mb-2">
+            <h2 className="text-4xl font-black mb-2" style={{ color: "var(--text-primary)" }}>
                {percentage >= 80 ? "Outstanding!" : percentage >= 50 ? "Good Job!" : "Keep Learning!"}
             </h2>
-            <p className="text-slate-500 font-medium text-lg mb-8">
-               You scored <span className="font-bold text-slate-900 text-2xl">{score}</span> out of {quiz.questions.length}
+            <p className="font-medium text-lg mb-8" style={{ color: "var(--text-secondary)" }}>
+               You scored <span className="font-bold text-2xl" style={{ color: "var(--text-primary)" }}>{score}</span> out of {quiz.questions.length}
             </p>
 
-            <div className="w-full h-6 bg-slate-100 rounded-full mb-10 overflow-hidden relative">
+            <div className="w-full h-6 rounded-full mb-10 overflow-hidden relative" style={{ backgroundColor: "var(--bg-tertiary)" }}>
                <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${percentage}%` }}
                   transition={{ duration: 1, ease: "easeOut" }}
                   className={`h-full rounded-full ${
-                    percentage >= 70 ? 'bg-emerald-500' :
-                    percentage >= 50 ? 'bg-amber-500' :
-                    'bg-red-500'
+                    percentage >= 70 ? 'bg-[var(--color-success-bg)]' :
+                    percentage >= 50 ? 'bg-[var(--color-warning-bg)]' :
+                    'bg-[var(--color-danger-bg)]'
                   }`}
                />
                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white shadow-sm drop-shadow-md">
@@ -297,8 +320,8 @@ const Quiz = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-               <Button onClick={handleRestart} variant="primary" size="lg" className="shadow-lg shadow-indigo-500/20">
-                  <FaRedo className="mr-2"/> Try Again
+               <Button onClick={handleRestart} variant="primary" size="lg" className="shadow-lg shadow-[var(--action-primary)]/20">
+                  <FaArrowRotateRight className="mr-2"/> Try Again
                </Button>
                <Button onClick={() => setShowResults(false)} variant="outline" size="lg">
                   <FaList className="mr-2"/> Review Answers
@@ -311,28 +334,34 @@ const Quiz = () => {
 
   // QUIZ SCREEN
   return (
-    <div className="min-h-screen w-full px-4 py-8 bg-slate-50">
+    <div className="min-h-screen w-full px-4 py-8 bg-transparent">
        <div className="max-w-3xl mx-auto space-y-6">
           
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
              <div>
-                <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-                   <FaBrain className="text-indigo-600"/> Quiz Mode
+                <h1 className="text-2xl font-black flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                   <FaBrain className="text-[var(--action-primary)]"/> Quiz Mode
                 </h1>
-                <p className="text-slate-500 font-bold">
-                   Question {currentQuestion + 1} <span className="text-slate-300">/</span> {quiz.questions.length}
+                <p className="font-bold" style={{ color: "var(--text-secondary)" }}>
+                   Question {currentQuestion + 1} <span style={{ color: "var(--text-tertiary)" }}>/</span> {quiz.questions.length}
                 </p>
              </div>
-             <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 font-mono font-bold text-slate-700">
+             <div className="px-4 py-2 rounded-xl shadow-sm border font-mono font-bold"
+                  style={{ 
+                    backgroundColor: "var(--bg-secondary)", 
+                    borderColor: "var(--border-default)",
+                    color: "var(--text-primary)"
+                  }}>
                 {generationMode === "subject" ? selectedSubject : topic}
              </div>
           </div>
 
           {/* Progress Bar */}
-          <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+          <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-secondary)" }}>
              <motion.div 
-                className="h-full bg-indigo-500"
+                className="h-full"
+                style={{ backgroundColor: "var(--action-primary)" }}
                 initial={{ width: 0 }}
                 animate={{ width: `${((currentQuestion + 1) / quiz.questions.length) * 100}%` }}
              />
@@ -354,7 +383,7 @@ const Quiz = () => {
                 onClick={handlePrevious} 
                 disabled={currentQuestion === 0} 
                 variant="ghost" 
-                className="text-slate-400 hover:text-slate-600"
+                className="hover:text-[var(--text-secondary)] text-[var(--text-tertiary)]"
              >
                 <FaArrowLeft className="mr-2"/> Previous
              </Button>
@@ -374,7 +403,7 @@ const Quiz = () => {
                    onClick={handleNext} 
                    variant="primary" 
                    size="lg"
-                   className="shadow-lg shadow-indigo-500/20"
+                   className="shadow-lg shadow-[var(--action-primary)]/20"
                 >
                    Next Question <FaArrowRight className="ml-2"/>
                 </Button>

@@ -8,38 +8,101 @@ const DARK_THEME_ENABLED = import.meta.env.VITE_ENABLE_DARK_THEME === 'true';
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
+  // Theme State
   const [theme, setTheme] = useState(() => {
-    // If dark theme is disabled, always return 'light'
-    if (!DARK_THEME_ENABLED) {
-      return 'light';
-    }
-    const savedTheme = localStorage.getItem('medha-theme');
-    return savedTheme || 'light';
+    return localStorage.getItem('medha-theme') || 'light';
   });
 
+  // Appearance State
+  const [appearance, setAppearance] = useState(() => {
+    const saved = localStorage.getItem('medha-appearance');
+    const parsed = saved ? JSON.parse(saved) : {};
+    
+    // Default structure validation
+    return {
+      bgImage: parsed.bgImage || 'none',
+      bgOverlay: parsed.bgOverlay || 0,
+      fontFamily: parsed.fontFamily || 'Inter',
+      fontScale: parsed.fontScale || 1,
+      themeWallpapers: parsed.themeWallpapers || {} // Map of { [themeId]: url }
+    };
+  });
+
+  // Apply Theme & Switch Wallpaper
   useEffect(() => {
-    // If dark theme is disabled, ensure we're on light theme
-    if (!DARK_THEME_ENABLED && theme !== 'light') {
-      setTheme('light');
-      return;
-    }
     localStorage.setItem('medha-theme', theme);
     document.documentElement.className = theme;
-  }, [theme]);
+
+    // When theme changes, switch to that theme's saved wallpaper if it exists
+    // Otherwise keep current or default to none? User wants "wallpaper changes" so likely per-theme isolation
+    const themeWallpaper = appearance.themeWallpapers[theme];
+    if (themeWallpaper && themeWallpaper !== appearance.bgImage) {
+      setAppearance(prev => ({ ...prev, bgImage: themeWallpaper }));
+    } else if (!themeWallpaper && appearance.bgImage !== 'none') {
+       // Optional: Reset to none if no wallpaper saved for this theme? 
+       // Or do we prefer "sticky" behavior if not set? 
+       // User said "theme change and wallpaper changes". Implies unique wallpaper per theme.
+       // Let's reset to 'none' if undefined to be clean, or keep previous if we want sticky.
+       // "Different for each theme" suggests isolation.
+       setAppearance(prev => ({ ...prev, bgImage: 'none' }));
+    }
+  }, [theme]); // Dependency on theme
+
+  // Apply Appearance
+  useEffect(() => {
+    localStorage.setItem('medha-appearance', JSON.stringify(appearance));
+    
+    const root = document.documentElement;
+    
+    // Background Image Logic
+    // Quote the URL to handle spaces/parens in Cloudinary defaults if any
+    if (!appearance.bgImage || appearance.bgImage === 'none') {
+      root.style.setProperty('--bg-image', 'none');
+    } else {
+      root.style.setProperty('--bg-image', `url("${appearance.bgImage}")`);
+    }
+
+    // Overlay
+    root.style.setProperty('--bg-overlay', appearance.bgOverlay);
+
+    // Font Family
+    const fontStacks = {
+      'Inter': '"Inter", sans-serif',
+      'Roboto': '"Roboto", "Inter", sans-serif',
+      'Open Sans': '"Open Sans", sans-serif',
+      'Playfair Display': '"Playfair Display", serif',
+      'Monospace': '"Fira Code", monospace'
+    };
+    root.style.setProperty('--custom-font', fontStacks[appearance.bgFont] || appearance.bgFont || fontStacks['Inter']);
+
+  }, [appearance]);
 
   const toggleTheme = () => {
-    // Only allow toggle if dark theme is enabled
-    if (!DARK_THEME_ENABLED) {
-      return;
-    }
+    // Legacy toggle, no longer main way
+    if (!DARK_THEME_ENABLED) return;
     setTheme((prevTheme) => (prevTheme === 'light' ? 'premium-dark' : 'light'));
+  };
+
+  const updateAppearance = (key, value) => {
+    setAppearance(prev => {
+      const newState = { ...prev, [key]: value };
+      
+      // If updating background image, associate it with current theme
+      if (key === 'bgImage') {
+        newState.themeWallpapers = {
+          ...prev.themeWallpapers,
+          [theme]: value
+        };
+      }
+      return newState;
+    });
   };
 
   // Expose whether dark theme is available
   const isDarkThemeEnabled = DARK_THEME_ENABLED;
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDarkThemeEnabled }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isDarkThemeEnabled, appearance, updateAppearance }}>
       {children}
     </ThemeContext.Provider>
   );

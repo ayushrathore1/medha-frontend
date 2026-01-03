@@ -183,9 +183,9 @@ const FloatingToolsSidebar = () => {
   };
 
   const getPanelGradient = () => {
-    if (activePanel === 'clock') return 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-700';
-    if (activePanel === 'timer') return 'bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-700';
-    if (activePanel === 'calendar') return 'bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700';
+    if (activePanel === 'clock') return 'bg-gradient-to-br from-[var(--action-primary)] to-[var(--action-hover)]';
+    if (activePanel === 'timer') return 'bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)]';
+    if (activePanel === 'calendar') return 'bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700'; // Keep calendar distinct
     return '';
   };
 
@@ -200,8 +200,8 @@ const FloatingToolsSidebar = () => {
           onClick={() => togglePanel('clock')}
           className={`flex items-center gap-2 pl-3 pr-4 py-3 rounded-l-xl shadow-lg transition-colors ${
             activePanel === 'clock' 
-              ? 'bg-indigo-600 text-white' 
-              : 'bg-white text-slate-600 hover:bg-indigo-50 hover:text-indigo-600'
+              ? 'bg-[var(--action-primary)] text-white' 
+              : 'bg-[var(--bg-primary)] text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--action-primary)]'
           }`}
         >
           <FaClock size={18} />
@@ -215,8 +215,8 @@ const FloatingToolsSidebar = () => {
           onClick={() => togglePanel('timer')}
           className={`flex items-center gap-2 pl-3 pr-4 py-3 rounded-l-xl shadow-lg transition-colors ${
             activePanel === 'timer' 
-              ? 'bg-violet-600 text-white' 
-              : 'bg-white text-slate-600 hover:bg-violet-50 hover:text-violet-600'
+              ? 'bg-[var(--gradient-end)] text-white' 
+              : 'bg-[var(--bg-primary)] text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--gradient-end)]'
           }`}
         >
           <FaStopwatch size={18} />
@@ -231,7 +231,7 @@ const FloatingToolsSidebar = () => {
           className={`flex items-center gap-2 pl-3 pr-4 py-3 rounded-l-xl shadow-lg transition-colors ${
             activePanel === 'calendar' 
               ? 'bg-emerald-600 text-white' 
-              : 'bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-600'
+              : 'bg-[var(--bg-primary)] text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-emerald-600'
           }`}
         >
           <FaCalendarAlt size={18} />

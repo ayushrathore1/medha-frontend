@@ -140,6 +140,26 @@ const LearnConcepts = () => {
     }
   };
 
+  const handleDelete = async (contentId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.delete(
+        `${baseUrl}/api/learn/admin/content/${contentId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (res.data.success) {
+        // Remove from local state
+        setContent(prev => prev.filter(item => item._id !== contentId));
+        // Refresh subjects to update counts
+        fetchSubjects();
+      }
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      alert('Failed to delete content');
+    }
+  };
+
   const handleContentClick = (item) => {
     if (item.type === 'video') {
       setActiveVideo(item);
@@ -186,11 +206,11 @@ const LearnConcepts = () => {
           >
             {subjects.length === 0 ? (
               <div className="text-center py-20">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-100 rounded-full mb-6">
-                  <FaGraduationCap size={40} className="text-indigo-500" />
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-[var(--action-primary)]/20 rounded-full mb-6">
+                  <FaGraduationCap size={40} className="text-[var(--action-primary)]" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-700 mb-2">Coming Soon!</h3>
-                <p className="text-slate-500 max-w-md mx-auto">
+                <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Coming Soon!</h3>
+                <p className="text-[var(--text-tertiary)] max-w-md mx-auto">
                   We're working on adding video lectures and study materials for all subjects. 
                   Check back soon!
                 </p>
@@ -206,36 +226,36 @@ const LearnConcepts = () => {
                     onClick={() => handleSubjectClick(subject)}
                     className="cursor-pointer group"
                   >
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-xl hover:border-indigo-200 hover:-translate-y-1 transition-all">
+                    <div className="bg-[var(--bg-secondary)] rounded-2xl p-6 shadow-sm border border-[var(--border-default)] hover:shadow-xl hover:border-[var(--action-primary)] hover:-translate-y-1 transition-all">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="p-3 bg-gradient-to-br from-indigo-100 to-violet-100 rounded-xl group-hover:from-indigo-500 group-hover:to-violet-500 transition-colors">
-                          <FaBook size={24} className="text-indigo-600 group-hover:text-white transition-colors" />
+                        <div className="p-3 bg-gradient-to-br from-[var(--action-primary)]/10 to-[var(--action-hover)]/10 rounded-xl group-hover:from-[var(--action-primary)] group-hover:to-[var(--action-hover)] transition-colors">
+                          <FaBook size={24} className="text-[var(--action-primary)] group-hover:text-white transition-colors" />
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-lg text-xs font-medium text-slate-600">
+                          <span className="flex items-center gap-1 px-2 py-1 bg-[var(--bg-tertiary)] rounded-lg text-xs font-medium text-[var(--text-tertiary)]">
                             <FaEye size={10} />
                             {subject.totalViews || 0}
                           </span>
-                          <span className="flex items-center gap-1 px-2 py-1 bg-red-50 rounded-lg text-xs font-medium text-red-500">
+                          <span className="flex items-center gap-1 px-2 py-1 bg-[var(--color-danger-bg)]/20 rounded-lg text-xs font-medium text-[var(--color-danger-text)]">
                             <FaHeart size={10} />
                             {subject.totalLikes || 0}
                           </span>
                         </div>
                       </div>
 
-                      <h3 className="text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-600 transition-colors">
+                      <h3 className="text-lg font-bold text-[var(--text-primary)] mb-3 group-hover:text-[var(--action-primary)] transition-colors">
                         {subject.subject}
                       </h3>
 
                       <div className="flex items-center gap-3">
                         {subject.videoCount > 0 && (
-                          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-full text-sm font-medium text-indigo-600">
+                          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--action-primary)]/10 rounded-full text-sm font-medium text-[var(--action-primary)]">
                             <FaPlay size={10} />
                             {subject.videoCount} {subject.videoCount === 1 ? 'Video' : 'Videos'}
                           </span>
                         )}
                         {subject.pdfCount > 0 && (
-                          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 rounded-full text-sm font-medium text-red-500">
+                          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-danger-bg)]/20 rounded-full text-sm font-medium text-[var(--color-danger-text)]">
                             <FaFilePdf size={10} />
                             {subject.pdfCount} {subject.pdfCount === 1 ? 'PDF' : 'PDFs'}
                           </span>
@@ -261,14 +281,14 @@ const LearnConcepts = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
               <button
                 onClick={handleBack}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors w-fit"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-default)] text-[var(--text-secondary)] font-medium hover:bg-[var(--bg-tertiary)] transition-colors w-fit"
               >
                 <FaArrowLeft size={14} />
                 Back to Subjects
               </button>
 
               {/* Filter Tabs */}
-              <div className="flex items-center gap-2 bg-white rounded-xl p-1.5 border border-slate-200">
+              <div className="flex items-center gap-2 bg-[var(--bg-secondary)] rounded-xl p-1.5 border border-[var(--border-default)]">
                 {[
                   { key: 'all', label: 'All' },
                   { key: 'video', label: 'Videos', icon: FaPlay },
@@ -279,8 +299,8 @@ const LearnConcepts = () => {
                     onClick={() => setFilter(key)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                       filter === key
-                        ? 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-600 hover:bg-slate-100'
+                        ? 'bg-[var(--action-primary)] text-white shadow-sm'
+                        : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
                     }`}
                   >
                     {Icon && <Icon size={12} />}
@@ -297,17 +317,17 @@ const LearnConcepts = () => {
               </div>
             ) : filteredContent.length === 0 ? (
               <div className="text-center py-20">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-full mb-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-[var(--bg-tertiary)] rounded-full mb-4">
                   {filter === 'video' ? (
-                    <FaPlay size={24} className="text-slate-400" />
+                    <FaPlay size={24} className="text-[var(--text-tertiary)]" />
                   ) : filter === 'pdf' ? (
-                    <FaFilePdf size={24} className="text-slate-400" />
+                    <FaFilePdf size={24} className="text-[var(--text-tertiary)]" />
                   ) : (
-                    <FaBook size={24} className="text-slate-400" />
+                    <FaBook size={24} className="text-[var(--text-tertiary)]" />
                   )}
                 </div>
-                <h3 className="text-lg font-bold text-slate-600 mb-1">No content yet</h3>
-                <p className="text-slate-400">
+                <h3 className="text-lg font-bold text-[var(--text-secondary)] mb-1">No content yet</h3>
+                <p className="text-[var(--text-tertiary)]">
                   {filter === 'all' 
                     ? 'No videos or PDFs available for this subject yet.'
                     : `No ${filter === 'video' ? 'videos' : 'PDFs'} available for this subject yet.`
@@ -334,6 +354,7 @@ const LearnConcepts = () => {
                     index={idx}
                     isAdmin={isAdmin}
                     onEdit={() => setEditContent(item)}
+                    onDelete={handleDelete}
                   />
                 ))}
               </div>

@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaTimes, FaImage } from "react-icons/fa";
+import { FaXmark, FaImage } from "react-icons/fa6";
 
 /**
  * QuestionImageModal - Modal for viewing question images at full size
@@ -26,43 +26,46 @@ const QuestionImageModal = ({ isOpen, imageUrl, questionCode, onClose }) => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative bg-white rounded-2xl shadow-2xl max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+            className="relative rounded-2xl shadow-2xl max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+            style={{ backgroundColor: "var(--bg-secondary)" }}
           >
             {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-white">
+            <div className="flex justify-between items-center p-4 border-b bg-gradient-to-r from-[var(--action-primary)]/10 to-[var(--bg-secondary)]" style={{ borderColor: "var(--border-default)" }}>
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                <div className="p-2 rounded-lg" style={{ backgroundColor: "var(--action-primary)", color: "#fff", opacity: 0.9 }}>
                   <FaImage />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800">Question Image</h3>
-                  <p className="text-xs text-slate-500 font-medium">{questionCode}</p>
+                  <h3 className="font-bold" style={{ color: "var(--text-primary)" }}>Question Image</h3>
+                  <p className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{questionCode}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={onClose}
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                  className="p-2 rounded-full transition-colors hover:bg-[var(--bg-tertiary)]"
+                  style={{ color: "var(--text-tertiary)" }}
                   title="Close"
                 >
-                  <FaTimes size={20} />
+                  <FaXmark size={20} />
                 </button>
               </div>
             </div>
 
             {/* Image Container */}
-            <div className="flex-1 overflow-auto p-4 bg-slate-50 flex items-center justify-center">
+            <div className="flex-1 overflow-auto p-4 flex items-center justify-center" style={{ backgroundColor: "var(--bg-tertiary)" }}>
               <img
                 src={imageUrl}
                 alt={`Question ${questionCode}`}
-                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg border border-slate-200"
+                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg border"
+                style={{ borderColor: "var(--border-default)" }}
                 loading="lazy"
               />
             </div>
 
             {/* Footer */}
-            <div className="p-3 bg-slate-100 border-t border-slate-200 text-center">
-              <p className="text-xs text-slate-500 font-medium">
+            <div className="p-3 border-t text-center" style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-default)" }}>
+              <p className="text-xs font-medium" style={{ color: "var(--text-tertiary)" }}>
                 Click outside or press Escape to close
               </p>
             </div>

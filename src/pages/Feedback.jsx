@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FaEnvelope } from "react-icons/fa";
+import { FaEnvelope } from "react-icons/fa6";
 import FeedbackForm from "../components/Feedback/FeedbackForm";
 import Footer from "../components/Common/Footer";
 import Card from "../components/Common/Card";

@@ -4,7 +4,7 @@ import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import FlashcardList from "../components/Flashcards/FlashcardList";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaLayerGroup, FaMagic, FaTrash, FaCheckCircle, FaArrowLeft, FaBrain } from "react-icons/fa";
+import { FaLayerGroup, FaWandMagicSparkles, FaTrash, FaCircleCheck, FaArrowLeft, FaBrain } from "react-icons/fa6";
 
 const API_BASE = `${import.meta.env.VITE_BACKEND_URL}/api`;
 
@@ -161,21 +161,21 @@ const Flashcards = () => {
   }, [fetchTopics]);
 
   return (
-    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-slate-50/50">
+    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-transparent">
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4">
             {view === "flashcards" && (
-              <Button onClick={backToTopics} variant="ghost" size="sm" className="bg-white hover:bg-slate-100 shadow-sm border border-slate-200">
+              <Button onClick={backToTopics} variant="ghost" size="sm" className="bg-[var(--bg-primary)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] shadow-sm border border-slate-200">
                 <FaArrowLeft className="mr-2"/> Back
               </Button>
             )}
             <div>
               <h1 
                 data-tour="flashcards"
-                className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3"
+                className="text-3xl font-black text-[var(--text-primary)] tracking-tight flex items-center gap-3"
               >
                 {view === "topics" ? (
                   <>
@@ -194,7 +194,7 @@ const Flashcards = () => {
 
           {view === "topics" && (
             <Button onClick={() => setShowGenerateModal(true)} className="shadow-lg shadow-indigo-500/20 bg-gradient-to-r from-indigo-600 to-violet-600 border-0">
-              <FaMagic className="mr-2"/> Generate New Deck
+              <FaWandMagicSparkles className="mr-2"/> Generate New Deck
             </Button>
           )}
         </div>
@@ -221,8 +221,8 @@ const Flashcards = () => {
                ) : topics.length === 0 ? (
                   <Card className="col-span-full text-center py-20 border-dashed border-2 border-slate-300 bg-transparent shadow-none">
                      <div className="inline-block p-6 bg-slate-100 rounded-full mb-4 text-slate-400 text-4xl">🎴</div>
-                     <h3 className="text-xl font-bold text-slate-500 mb-2">No Decks Found</h3>
-                     <p className="text-slate-400 mb-6">Create your first AI-Generated flashcard deck to start learning.</p>
+                     <h3 className="text-xl font-bold text-[var(--text-secondary)] mb-2">No Decks Found</h3>
+                     <p className="text-[var(--text-tertiary)] mb-6">Create your first AI-Generated flashcard deck to start learning.</p>
                      <Button onClick={() => setShowGenerateModal(true)}>Create Deck</Button>
                   </Card>
                ) : (
@@ -235,9 +235,9 @@ const Flashcards = () => {
                          <div>
                            <div className="flex justify-between items-start mb-4">
                              <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${
-                               topic.difficulty === 'easy' ? 'bg-emerald-100 text-emerald-700' :
-                               topic.difficulty === 'hard' ? 'bg-red-100 text-red-700' :
-                               'bg-amber-100 text-amber-700'
+                               topic.difficulty === 'easy' ? 'bg-[var(--color-success-bg)] text-[var(--color-success-text)]' :
+                               topic.difficulty === 'hard' ? 'bg-[var(--color-danger-bg)] text-[var(--color-danger-text)]' :
+                               'bg-[var(--color-warning-bg)] text-[var(--color-warning-text)]'
                              }`}>
                                {topic.difficulty}
                              </span>
@@ -249,20 +249,20 @@ const Flashcards = () => {
                              </button>
                            </div>
                            
-                           <h3 className="text-xl font-bold text-slate-800 mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                           <h3 className="text-xl font-bold text-[var(--text-primary)] mb-1 group-hover:text-indigo-600 transition-colors line-clamp-1">
                              {topic.topicName}
                            </h3>
-                           <p className="text-sm text-slate-500 font-medium mb-4">
+                           <p className="text-sm text-[var(--text-secondary)] font-medium mb-4">
                              {topic.subject || "General Knowledge"}
                            </p>
 
                            {/* Progress */}
                            <div className="space-y-2 mb-6">
-                             <div className="flex justify-between text-xs font-bold text-slate-400">
+                             <div className="flex justify-between text-xs font-bold text-[var(--text-tertiary)]">
                                <span>Progress</span>
                                <span>{Math.round((topic.viewed / topic.total) * 100) || 0}%</span>
                              </div>
-                             <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                             <div className="h-2 w-full bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
                                <div 
                                  className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full"
                                  style={{ width: `${(topic.viewed / topic.total) * 100}%` }}
@@ -316,32 +316,32 @@ const Flashcards = () => {
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-md">
               <Card className="p-8">
-                <h3 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-2">
-                  <FaMagic className="text-indigo-600"/> Generate Deck
+                <h3 className="text-2xl font-black text-[var(--text-primary)] mb-6 flex items-center gap-2">
+                  <FaWandMagicSparkles className="text-indigo-600"/> Generate Deck
                 </h3>
                 <form onSubmit={handleGenerate} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Topic Name</label>
+                    <label className="block text-sm font-bold text-[var(--text-primary)] mb-2">Topic Name</label>
                     <input
                       value={generateForm.topic}
                       onChange={(e) => setGenerateForm({ ...generateForm, topic: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
                       placeholder="e.g. Photosynthesis"
                       autoFocus
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Subject (Optional)</label>
+                    <label className="block text-sm font-bold text-[var(--text-primary)] mb-2">Subject (Optional)</label>
                     <input
                        value={generateForm.subject}
                        onChange={(e) => setGenerateForm({ ...generateForm, subject: e.target.value })}
-                       className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
+                       className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium"
                        placeholder="e.g. Biology"
                     />
                   </div>
                   <div className="flex gap-3 pt-2">
                     <Button type="button" variant="ghost" onClick={() => setShowGenerateModal(false)} fullWidth>Cancel</Button>
-                    <Button type="submit" loading={generating} fullWidth variant="primary" className="bg-gradient-to-r from-indigo-600 to-violet-600 border-0">
+                    <Button type="submit" loading={generating} fullWidth variant="primary" className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] border-0">
                       Generate
                     </Button>
                   </div>

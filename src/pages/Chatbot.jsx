@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ChatbotWidget from "../components/Chatbot/ChatbotWidget";
-import { FaPlus, FaHistory, FaTrash, FaEdit, FaCheck, FaTimes, FaComments, FaRobot, FaBolt, FaChevronDown } from "react-icons/fa";
+import { FaPlus, FaClockRotateLeft, FaTrash, FaPenToSquare, FaCheck, FaXmark, FaComments, FaRobot, FaBolt, FaChevronDown } from "react-icons/fa6";
 import { SiGooglegemini } from "react-icons/si";
 import Loader from "../components/Common/Loader";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 
 import { useTour } from "../context/TourContext";
 
@@ -197,7 +198,7 @@ const Chatbot = () => {
   };
 
   return (
-    <div className="fixed top-16 left-0 right-0 h-[calc(100vh-4rem)] flex bg-white z-0">
+    <div className="fixed top-16 left-0 right-0 h-[calc(100vh-4rem)] flex bg-[var(--bg-image)] bg-cover bg-center">
       
       {/* Mobile Overlay */}
       {showHistory && (
@@ -210,24 +211,24 @@ const Chatbot = () => {
       {/* Sidebar */}
       {token && (
         <div 
-          className={`absolute md:relative z-30 h-full bg-slate-50 border-r border-slate-200 transition-all duration-300 ease-in-out flex flex-col ${
+          className={`absolute md:relative z-30 h-full bg-[var(--bg-secondary)] border-r border-[var(--border-default)] transition-all duration-300 ease-in-out flex flex-col ${
             showHistory ? 'translate-x-0 w-72' : '-translate-x-full md:translate-x-0 md:w-20'
           }`}
         >
           {/* Sidebar Header */}
-          <div className="p-4 flex items-center justify-between border-b border-slate-200 h-16">
+          <div className="p-4 flex items-center justify-between border-b border-[var(--border-default)] h-16">
             {showHistory ? (
-              <span className="font-bold text-slate-700 flex items-center gap-2">
-                <FaHistory className="text-indigo-500" /> History
+              <span className="font-bold text-[var(--text-primary)] flex items-center gap-2">
+                <FaClockRotateLeft className="text-[var(--action-primary)]" /> History
               </span>
             ) : (
                <div className="w-full flex justify-center">
-                  <FaHistory className="text-slate-400" />
+                  <FaClockRotateLeft className="text-[var(--text-tertiary)]" />
                </div>
             )}
             <button
                onClick={() => setShowHistory(!showHistory)}
-               className="p-2 hover:bg-slate-200 rounded-lg text-slate-500 transition-colors md:block hidden"
+               className="p-2 hover:bg-[var(--bg-tertiary)] rounded-lg text-[var(--text-secondary)] transition-colors md:block hidden"
             >
                <FaComments />
             </button>
@@ -240,7 +241,7 @@ const Chatbot = () => {
                   createNewChat();
                   if (window.innerWidth < 768) setShowHistory(false);
                }}
-               className={`w-full flex items-center gap-2 py-3 px-4 rounded-xl shadow-sm border border-indigo-200 bg-white text-indigo-600 hover:bg-indigo-50 font-bold transition-all hover:shadow-md ${!showHistory ? 'justify-center' : ''}`}
+               className={`w-full flex items-center gap-2 py-3 px-4 rounded-xl shadow-sm border border-[var(--action-primary)]/30 bg-[var(--bg-tertiary)] text-[var(--action-primary)] hover:bg-[var(--action-primary)]/10 font-bold transition-all hover:shadow-md ${!showHistory ? 'justify-center' : ''}`}
                title="New Chat"
              >
                 <FaPlus /> {showHistory && <span>New Chat</span>}
@@ -260,47 +261,47 @@ const Chatbot = () => {
                         if (window.innerWidth < 768) setShowHistory(false);
                      }}
                      className={`group relative p-3 rounded-xl cursor-pointer transition-all ${
-                        currentSessionId === session._id ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-200 text-slate-700'
+                        currentSessionId === session._id ? 'bg-[var(--action-primary)] text-white shadow-md' : 'hover:bg-[var(--bg-tertiary)] text-[var(--text-secondary)]'
                      }`}
                    >
                      {editingId === session._id ? (
-                        <div className="flex items-center gap-1 bg-white rounded p-1" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-1 bg-[var(--bg-tertiary)] rounded p-1" onClick={e => e.stopPropagation()}>
                            <input 
                               value={editTitle}
                               onChange={e => setEditTitle(e.target.value)}
-                              className="w-full text-xs text-slate-800 outline-none"
+                              className="w-full text-xs text-[var(--text-primary)] bg-transparent outline-none"
                               autoFocus
                            />
-                           <button onClick={() => updateTitle(session._id)} className="text-emerald-500"><FaCheck size={12}/></button>
-                           <button onClick={() => setEditingId(null)} className="text-red-500"><FaTimes size={12}/></button>
+                           <button onClick={() => updateTitle(session._id)} className="text-[var(--color-success-text)]"><FaCheck size={12}/></button>
+                           <button onClick={() => setEditingId(null)} className="text-[var(--color-danger-text)]"><FaXmark size={12}/></button>
                         </div>
                      ) : (
                         <div className="flex items-center gap-3">
                            {showHistory && (
                               <div className="flex-1 min-w-0">
-                                 <p className={`text-sm font-medium truncate ${currentSessionId === session._id ? 'text-white' : 'text-slate-700'}`}>
+                                 <p className={`text-sm font-medium truncate ${currentSessionId === session._id ? 'text-white' : 'text-[var(--text-secondary)]'}`}>
                                     {session.title || "Untitled Chat"}
                                  </p>
-                                 <p className={`text-[10px] truncate ${currentSessionId === session._id ? 'text-indigo-200' : 'text-slate-400'}`}>
+                                 <p className={`text-[10px] truncate ${currentSessionId === session._id ? 'text-indigo-200' : 'text-[var(--text-tertiary)]'}`}>
                                     {new Date(session.updatedAt || Date.now()).toLocaleDateString()}
                                  </p>
                               </div>
                            )}
                            {!showHistory && (
-                              <div className="mx-auto"><FaComments className={currentSessionId === session._id ? 'text-white' : 'text-slate-400'}/></div>
+                              <div className="mx-auto"><FaComments className={currentSessionId === session._id ? 'text-white' : 'text-[var(--text-tertiary)]'}/></div>
                            )}
 
                            {showHistory && (
                               <div className={`flex gap-1 ${currentSessionId === session._id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
                                  <button 
                                     onClick={(e) => { e.stopPropagation(); setEditingId(session._id); setEditTitle(session.title); }}
-                                    className={`p-1.5 rounded hover:bg-white/20 ${currentSessionId === session._id ? 'text-white' : 'text-slate-500'}`}
+                                    className={`p-1.5 rounded hover:bg-white/20 ${currentSessionId === session._id ? 'text-white' : 'text-[var(--text-secondary)]'}`}
                                  >
-                                    <FaEdit size={10} />
+                                    <FaPenToSquare size={10} />
                                  </button>
                                  <button 
                                     onClick={(e) => deleteSession(session._id, e)}
-                                    className={`p-1.5 rounded hover:bg-white/20 ${currentSessionId === session._id ? 'text-white' : 'text-red-400'}`}
+                                    className={`p-1.5 rounded hover:bg-white/20 ${currentSessionId === session._id ? 'text-white' : 'text-[var(--color-danger-text)]'}`}
                                  >
                                     <FaTrash size={10} />
                                  </button>
@@ -316,18 +317,18 @@ const Chatbot = () => {
       )}
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-full bg-slate-50 relative min-w-0">
+      <div className="flex-1 flex flex-col h-full bg-transparent relative min-w-0">
          {/* Header with Model Selector */}
-         <div className="p-3 md:p-4 bg-white border-b border-slate-200 flex items-center justify-between shadow-sm z-10">
+         <div className="p-3 md:p-4 bg-[var(--bg-secondary)] border-b border-[var(--border-default)] flex items-center justify-between shadow-sm z-10">
             <div className="flex items-center gap-3">
                {/* Mobile History Toggle */}
                <button 
                   onClick={() => setShowHistory(true)} 
-                  className="md:hidden p-2 bg-slate-100 rounded-lg text-slate-600 hover:bg-slate-200 transition-colors"
+                  className="md:hidden p-2 bg-[var(--bg-tertiary)] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
                >
-                  <FaHistory />
+                  <FaClockRotateLeft />
                </button>
-               <h2 className="font-bold flex items-center gap-2 text-indigo-600">
+               <h2 className="font-bold flex items-center gap-2 text-[var(--action-primary)]">
                   <FaRobot/> Medha AI
                </h2>
             </div>
@@ -336,7 +337,7 @@ const Chatbot = () => {
             <div className="relative">
                <button
                   onClick={() => setShowModelDropdown(!showModelDropdown)}
-                  className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all text-sm font-medium text-slate-700 border border-slate-200"
+                  className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-primary)] rounded-xl transition-all text-sm font-medium text-[var(--text-primary)] border border-[var(--border-default)]"
                >
                   {(() => {
                      const ModelIcon = AI_MODELS[selectedModel].icon;
@@ -353,8 +354,8 @@ const Chatbot = () => {
                         className="fixed inset-0 z-40" 
                         onClick={() => setShowModelDropdown(false)}
                      />
-                     <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50">
-                        <div className="p-2 text-[10px] uppercase font-bold text-slate-400 border-b border-slate-100 px-3">
+                     <div className="absolute right-0 top-full mt-2 w-56 bg-[var(--bg-secondary)] rounded-xl shadow-xl border border-[var(--border-default)] overflow-hidden z-50">
+                        <div className="p-2 text-[10px] uppercase font-bold text-[var(--text-tertiary)] border-b border-[var(--border-default)] px-3">
                            Select AI Model
                         </div>
                         {Object.entries(AI_MODELS).map(([key, model]) => {
@@ -363,17 +364,17 @@ const Chatbot = () => {
                               <button
                                  key={key}
                                  onClick={() => handleModelChange(key)}
-                                 className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors ${
-                                    selectedModel === key ? 'bg-indigo-50 border-l-2 border-indigo-500' : ''
+                                 className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[var(--bg-tertiary)] transition-colors ${
+                                    selectedModel === key ? 'bg-[var(--action-primary)]/10 border-l-2 border-[var(--action-primary)]' : ''
                                  }`}
                               >
                                  <ModelIcon className={`text-xl ${model.color}`} />
                                  <div>
-                                    <p className="font-semibold text-slate-800">{model.name}</p>
-                                    <p className="text-xs text-slate-500">{model.subtitle}</p>
+                                    <p className="font-semibold text-[var(--text-primary)]">{model.name}</p>
+                                    <p className="text-xs text-[var(--text-secondary)]">{model.subtitle}</p>
                                  </div>
                                  {selectedModel === key && (
-                                    <FaCheck className="ml-auto text-indigo-500 text-sm" />
+                                    <FaCheck className="ml-auto text-[var(--action-primary)] text-sm" />
                                  )}
                               </button>
                            );

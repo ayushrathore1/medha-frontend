@@ -9,19 +9,19 @@ function cn(...inputs) {
 }
 
 const variantStyles = {
-  primary: "bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 border-transparent",
-  secondary: "bg-white text-slate-800 border-slate-200 hover:bg-slate-50 hover:border-slate-300 border shadow-sm",
-  outline: "bg-transparent border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50",
-  ghost: "bg-transparent text-slate-600 hover:bg-slate-100/50 hover:text-slate-900",
+  primary: "bg-[var(--action-primary)] text-white hover:bg-[var(--action-hover)] shadow-lg shadow-[var(--action-primary)]/20 border-transparent",
+  secondary: "bg-[var(--bg-primary)] text-[var(--text-primary)] border-[var(--border-default)] hover:bg-[var(--bg-secondary)] border shadow-sm",
+  outline: "bg-transparent border-2 border-[var(--action-primary)] text-[var(--action-primary)] hover:bg-[var(--action-primary)]/10",
+  ghost: "bg-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]",
   danger: "bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600",
   success: "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600",
-  gradient: "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30 hover:opacity-90 border-transparent",
+  gradient: "bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)] text-white shadow-lg shadow-[var(--action-primary)]/30 hover:opacity-90 border-transparent",
 };
 
 const sizeStyles = {
-  sm: "px-3 py-1.5 text-sm rounded-lg",
-  md: "px-5 py-2.5 text-base rounded-xl",
-  lg: "px-8 py-4 text-lg rounded-2xl",
+  sm: "px-3 py-1.5 text-sm",
+  md: "px-5 py-2.5 text-base",
+  lg: "px-8 py-4 text-lg",
 };
 
 const Button = ({
@@ -40,6 +40,7 @@ const Button = ({
   return (
     <motion.button
       type={type}
+      style={{ borderRadius: "var(--radius-button, 8px)" }}
       onClick={onClick}
       disabled={disabled || loading}
       className={cn(

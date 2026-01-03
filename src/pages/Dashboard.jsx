@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
-import { FaFire, FaBook, FaTrash, FaPlus, FaBrain, FaFolderOpen, FaLightbulb } from "react-icons/fa";
+import { FaFire, FaBook, FaTrash, FaPlus, FaBrain, FaFolderOpen, FaLightbulb } from "react-icons/fa6";
 
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
@@ -107,14 +107,14 @@ const Dashboard = () => {
   if (loading) return <Loader fullScreen />;
 
   const quickActions = [
-    { label: "New Note", icon: <FaPlus />, to: "/notes", color: "text-indigo-600", bg: "bg-indigo-50" },
-    { label: "Start Quiz", icon: <FaBrain />, to: "/quiz", color: "text-violet-600", bg: "bg-violet-50" },
-    { label: "Archive", icon: <FaFolderOpen />, to: "/rtu-exams", color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: "AI Tutor", icon: <FaLightbulb />, to: "/chatbot", color: "text-amber-600", bg: "bg-amber-50" },
+    { label: "New Note", icon: <FaPlus />, to: "/notes", color: "text-[var(--action-primary)]", bg: "bg-[var(--action-primary)]/10" },
+    { label: "Start Quiz", icon: <FaBrain />, to: "/quiz", color: "text-[var(--gradient-end)]", bg: "bg-[var(--gradient-end)]/10" },
+    { label: "Archive", icon: <FaFolderOpen />, to: "/rtu-exams", color: "text-[var(--color-success-text)]", bg: "bg-[var(--color-success-bg)]" },
+    { label: "AI Tutor", icon: <FaLightbulb />, to: "/chatbot", color: "text-[var(--color-warning-text)]", bg: "bg-[var(--color-warning-bg)]" },
   ];
 
   return (
-    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-slate-50/50">
+    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-transparent">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Daily Inspirational Quote */}
@@ -126,10 +126,10 @@ const Dashboard = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
+            <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tight mb-2">
               {greeting}, {userName}! <span className="inline-block animate-wave origin-bottom-right">👋</span>
             </h1>
-            <p className="text-lg text-slate-500 font-medium">
+            <p className="text-lg text-[var(--text-secondary)] font-medium">
               Let's make today productive.
             </p>
           </motion.div>
@@ -143,14 +143,14 @@ const Dashboard = () => {
           >
             <div 
               data-tour="streak-card"
-              className="flex items-center gap-3 px-5 py-3 bg-white rounded-2xl shadow-sm border border-slate-200"
+              className="flex items-center gap-3 px-5 py-3 bg-[var(--bg-secondary)] rounded-2xl shadow-sm border border-[var(--border-default)]"
             >
-              <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+              <div className="p-2 bg-[var(--color-warning-bg)] text-[var(--color-warning-text)] rounded-lg">
                 <FaFire size={20} />
               </div>
               <div>
-                <div className="text-xl font-bold text-slate-900">{stats.streak}</div>
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Day Streak</div>
+                <div className="text-xl font-bold text-[var(--text-primary)]">{stats.streak}</div>
+                <div className="text-xs font-bold text-[var(--text-tertiary)] uppercase tracking-wider">Day Streak</div>
               </div>
             </div>
           </motion.div>
@@ -165,12 +165,12 @@ const Dashboard = () => {
             <Link key={idx} to={action.to}>
               <motion.div
                 whileHover={{ y: -5 }}
-                className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-pointer"
+                className="flex items-center gap-4 p-4 bg-[var(--bg-secondary)] rounded-2xl shadow-sm border border-[var(--border-default)] hover:shadow-md transition-all cursor-pointer"
               >
                 <div className={`p-3 rounded-xl ${action.bg} ${action.color}`}>
                   {action.icon}
                 </div>
-                <span className="font-bold text-slate-700">{action.label}</span>
+                <span className="font-bold text-[var(--text-primary)]">{action.label}</span>
               </motion.div>
             </Link>
           ))}
@@ -227,7 +227,7 @@ const Dashboard = () => {
                     opacity: { duration: 0.5 },
                     y: { delay: 2, duration: 2, repeat: Infinity } 
                   }}
-                  className="absolute bottom-[11.5rem] left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 text-slate-500 text-xs font-bold z-20 bg-white/90 backdrop-blur-md px-5 py-2 rounded-full shadow-lg border border-slate-200/60 ring-1 ring-slate-100"
+                  className="absolute bottom-[11.5rem] left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 text-[var(--text-secondary)] text-xs font-bold z-20 bg-[var(--bg-primary)]/90 backdrop-blur-md px-5 py-2 rounded-full shadow-lg border border-[var(--border-default)] ring-1 ring-transparent"
                 >
                   <span>Scroll for more</span>
                   <svg className="w-3.5 h-3.5 animate-bounce text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -247,12 +247,12 @@ const Dashboard = () => {
             {/* Review List / Focus Areas */}
             <Card data-tour="focus-areas" title="Topics to Review" className="h-full">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-slate-900">Focus Areas</h2>
-                <span className="text-sm font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{stats.reviewList.length} Topics</span>
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">Focus Areas</h2>
+                <span className="text-sm font-semibold text-[var(--text-tertiary)] bg-[var(--bg-tertiary)] px-3 py-1 rounded-full">{stats.reviewList.length} Topics</span>
               </div>
               
               {stats.reviewList.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
+                <div className="text-center py-8 text-[var(--text-tertiary)]">
                   <div className="inline-block p-4 bg-emerald-50 text-emerald-500 rounded-full mb-3"><FaBrain size={24}/></div>
                   <p>All caught up! No active review topics.</p>
                 </div>
@@ -263,11 +263,11 @@ const Dashboard = () => {
                       key={topic._id} 
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="group flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200 hover:border-indigo-200 transition-colors"
+                      className="group flex items-center justify-between p-4 bg-[var(--bg-tertiary)] rounded-xl border border-[var(--border-default)] hover:border-[var(--action-primary)]/30 transition-colors"
                     >
                       <div>
-                        <h3 className="font-bold text-slate-800">{topic.name}</h3>
-                        <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase mt-1 inline-block">
+                        <h3 className="font-bold text-[var(--text-primary)]">{topic.name}</h3>
+                        <span className="text-xs font-bold bg-[var(--color-danger-bg)] text-[var(--color-danger-text)] px-2 py-0.5 rounded border border-transparent uppercase mt-1 inline-block">
                           {topic.difficulty} Difficulty
                         </span>
                       </div>
@@ -275,7 +275,7 @@ const Dashboard = () => {
                         onClick={() => handleDeleteTopic(topic.name)}
                         variant="ghost"
                         size="sm"
-                        className="text-slate-400 hover:text-red-500"
+                        className="text-[var(--text-tertiary)] opacity-70 hover:opacity-100"
                       >
                         <FaTrash />
                       </Button>

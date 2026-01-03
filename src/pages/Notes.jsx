@@ -5,7 +5,7 @@ import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaBook, FaGlobe, FaSearch, FaUpload, FaPlus, FaCloudUploadAlt, FaFileAlt, FaTrash, FaPen, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp, FaFolder, FaFolderOpen, FaInfoCircle, FaHeart, FaRegHeart } from "react-icons/fa";
+import { FaBook, FaGlobe, FaMagnifyingGlass, FaUpload, FaPlus, FaCloudArrowUp, FaFileLines, FaTrash, FaPen, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp, FaFolder, FaFolderOpen, FaCircleInfo, FaHeart, FaRegHeart } from "react-icons/fa6";
 
 const API_BASE = `${import.meta.env.VITE_BACKEND_URL}`;
 
@@ -354,23 +354,23 @@ const Notes = () => {
   }, [publicNotes]);
 
   return (
-    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-slate-50/50">
+    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-transparent">
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* Header & Tabs */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-4">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Paper Trail</h1>
-            <p className="text-slate-500 font-medium">Manage your academic resources.</p>
+            <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tight">Paper Trail</h1>
+            <p className="text-[var(--text-secondary)] font-medium">Manage your academic resources.</p>
           </div>
           
-          <div className="flex bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200">
+          <div className="flex bg-[var(--bg-secondary)] p-1.5 rounded-2xl shadow-sm border border-[var(--border-default)]">
             <button
               onClick={() => setActiveTab("my-notes")}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 activeTab === "my-notes" 
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20" 
-                  : "text-slate-500 hover:bg-slate-50"
+                  ? "bg-[var(--action-primary)] text-white shadow-lg shadow-[var(--action-primary)]/20" 
+                  : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
               }`}
             >
               <FaBook /> My Notes
@@ -380,8 +380,8 @@ const Notes = () => {
               onClick={() => { setActiveTab("explore"); fetchPublicNotes(); }}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all ${
                 activeTab === "explore" 
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" 
-                  : "bg-white text-slate-600 border border-slate-200 hover:border-indigo-200"
+                  ? "bg-[var(--action-primary)] text-white shadow-lg shadow-[var(--action-primary)]/20" 
+                  : "bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-default)] hover:border-[var(--action-primary)]/50"
               }`}
             >
               <FaGlobe /> Explore
@@ -408,13 +408,13 @@ const Notes = () => {
               
               {/* Subject Select */}
               <Card data-tour="choose-subject">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">1. Select Subject</h3>
+                <h3 className="text-sm font-bold text-[var(--text-tertiary)] uppercase tracking-wider mb-3">1. Select Subject</h3>
                 {loadingSubjects ? (
                   <Loader />
                 ) : (
                   <div className="relative">
                     <select
-                      className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 appearance-none font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                      className="w-full px-4 py-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] text-[var(--text-primary)] appearance-none font-bold focus:ring-2 focus:ring-[var(--action-primary)]/20 focus:border-[var(--action-primary)] outline-none"
                       value={selectedSubject}
                       onChange={(e) => setSelectedSubject(e.target.value)}
                     >
@@ -423,21 +423,21 @@ const Notes = () => {
                         <option key={s._id} value={s._id}>{s.name}</option>
                       ))}
                     </select>
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">▼</div>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-tertiary)]">▼</div>
                   </div>
                 )}
               </Card>
 
               {/* Upload */}
               <Card data-tour="upload-note">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Or Upload File</h3>
+                <h3 className="text-sm font-bold text-[var(--text-tertiary)] uppercase tracking-wider mb-3">Or Upload File</h3>
                 <div className="space-y-4">
                   <input
                     type="text"
                     value={uploadTitle}
                     onChange={(e) => setUploadTitle(e.target.value)}
                     placeholder="Document Title"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 placeholder-slate-400 font-medium focus:outline-none focus:border-indigo-500"
+                    className="w-full px-4 py-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] font-medium focus:outline-none focus:border-[var(--action-primary)]"
                   />
                   <div className="relative">
                     <input
@@ -450,10 +450,10 @@ const Notes = () => {
                     />
                     <label 
                       htmlFor="file-upload"
-                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-slate-50 hover:border-indigo-400 transition-colors"
+                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[var(--border-default)] rounded-xl cursor-pointer hover:bg-[var(--bg-tertiary)] hover:border-[var(--action-primary)]/50 transition-colors"
                     >
-                      <FaCloudUploadAlt className="text-3xl text-slate-400 mb-2" />
-                      <span className="text-sm font-bold text-slate-500">
+                      <FaCloudArrowUp className="text-3xl text-[var(--text-tertiary)] mb-2" />
+                      <span className="text-sm font-bold text-[var(--text-secondary)]">
                         {file ? file.name : "Click to browse"}
                       </span>
                     </label>
@@ -466,7 +466,7 @@ const Notes = () => {
 
               {/* Create Text Note */}
               <Card data-tour="text-note">
-                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Or Write Note</h3>
+                 <h3 className="text-sm font-bold text-[var(--text-tertiary)] uppercase tracking-wider mb-3">Or Write Note</h3>
                  <TextNoteForm onSubmit={handleTextNoteSubmit} />
               </Card>
             </div>
@@ -474,10 +474,10 @@ const Notes = () => {
             {/* Right: Notes List */}
             <div className="lg:col-span-8">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-slate-900">
+                <h3 className="text-xl font-bold text-[var(--text-primary)]">
                   {selectedSubject ? subjects.find(s => s._id === selectedSubject)?.name || "Subject" : "All Notes"}
                 </h3>
-                <span className="text-sm font-bold text-slate-500 bg-white px-3 py-1 rounded-lg border border-slate-200">
+                <span className="text-sm font-bold text-[var(--text-secondary)] bg-[var(--bg-secondary)] px-3 py-1 rounded-lg border border-[var(--border-default)]">
                   {notes.length} Files
                 </span>
               </div>
@@ -485,10 +485,10 @@ const Notes = () => {
               {loadingNotes ? (
                 <div className="flex justify-center py-20"><Loader /></div>
               ) : notes.length === 0 ? (
-                <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-300">
-                  <div className="inline-block p-4 bg-slate-50 text-slate-400 rounded-full mb-3"><FaFileAlt size={32}/></div>
-                  <p className="font-bold text-slate-500">No notes found.</p>
-                  <p className="text-slate-400 text-sm">Select a subject and create/upload one!</p>
+                <div className="text-center py-20 bg-[var(--bg-secondary)] rounded-3xl border border-dashed border-[var(--border-default)]">
+                  <div className="inline-block p-4 bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] rounded-full mb-3"><FaFileLines size={32}/></div>
+                  <p className="font-bold text-[var(--text-secondary)]">No notes found.</p>
+                  <p className="text-[var(--text-tertiary)] text-sm">Select a subject and create/upload one!</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -501,19 +501,19 @@ const Notes = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                       >
-                        <Card className="h-full flex flex-col justify-between group hover:border-indigo-300 transition-colors">
+                        <Card className="h-full flex flex-col justify-between group hover:border-[var(--action-primary)]/50 transition-colors">
                           {editingNote === note._id ? (
                             <div className="space-y-3">
                               <input
                                 value={editTitle}
                                 onChange={(e) => setEditTitle(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border border-slate-300"
+                                className="w-full px-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-tertiary)] text-[var(--text-primary)]"
                                 placeholder="Title"
                               />
                               <textarea
                                 value={editContent}
                                 onChange={(e) => setEditContent(e.target.value)}
-                                className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                                className="w-full px-3 py-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-tertiary)] text-[var(--text-primary)] text-sm"
                                 rows={4}
                               />
                               <div className="flex gap-2">
@@ -525,21 +525,21 @@ const Notes = () => {
                             <>
                               <div>
                                 <div className="flex justify-between items-start mb-3">
-                                  <div className={`p-2 rounded-lg ${note.isPublic ? "bg-emerald-100 text-emerald-600" : "bg-indigo-100 text-indigo-600"}`}>
-                                    <FaFileAlt />
+                                  <div className={`p-2 rounded-lg ${note.isPublic ? "bg-[var(--color-success-bg)] text-[var(--color-success-text)]" : "bg-[var(--action-primary)]/10 text-[var(--action-primary)]"}`}>
+                                    <FaFileLines />
                                   </div>
                                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                     <button onClick={() => handleEditStart(note)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg"><FaPen size={12}/></button>
-                                     <button onClick={() => handleDelete(note._id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg"><FaTrash size={12}/></button>
+                                     <button onClick={() => handleEditStart(note)} className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--action-primary)] hover:bg-[var(--bg-tertiary)] rounded-lg"><FaPen size={12}/></button>
+                                     <button onClick={() => handleDelete(note._id)} className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--color-danger-text)] hover:bg-[var(--bg-tertiary)] rounded-lg"><FaTrash size={12}/></button>
                                   </div>
                                 </div>
-                                <h4 className="font-bold text-lg text-slate-800 line-clamp-1 mb-1" title={note.title}>
+                                <h4 className="font-bold text-lg text-[var(--text-primary)] line-clamp-1 mb-1" title={note.title}>
                                   {note.title || "Untitled Note"}
                                 </h4>
-                                <p className="text-xs font-semibold text-slate-400 mb-4">
+                                <p className="text-xs font-semibold text-[var(--text-tertiary)] mb-4">
                                   {new Date(note.createdAt).toLocaleDateString()} • {note.fileUrl ? "PDF/Image" : "Text Note"}
                                 </p>
-                                <p className="text-sm text-slate-600 line-clamp-2 mb-4 h-10">
+                                <p className="text-sm text-[var(--text-secondary)] line-clamp-2 mb-4 h-10">
                                   {note.content || note.extractedText || "No preview available."}
                                 </p>
                               </div>
@@ -551,7 +551,7 @@ const Notes = () => {
                                 <Button 
                                   onClick={() => toggleVisibility(note._id)} 
                                   variant={note.isPublic ? "ghost" : "ghost"}
-                                  className={`${note.isPublic ? "text-emerald-600 bg-emerald-50" : "text-slate-500 bg-slate-50"}`}
+                                  className={`${note.isPublic ? "text-[var(--color-success-text)] bg-[var(--color-success-bg)]" : "text-[var(--text-tertiary)] bg-[var(--bg-tertiary)]"}`}
                                   size="sm"
                                 >
                                   {note.isPublic ? <FaGlobe title="Public"/> : <FaEyeSlash title="Private"/>}
@@ -574,11 +574,11 @@ const Notes = () => {
           <div className="space-y-6">
             
             {/* Disclaimer */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-4 mx-auto max-w-3xl">
-              <FaInfoCircle className="text-amber-500 text-xl shrink-0 mt-0.5" />
+            <div className="bg-[var(--color-warning-bg)]/10 border border-[var(--color-warning-bg)]/20 rounded-xl p-4 flex items-start gap-4 mx-auto max-w-3xl">
+              <FaCircleInfo className="text-[var(--color-warning-text)] text-xl shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-bold text-amber-800">Community Disclaimer</h3>
-                <p className="text-sm text-amber-900/80">
+                <h3 className="font-bold text-[var(--color-warning-text)]">Community Disclaimer</h3>
+                <p className="text-sm text-[var(--color-warning-text)]/80">
                   These notes are uploaded by students and the community. Medha does not claim ownership or copyright over this content. Use them for educational reference only.
                 </p>
               </div>
@@ -586,13 +586,13 @@ const Notes = () => {
 
             <div data-tour="explore-search" className="max-w-2xl mx-auto">
                <div className="relative">
-                 <FaSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
+                 <FaMagnifyingGlass className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
                  <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search for topics, notes, or authors..."
-                    className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 shadow-xl shadow-indigo-500/5 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 font-medium text-lg"
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl border border-[var(--border-default)] shadow-xl shadow-[var(--action-primary)]/5 bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--action-primary)]/10 font-medium text-lg"
                  />
                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
                     <Button onClick={() => fetchPublicNotes(searchQuery)} size="sm">Search</Button>
@@ -604,26 +604,26 @@ const Notes = () => {
                <div className="py-20 flex justify-center"><Loader /></div>
             ) : publicNotes.length === 0 ? (
                <div className="text-center py-20">
-                 <p className="text-xl font-bold text-slate-400">No public notes found matching your search.</p>
+                 <p className="text-xl font-bold text-[var(--text-tertiary)]">No public notes found matching your search.</p>
                </div>
             ) : (
                <div data-tour="explore-folders" className="space-y-4">
                  {groupedNotes.map((group) => (
-                   <div key={group.subjectId} className="border border-slate-200 rounded-xl bg-white overflow-hidden shadow-sm">
+                   <div key={group.subjectId} className="border border-[var(--border-default)] rounded-xl bg-[var(--bg-secondary)] overflow-hidden shadow-sm">
                      <button
                        onClick={() => toggleSubject(group.subjectId)}
-                       className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+                       className="w-full flex items-center justify-between p-4 bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors text-left"
                      >
                        <div className="flex items-center gap-3">
-                         <div className={`text-xl ${expandedSubjects[group.subjectId] ? "text-indigo-600" : "text-slate-400"}`}>
+                         <div className={`text-xl ${expandedSubjects[group.subjectId] ? "text-[var(--action-primary)]" : "text-[var(--text-tertiary)]"}`}>
                            {expandedSubjects[group.subjectId] ? <FaFolderOpen /> : <FaFolder />}
                          </div>
                          <div>
-                           <h3 className="font-bold text-slate-800 text-lg">{group.subjectName}</h3>
-                           <p className="text-xs font-semibold text-slate-500">By {group.ownerName} • {group.notes.length} Files</p>
+                           <h3 className="font-bold text-[var(--text-primary)] text-lg">{group.subjectName}</h3>
+                           <p className="text-xs font-semibold text-[var(--text-secondary)]">By {group.ownerName} • {group.notes.length} Files</p>
                          </div>
                        </div>
-                       <div className="text-slate-400">
+                       <div className="text-[var(--text-tertiary)]">
                          {expandedSubjects[group.subjectId] ? <FaChevronUp /> : <FaChevronDown />}
                        </div>
                      </button>
@@ -634,9 +634,9 @@ const Notes = () => {
                            initial={{ height: 0, opacity: 0 }}
                            animate={{ height: "auto", opacity: 1 }}
                            exit={{ height: 0, opacity: 0 }}
-                           className="border-t border-slate-200"
+                           className="border-t border-[var(--border-default)]"
                          >
-                           <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 bg-slate-50/30">
+                           <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 bg-[var(--bg-tertiary)]/20">
                              {group.notes.map((note) => (
                                <motion.div
                                  key={note._id}
@@ -644,34 +644,34 @@ const Notes = () => {
                                  onClick={() => setViewNote(note)}
                                  className="cursor-pointer"
                                >
-                                  <Card className="h-full border-slate-200 hover:border-indigo-400 transition-colors bg-white">
+                                  <Card className="h-full border-[var(--border-default)] hover:border-[var(--action-primary)]/50 transition-colors bg-[var(--bg-secondary)]">
                                      <div className="flex justify-between items-start mb-3">
-                                        <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-sm"><FaGlobe /></div>
+                                        <div className="p-1.5 bg-[var(--action-primary)]/10 text-[var(--action-primary)] rounded-lg text-sm"><FaGlobe /></div>
                                         <div className="flex items-center gap-2">
                                            {note.fileUrl && (
-                                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                                              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-tertiary)] bg-[var(--bg-tertiary)] px-2 py-1 rounded">
                                                 PDF
                                               </span>
                                            )}
                                         {/* Like Button */}
                                           <button 
                                             onClick={(e) => toggleLike(e, note._id)}
-                                            className="flex items-center gap-1 text-slate-400 hover:text-pink-500 transition-colors"
+                                            className="flex items-center gap-1 text-[var(--text-tertiary)] hover:text-pink-500 transition-colors"
                                           >
                                             {note.likes?.includes(currentUserId) ? <FaHeart className="text-pink-500" /> : <FaRegHeart />}
                                             <span className="text-xs font-bold">{note.likes?.length || 0}</span>
                                           </button>
                                         </div>
                                      </div>
-                                     <h4 className="font-bold text-slate-800 mb-1 line-clamp-1 text-sm">{note.title}</h4>
-                                     <p className="text-xs text-slate-500 line-clamp-2 mb-3 h-8">
+                                     <h4 className="font-bold text-[var(--text-primary)] mb-1 line-clamp-1 text-sm">{note.title}</h4>
+                                     <p className="text-xs text-[var(--text-tertiary)] line-clamp-2 mb-3 h-8">
                                        {note.content || note.extractedText || "No preview"}
                                      </p>
-                                     <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
-                                        <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                     <div className="flex items-center gap-2 pt-3 border-t border-[var(--border-default)]">
+                                        <div className="w-5 h-5 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-[10px] font-bold text-[var(--text-tertiary)]">
                                           {getOwnerName(note).charAt(0).toUpperCase()}
                                         </div>
-                                        <span className="text-[10px] font-bold text-slate-500 line-clamp-1">{getOwnerName(note)}</span>
+                                        <span className="text-[10px] font-bold text-[var(--text-tertiary)] line-clamp-1">{getOwnerName(note)}</span>
                                      </div>
                                   </Card>
                                </motion.div>
@@ -683,9 +683,9 @@ const Notes = () => {
                    </div>
                  ))}
                </div>
-            )}
-          </div>
-        )}
+             )}
+           </div>
+         )}
 
         {viewNote && (
           <NoteModal note={viewNote} onClose={() => setViewNote(null)} />

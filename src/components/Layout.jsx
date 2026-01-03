@@ -8,7 +8,7 @@ const MainLayout = ({ children }) => {
   const { user, logout } = useContext(AuthContext);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] overflow-x-hidden relative">
+    <div className="min-h-screen flex flex-col text-[var(--text-primary)] overflow-x-hidden relative">
       {/* Tour Overlay */}
       <TourOverlay />
       <QuickSettingsFab />

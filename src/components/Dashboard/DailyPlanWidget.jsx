@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Card from "../Common/Card";
 import Button from "../Common/Button";
-import { FaRobot, FaMagic, FaEdit, FaEye } from "react-icons/fa";
+import { FaRobot, FaWandMagicSparkles, FaPenToSquare, FaEye } from "react-icons/fa6";
 import PlanModal from "./PlanModal";
 
 const DailyPlanWidget = () => {
@@ -59,7 +59,7 @@ const DailyPlanWidget = () => {
         
         <div className="flex justify-between items-center mb-4 relative z-10">
           <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-            <FaMagic className="text-purple-500" /> AI Daily Coach
+            <FaWandMagicSparkles className="text-purple-500" /> AI Daily Coach
           </h2>
           <div className="flex gap-2">
             {plan && (
@@ -76,7 +76,7 @@ const DailyPlanWidget = () => {
               className="!py-1 !px-3 text-sm"
               onClick={() => setShowPrompt(!showPrompt)}
             >
-              <FaEdit className="mr-2" /> {plan ? "Update" : "Create"}
+              <FaPenToSquare className="mr-2" /> {plan ? "Update" : "Create"}
             </Button>
           </div>
         </div>
@@ -118,7 +118,7 @@ const DailyPlanWidget = () => {
               ) : plan ? (
                 <div className="flex flex-col items-center justify-center text-center py-6 space-y-4">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                    <FaMagic className="text-white text-2xl" />
+                    <FaWandMagicSparkles className="text-white text-2xl" />
                   </div>
                   <div>
                     <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>

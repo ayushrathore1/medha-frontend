@@ -21,8 +21,9 @@ const Card = ({ children, className = "", hoverEffect = true, noPadding = false,
             }
           : {}
       }
+      style={{ borderRadius: "var(--radius-card, 16px)" }}
       className={cn(
-        "bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden",
+        "glass-card overflow-hidden text-[var(--text-primary)]",
         noPadding ? "p-0" : "p-6",
         className
       )}

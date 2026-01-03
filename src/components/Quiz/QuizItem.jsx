@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaCheck, FaTimes } from "react-icons/fa";
+import { FaCheck, FaXmark } from "react-icons/fa6";
 
 const QuizItem = ({ 
   question, 
@@ -93,7 +93,7 @@ const QuizItem = ({
                     {text}
                   </span>
                   {showCorrect && <FaCheck className="text-emerald-600 flex-shrink-0" />}
-                  {showWrong && <FaTimes className="text-red-600 flex-shrink-0" />}
+                  {showWrong && <FaXmark className="text-red-600 flex-shrink-0" />}
                 </motion.button>
               );
             })}

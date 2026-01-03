@@ -27,8 +27,16 @@
   --color-slate-900: #0f172a;
 }
 
+/* Customization Variables */
 :root {
-  font-family: var(--font-sans);
+  --bg-image: none;
+  --bg-overlay: 0;
+  --bg-size: cover;
+  --bg-position: center;
+  --custom-font: var(--font-sans);
+  --overlay-color: 248, 250, 252; /* Default Light Slate RGB */
+
+  font-family: var(--custom-font);
   line-height: 1.5;
   font-weight: 400;
 
@@ -45,8 +53,29 @@
   --action-hover: #4338ca;
   --accent-secondary: #8b5cf6;
 
+  /* Semantic Status Colors */
+  --color-success-bg: #dcfce7;
+  --color-success-text: #15803d;
+  --color-warning-bg: #fef3c7;
+  --color-warning-text: #b45309;
+  --color-danger-bg: #fee2e2;
+  --color-danger-text: #b91c1c;
+  
+  --gradient-start: #4f46e5;
+  --gradient-end: #7c3aed;
+
   color: var(--text-primary);
   background-color: var(--bg-secondary);
+  
+  /* Apply Custom Background */
+  background-image: 
+    linear-gradient(rgba(var(--overlay-color), var(--bg-overlay)), rgba(var(--overlay-color), var(--bg-overlay))),
+    var(--bg-image);
+
+  background-size: var(--bg-size);
+  background-position: var(--bg-position);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -58,11 +87,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: var(--bg-secondary);
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.03) 0px, transparent 50%), 
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.03) 0px, transparent 50%);
-  background-attachment: fixed;
+  /* Background properties handled in :root now for global coverage */
+  background-color: transparent;
 }
 
 /* Base Elements */
@@ -142,10 +168,17 @@ a:hover {
 }
 
 .premium-dark body {
-  background-color: var(--bg-secondary);
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%), 
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+  /* Ensure transparent body so :root background shows through, or apply logic here */
+  background-color: transparent;
+}
+
+.premium-dark {
+  /* Dark mode overrides */
+  --bg-overlay: 0.85; /* Default higher overlay opacity for dark mode readability if image is unset, but we override dynamically */
+  --overlay-color: 2, 6, 23; /* Dark Slate RGB */
+  
+  /* Apply Custom Background for Dark Mode - utilizing same vars but with dark overlay default */
+  /* background-image rule removed, now uses :root's background-image with updated --overlay-color */
 }
 
 .premium-dark .glass-card {
@@ -237,5 +270,187 @@ a:hover {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    animation-delay: 0.01ms !important;
   }
 }
+
+/* =========================================
+   PREMIUM THEME 1: COGNITIVE CLARITY (Light)
+   Style: Neubrutalism Light / Swiss Design
+   ========================================= */
+   .theme-cognitive-clarity {
+    /* Paper Surface */
+    --bg-primary: #FFFFFF;        /* Cards */
+    --bg-secondary: #FBFBFD;      /* Main background (tinted white) */
+    --bg-tertiary: #F8FAFC;       /* Elevated areas */
+    
+    /* Typography */
+    --text-primary: #0F172A;      /* Slate-900 */
+    --text-secondary: #64748B;    /* Slate-500 */
+    --text-tertiary: #94A3B8;     /* Slate-400 */
+    
+    /* Actions */
+    --action-primary: #3B82F6;    /* Soft Blue */
+    --action-hover: #2563EB;
+    --accent-secondary: #6366F1;
+    
+    /* Borders & Shadows */
+    --border-default: #E2E8F0;
+    --shadow-card: 0px 4px 20px rgba(0, 0, 0, 0.03);
+    
+    /* Layout */
+    --radius-card: 16px;
+    --radius-button: 9999px;      /* Pill */
+    --spacing-multiplier: 1.5;
+  
+    --bg-overlay: 0;
+    
+    --custom-font: "Inter", "Space Grotesk", sans-serif;
+    color-scheme: light;
+  }
+  
+  /* =========================================
+     PREMIUM THEME 2: NETRUNNER (Cyberpunk)
+     Style: FUI / Terminal / High-Tech
+     ========================================= */
+  .theme-netrunner {
+    /* Mainframe Surface */
+    --bg-primary: #0A0A0A;
+    --bg-secondary: #050505;      /* Deepest void */
+    --bg-tertiary: #111111;
+    
+    /* Typography */
+    --text-primary: #00E5FF;      /* Neon Cyan */
+    --text-secondary: #7DD3FC;
+    --text-tertiary: #38BDF8;
+    
+    /* Actions */
+    --action-primary: #00E5FF;
+    --action-hover: #FF003C;      /* Hot Pink Hover */
+    --accent-secondary: #FF003C;
+    
+    /* Borders & Glow */
+    --border-default: #1F2937;
+    --border-glow: 0 0 8px #00E5FF;
+    --shadow-card: 0 0 12px rgba(0, 229, 255, 0.15);
+    
+    /* Layout */
+    --radius-card: 0px;           /* Sharp corners */
+    --radius-button: 0px;
+    
+    /* Glass / Terminal Effect */
+    --glass-bg: rgba(5, 5, 5, 0.9);
+    --glass-border: #00E5FF;
+    --glass-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+    
+    --scanline-opacity: 0.05;
+    --overlay-color: 0, 0, 0;
+
+    /* Cyberpunk Semantics */
+    --color-success-bg: rgba(0, 255, 127, 0.1); 
+    --color-success-text: #00FF7F;
+    --color-warning-bg: rgba(255, 215, 0, 0.1);
+    --color-warning-text: #FFD700;
+    --color-danger-bg: rgba(255, 0, 60, 0.1);
+    --color-danger-text: #FF003C;
+    
+    --gradient-start: #00E5FF;
+    --gradient-end: #FF003C;
+
+    --custom-font: "JetBrains Mono", "Fira Code", monospace;
+    color-scheme: dark;
+  }
+  
+  /* Netrunner Specific Overrides */
+  .theme-netrunner .glass-card, 
+  .theme-netrunner .glass-panel {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 0;
+  }
+  
+  /* Scanline Overlay for Netrunner */
+  .theme-netrunner body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 229, 255, var(--scanline-opacity)) 2px,
+      rgba(0, 229, 255, var(--scanline-opacity)) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+  
+  /* Glitch Text on Hover */
+  .theme-netrunner a:hover,
+  .theme-netrunner button:hover {
+    text-shadow: 2px 0 #FF003C, -2px 0 #00E5FF;
+    transition: text-shadow 0.1s steps(2);
+  }
+  
+  /* =========================================
+     PREMIUM THEME 3: DEEP COSMOS (Space)
+     Style: Glassmorphism / Spatial Design
+     ========================================= */
+  .theme-deep-cosmos {
+    /* Nebula Surface */
+    --bg-primary: #0F172A;
+    --bg-secondary: #020617;      /* Dark Navy */
+    --bg-tertiary: rgba(30, 41, 59, 0.4); 
+    
+    /* Typography */
+    --text-primary: #FFFFFF;
+    --text-secondary: #94A3B8;    /* Blue-ish Grey */
+    --text-tertiary: #CBD5E1;
+    
+    /* Actions */
+    --action-primary: #6366F1;    /* Indigo */
+    --action-hover: #818CF8;
+    --accent-secondary: #8B5CF6;  /* Purple */
+    
+    /* Glass Effect */
+    --glass-bg: rgba(15, 23, 42, 0.4); /* More translucent */
+    --glass-border: rgba(99, 102, 241, 0.3); /* Indigo tint */
+    --glass-shadow: 0px 0px 20px rgba(99, 102, 241, 0.25);
+    
+    /* Layout */
+    --radius-card: 20px;
+    --radius-button: 12px;
+  
+    --bg-overlay: 0.3; /* Let the cosmos shine through */
+    --overlay-color: 2, 6, 23;
+    
+    /* Space Semantics */
+    --color-success-bg: rgba(45, 212, 191, 0.15); 
+    --color-success-text: #2DD4BF;
+    --color-warning-bg: rgba(251, 191, 36, 0.15);
+    --color-warning-text: #FBBF24;
+    --color-danger-bg: rgba(244, 63, 94, 0.15);
+    --color-danger-text: #F43F5E;
+    
+    --gradient-start: #6366F1;
+    --gradient-end: #D946EF;
+    
+    --custom-font: "Sora", "Outfit", sans-serif;
+    color-scheme: dark;
+    
+    /* Deep Cosmos Background Defaults (Overwritten by JS wallpaper) */
+    --bg-image: 
+      radial-gradient(ellipse at 50% 0%, #1E1B4B 0%, transparent 70%),
+      radial-gradient(circle at 80% 80%, #312e81 0%, transparent 50%),
+      linear-gradient(to bottom, #020617, #0f172a);
+  }
+  
+  .theme-deep-cosmos .glass-card,
+  .theme-deep-cosmos .glass-panel {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(16px) saturate(140%);
+    border-radius: var(--radius-card);
+  }

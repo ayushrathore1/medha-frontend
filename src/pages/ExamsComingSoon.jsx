@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { motion } from "framer-motion";
-import { FaGraduationCap, FaClock, FaBell } from "react-icons/fa";
+import { FaGraduationCap, FaClock, FaBell } from "react-icons/fa6";
 import { AuthContext } from "../AuthContext";
 import Card from "../components/Common/Card";
 

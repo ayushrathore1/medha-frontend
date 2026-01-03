@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaHistory, FaCrown, FaInbox, FaBug, FaLightbulb, FaArrowRight, FaEnvelope, FaComments } from "react-icons/fa";
+import { FaHistory, FaCrown, FaInbox, FaBug, FaLightbulb, FaArrowRight, FaEnvelope, FaComments } from "react-icons/fa6";
 import Card from "../components/Common/Card";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;

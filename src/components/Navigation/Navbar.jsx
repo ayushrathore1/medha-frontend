@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { FaCrown, FaMoon, FaSun } from "react-icons/fa";
+import { FaCrown, FaMoon, FaSun } from "react-icons/fa6";
 import { PlayCircle } from "lucide-react";
 import { useTour } from "../../context/TourContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -184,6 +184,20 @@ const Navbar = ({ user, onLogout }) => {
     setIsMobileMenuOpen(false);
   };
 
+  // Helper: Get the correct avatar URL for the user
+  const getProfileAvatarUrl = () => {
+    // 1. Use custom avatar if uploaded
+    if (user?.avatar) {
+      return user.avatar;
+    }
+    // 2. Fallback to generated DiceBear avatar
+    return getAvatarByIndex(
+      user?.email || user?._id || 'default',
+      user?.gender || 'Other',
+      user?.avatarIndex || 0
+    );
+  };
+
   return (
     <motion.nav
       initial={{ y: -32, opacity: 0 }}
@@ -290,11 +304,7 @@ const Navbar = ({ user, onLogout }) => {
             >
               <img
                 alt="Profile"
-                src={getAvatarByIndex(
-                  user?.email || user?._id || 'default',
-                  user?.gender || 'Other',
-                  user?.avatarIndex || 0
-                )}
+                src={getProfileAvatarUrl()}
                 className="h-full w-full object-cover"
                 onError={(e) => {
                   e.target.onerror = null;
@@ -342,7 +352,7 @@ const Navbar = ({ user, onLogout }) => {
                 onClick={() => startTour(true)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all"
+                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-[var(--action-primary)] bg-[var(--action-primary)]/5 hover:bg-[var(--action-primary)]/10 border border-[var(--action-primary)]/20 transition-all"
               >
                 <PlayCircle size={18} />
                 Take a Tour
@@ -361,7 +371,7 @@ const Navbar = ({ user, onLogout }) => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-6 py-2.5 rounded-xl font-bold text-white shadow-lg bg-gradient-to-r from-indigo-600 to-violet-500 hover:shadow-xl hover:opacity-90 transition-all"
+                className="px-6 py-2.5 rounded-xl font-bold text-white shadow-lg bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:shadow-xl hover:opacity-90 transition-all"
               >
                 Join for Free
               </motion.button>
@@ -377,11 +387,7 @@ const Navbar = ({ user, onLogout }) => {
               className="h-9 w-9 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 overflow-hidden"
             >
               <img
-                src={getAvatarByIndex(
-                  user?.email || user?._id || 'default',
-                  user?.gender || 'Other',
-                  user?.avatarIndex || 0
-                )}
+                src={getProfileAvatarUrl()}
                 alt="Profile"
                 className="h-full w-full object-cover"
                 onError={(e) => {
