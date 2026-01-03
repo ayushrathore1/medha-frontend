@@ -163,4 +163,5 @@ const ContentCard = ({
   );
 };
 
-export default ContentCard;
+// Memoize to prevent re-renders when parent updates but props haven't changed
+export default React.memo(ContentCard);

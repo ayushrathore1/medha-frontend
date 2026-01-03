@@ -194,7 +194,7 @@ a:hover {
     radial-gradient(at 100% 100%, hsla(200,100%,60%,0.2) 0px, transparent 50%);
   background-size: 140% 140%;
   animation: aurora 15s ease infinite alternate;
-  filter: blur(80px);
+  filter: blur(20px); /* Reduced from 80px for better performance */
   mix-blend-mode: screen;
   pointer-events: none;
 }
@@ -203,4 +203,39 @@ a:hover {
 :root[class~="dark"] .aurora-bg::before,
 .premium-dark .aurora-bg::before {
   opacity: 0.6;
+}
+
+/* MOBILE PERFORMANCE: Disable heavy effects */
+@media (max-width: 768px) {
+  .aurora-bg::before {
+    animation: none;
+    filter: none;
+    opacity: 0.4;
+    background-size: 100% 100%;
+  }
+  
+  /* Reduce backdrop blur on mobile for better performance */
+  .glass-panel,
+  .glass-card {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  
+  .premium-dark .glass-panel {
+    backdrop-filter: blur(4px);
+  }
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .aurora-bg::before {
+    animation: none !important;
+    filter: none !important;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
