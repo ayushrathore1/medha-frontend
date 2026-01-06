@@ -5,7 +5,8 @@ import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaBook, FaGlobe, FaMagnifyingGlass, FaUpload, FaPlus, FaCloudArrowUp, FaFileLines, FaTrash, FaPen, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp, FaFolder, FaFolderOpen, FaCircleInfo, FaHeart, FaRegHeart } from "react-icons/fa6";
+import { FaBook, FaGlobe, FaMagnifyingGlass, FaUpload, FaPlus, FaCloudArrowUp, FaFileLines, FaTrash, FaPen, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp, FaFolder, FaFolderOpen, FaCircleInfo, FaHeart, FaRegHeart, FaLock } from "react-icons/fa6";
+import useAuthGuard from "../hooks/useAuthGuard";
 
 const API_BASE = `${import.meta.env.VITE_BACKEND_URL}`;
 
@@ -13,7 +14,13 @@ import { useTour } from "../context/TourContext";
 
 const Notes = () => {
   const { isGuestMode } = useTour();
-  const [activeTab, setActiveTab] = useState("my-notes"); // "my-notes" | "explore"
+  const { isAuthenticated, requireAuth } = useAuthGuard();
+  
+  // Auto-switch to explore tab for unauthenticated users
+  const [activeTab, setActiveTab] = useState(() => {
+    if (!isAuthenticated && !isGuestMode) return "explore";
+    return "my-notes";
+  });
   const [notes, setNotes] = useState(isGuestMode ? [
     { _id: '1', title: 'Cell Biology Notes', content: 'Discussion on mitochondria and nucleus...', createdAt: new Date(), isPublic: false },
     { _id: '2', title: 'Compiler Design', content: 'Lexical analysis and parsing techniques...', createdAt: new Date(), isPublic: true }
@@ -366,14 +373,22 @@ const Notes = () => {
           
           <div className="flex bg-[var(--bg-secondary)] p-1.5 rounded-2xl shadow-sm border border-[var(--border-default)]">
             <button
-              onClick={() => setActiveTab("my-notes")}
+              onClick={() => {
+                if (isAuthenticated || isGuestMode) {
+                  setActiveTab("my-notes");
+                } else {
+                  requireAuth(() => setActiveTab("my-notes"), 'My Notes');
+                }
+              }}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
                 activeTab === "my-notes" 
                   ? "bg-[var(--action-primary)] text-white shadow-lg shadow-[var(--action-primary)]/20" 
                   : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
               }`}
             >
-              <FaBook /> My Notes
+              <FaBook />
+              My Notes
+              {!isAuthenticated && !isGuestMode && <FaLock className="text-yellow-400" size={12} />}
             </button>
             <button
               data-tour="explore-tab"
@@ -655,10 +670,14 @@ const Notes = () => {
                                            )}
                                         {/* Like Button */}
                                           <button 
-                                            onClick={(e) => toggleLike(e, note._id)}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              requireAuth(() => toggleLike(e, note._id), 'Liking Notes');
+                                            }}
                                             className="flex items-center gap-1 text-[var(--text-tertiary)] hover:text-pink-500 transition-colors"
                                           >
-                                            {note.likes?.includes(currentUserId) ? <FaHeart className="text-pink-500" /> : <FaRegHeart />}
+                                            {/* Note: likes check needs to handle guest user (currentUserId is null) */}
+                                            {currentUserId && note.likes?.includes(currentUserId) ? <FaHeart className="text-pink-500" /> : <FaRegHeart />}
                                             <span className="text-xs font-bold">{note.likes?.length || 0}</span>
                                           </button>
                                         </div>

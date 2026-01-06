@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { FaCrown, FaMoon, FaSun } from "react-icons/fa6";
+import { FaCrown, FaMoon, FaSun, FaLock } from "react-icons/fa6";
 import { PlayCircle } from "lucide-react";
 import { useTour } from "../../context/TourContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuthModal } from "../../context/AuthModalContext";
 import { getAvatarByIndex } from "../../utils/avatarUtils";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -29,18 +30,18 @@ const getBaseNavItems = (userUniversity) => {
   }
 
   const items = [
-    { path: "/dashboard", label: "Dashboard" },
-    { path: "/notes", label: "Notes" },
-    { path: "/exams", label: examLabel },
-    { path: "/flashcards", label: "Flashcards" },
-    { path: "/quiz", label: "Quiz" },
-    { path: "/chatbot", label: "Chatbot" },
-    { path: "/notifications", label: "Notifications" },
+    { path: "/dashboard", label: "Dashboard", isFree: false },
+    { path: "/notes", label: "Notes", isFree: true },
+    { path: "/exams", label: examLabel, isFree: true },
+    { path: "/flashcards", label: "Flashcards", isFree: false },
+    { path: "/quiz", label: "Quiz", isFree: false },
+    { path: "/chatbot", label: "Chatbot", isFree: false },
+    { path: "/notifications", label: "Notifications", isFree: false },
   ];
 
   // Only add Charcha if feature flag is enabled
   if (CHARCHA_ENABLED) {
-    items.push({ path: "/charcha", label: "Charcha" });
+    items.push({ path: "/charcha", label: "Charcha", isFree: false });
   }
 
   return items;
@@ -68,6 +69,7 @@ const underlineVariants = {
 const Navbar = ({ user, onLogout }) => {
   const { theme, toggleTheme, isDarkThemeEnabled } = useTheme();
   const { isGuestMode, startTour, isTourEnabled } = useTour();
+  const { showAuthModal } = useAuthModal();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -222,13 +224,25 @@ const Navbar = ({ user, onLogout }) => {
           </span>
         </div>
 
-        {/* Desktop Nav */}
-        {(user || isGuestMode) && (
-          <div className="hidden xl:flex gap-5 items-center">
-            {navItems.map((item) => (
+        {/* Desktop Nav - Always show for all users */}
+        <div className="hidden xl:flex gap-5 items-center">
+          {navItems.map((item) => {
+            // Check if item is locked for guests
+            const isLocked = !user && !item.isFree;
+            
+            // Handle click for locked items
+            const handleClick = (e) => {
+              if (isLocked) {
+                e.preventDefault();
+                showAuthModal(item.label);
+              }
+            };
+
+            return (
               <NavLink
                 key={item.path}
-                to={item.path}
+                to={isLocked ? "#" : item.path}
+                onClick={handleClick}
                 data-tour={item.path === '/dashboard' ? 'dashboard-link' : 
                            item.path === '/chatbot' ? 'ai-tutor' : 
                            item.path === '/flashcards' ? 'flashcards' : 
@@ -236,12 +250,12 @@ const Navbar = ({ user, onLogout }) => {
                 style={{ position: "relative", display: "inline-block" }}
                 className={`font-medium px-3 py-2 rounded-xl transition-all duration-200 text-base whitespace-nowrap ${
                   item.isAdmin ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30" : ""
-                }`}
+                } ${isLocked ? "opacity-70" : ""}`}
               >
                 {({ isActive }) => (
                   <motion.span
                     initial="inactive"
-                    animate={isActive ? "active" : "inactive"}
+                    animate={isActive && !isLocked ? "active" : "inactive"}
                     whileHover="hover"
                     variants={item.isAdmin ? {
                       ...linkVariants,
@@ -251,20 +265,21 @@ const Navbar = ({ user, onLogout }) => {
                     className="relative block flex items-center gap-1.5"
                   >
                     {item.isAdmin && <FaCrown className="text-amber-500" />}
+                    {isLocked && <FaLock className="text-gray-400 text-[10px]" />}
                     {item.label}
                     {/* Notification badge for Messages */}
-                    {item.path === "/charcha" && unreadCount > 0 && (
+                    {item.path === "/charcha" && unreadCount > 0 && !isLocked && (
                       <span className="absolute -top-1 -right-2 px-1.5 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full min-w-[18px] text-center">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     )}
                     {/* Notification badge for Notifications */}
-                    {item.path === "/notifications" && unreadNotifications > 0 && (
+                    {item.path === "/notifications" && unreadNotifications > 0 && !isLocked && (
                       <span className="absolute -top-1 -right-2 px-1.5 py-0.5 text-xs font-bold bg-indigo-500 text-white rounded-full min-w-[18px] text-center">
                         {unreadNotifications > 99 ? "99+" : unreadNotifications}
                       </span>
                     )}
-                    {isActive && (
+                    {isActive && !isLocked && (
                       <motion.span
                         initial="hidden"
                         animate="visible"
@@ -280,109 +295,78 @@ const Navbar = ({ user, onLogout }) => {
                   </motion.span>
                 )}
               </NavLink>
-            ))}
+            );
+          })}
 
-            {/* Theme Toggle - only show when dark theme is enabled */}
-            {isDarkThemeEnabled && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={toggleTheme}
-                className="p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--color-slate-200)] hover:border-[var(--accent-secondary)] transition-colors text-[var(--action-primary)] ml-2"
-                aria-label="Toggle Theme"
+          {/* Right side elements for logged-in users */}
+          {user && (
+            <>
+              {/* Profile avatar */}
+              <button
+                onClick={handleProfileClick}
+                data-tour="profile"
+                className="ml-2 h-10 w-10 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 hover:bg-white/80 shadow-sm transition overflow-hidden flex items-center justify-center"
+                title="Profile"
               >
-                {theme === "premium-dark" ? <FaSun size={20} /> : <FaMoon size={20} />}
-              </motion.button>
-            )}
+                <img
+                  alt="Profile"
+                  src={getProfileAvatarUrl()}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                  draggable="false"
+                />
+                <div className="h-full w-full rounded-full items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-[var(--action-primary)] to-[var(--accent-secondary)] hidden">
+                  {user?.name?.[0]?.toUpperCase() || "U"}
+                </div>
+              </button>
 
-            {/* Profile avatar */}
-            <button
-              onClick={handleProfileClick}
-              data-tour="profile"
-              className="ml-2 h-10 w-10 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 hover:bg-white/80 shadow-sm transition overflow-hidden flex items-center justify-center"
-              title="Profile"
-            >
-              <img
-                alt="Profile"
-                src={getProfileAvatarUrl()}
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
+              <button
+                onClick={() => {
+                  sessionStorage.removeItem("medha_feature_modal_shown");
+                  onLogout();
                 }}
-                draggable="false"
-              />
-              <div className="h-full w-full rounded-full items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-[var(--action-primary)] to-[var(--accent-secondary)] hidden">
-                {isGuestMode ? "G" : (user?.name?.[0]?.toUpperCase() || "U")}
-              </div>
-            </button>
+                className="ml-2 bg-gradient-to-r from-indigo-600 to-violet-500 text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg hover:opacity-90 transition-all shadow-md text-sm"
+              >
+                Logout
+              </button>
+            </>
+          )}
 
-            <button
-              onClick={() => {
-                sessionStorage.removeItem("medha_feature_modal_shown");
-                onLogout();
-              }}
-              className="ml-2 bg-gradient-to-r from-indigo-600 to-violet-500 text-white px-4 py-2 rounded-xl font-semibold hover:shadow-lg hover:opacity-90 transition-all shadow-md text-sm"
-            >
-              Logout
-            </button>
-          </div>
-        )}
-
-        {/* Non-logged in nav items */}
-        {(!user && !isGuestMode) && (
-          <div className="flex items-center gap-4">
-            {/* Theme Toggle - only show when dark theme is enabled */}
-            {isDarkThemeEnabled && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={toggleTheme}
-                className="p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--color-slate-200)] hover:border-[var(--accent-secondary)] transition-colors text-[var(--action-primary)]"
-                aria-label="Toggle Theme"
-              >
-                {theme === "premium-dark" ? <FaSun size={20} /> : <FaMoon size={20} />}
-              </motion.button>
-            )}
-
-            {/* Show Take a Tour button only when tour feature is enabled */}
-            {isTourEnabled && (
-              <motion.button
-                onClick={() => startTour(true)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-[var(--action-primary)] bg-[var(--action-primary)]/5 hover:bg-[var(--action-primary)]/10 border border-[var(--action-primary)]/20 transition-all"
-              >
-                <PlayCircle size={18} />
-                Take a Tour
-              </motion.button>
-            )}
-            <NavLink to="/login">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="hidden sm:block px-5 py-2.5 rounded-xl font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] border border-transparent hover:border-[var(--accent-secondary)]/30 transition-all"
-              >
-                Log in
-              </motion.button>
-            </NavLink>
-            <NavLink to="/register">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-2.5 rounded-xl font-bold text-white shadow-lg bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:shadow-xl hover:opacity-90 transition-all"
-              >
-                Join for Free
-              </motion.button>
-            </NavLink>
-          </div>
-        )}
+          {/* Right side elements for guests */}
+          {!user && (
+            <>
+              <NavLink to="/login">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="hidden sm:block px-5 py-2.5 rounded-xl font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] border border-transparent hover:border-[var(--accent-secondary)]/30 transition-all"
+                >
+                  Log in
+                </motion.button>
+              </NavLink>
+              <NavLink to="/register">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-2.5 rounded-xl font-bold text-white shadow-lg bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:shadow-xl hover:opacity-90 transition-all"
+                >
+                  Join for Free
+                </motion.button>
+              </NavLink>
+            </>
+          )}
+        </div>
 
         {/* Mobile Menu Toggle & Profile (Tablet/Phone) */}
-        {(user || isGuestMode) && (
-          <div className="xl:hidden flex items-center gap-3">
-             <button
+        {/* Mobile Menu Toggle - Always show */}
+        <div className="xl:hidden flex items-center gap-3">
+          {/* Profile button only for logged in */}
+          {user && (
+            <button
               onClick={handleProfileClick}
               className="h-9 w-9 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 overflow-hidden"
             >
@@ -397,21 +381,21 @@ const Navbar = ({ user, onLogout }) => {
                 }}
               />
               <div className="h-full w-full items-center justify-center bg-gray-200 text-xs font-bold hidden">
-                {isGuestMode ? "G" : (user?.name?.[0] || "U")}
+                {user?.name?.[0] || "U"}
               </div>
             </button>
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-lg text-[var(--text-primary)] hover:bg-[var(--accent-secondary)]/10"
-            >
-              <div className="w-6 h-6 flex flex-col justify-center gap-1.5">
-                <span className={`block w-full h-0.5 bg-current transition-all ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-                <span className={`block w-full h-0.5 bg-current transition-all ${isMobileMenuOpen ? 'opacity-0' : ''}`} />
-                <span className={`block w-full h-0.5 bg-current transition-all ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
-              </div>
-            </button>
-          </div>
-        )}
+          )}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 rounded-lg text-[var(--text-primary)] hover:bg-[var(--accent-secondary)]/10"
+          >
+            <div className="w-6 h-6 flex flex-col justify-center gap-1.5">
+              <span className={`block w-full h-0.5 bg-current transition-all ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+              <span className={`block w-full h-0.5 bg-current transition-all ${isMobileMenuOpen ? 'opacity-0' : ''}`} />
+              <span className={`block w-full h-0.5 bg-current transition-all ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu Dropdown */}
@@ -421,37 +405,55 @@ const Navbar = ({ user, onLogout }) => {
         className="xl:hidden overflow-hidden bg-[var(--bg-primary)] border-b border-[var(--accent-secondary)]/20"
       >
         <div className="px-4 py-4 space-y-2 flex flex-col">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => handleMobileNavClick(item.path)}
-              className={({ isActive }) =>
-                `block px-4 py-3 rounded-xl font-medium transition-colors relative z-10 ${
-                  isActive
-                    ? "bg-[var(--action-primary)] text-white"
-                    : "text-[var(--text-primary)] hover:bg-[var(--accent-secondary)]/10"
-                }`
+          {navItems.map((item) => {
+            const isLocked = !user && !item.isFree;
+            
+            const handleMobileItemClick = (e) => {
+              if (isLocked) {
+                e.preventDefault();
+                setIsMobileMenuOpen(false);
+                showAuthModal(item.label);
+              } else {
+                handleMobileNavClick();
               }
-              style={({ isActive }) => isActive ? { color: '#ffffff' } : {}}
-            >
-              <span className="relative z-20 flex items-center justify-between">
-                {item.label}
-                {/* Notification badge for Messages in mobile menu */}
-                {item.path === "/charcha" && unreadCount > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
-                    {unreadCount > 99 ? "99+" : unreadCount}
+            };
+            
+            return (
+              <NavLink
+                key={item.path}
+                to={isLocked ? "#" : item.path}
+                onClick={handleMobileItemClick}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-xl font-medium transition-colors relative z-10 ${
+                    isActive && !isLocked
+                      ? "bg-[var(--action-primary)] text-white"
+                      : "text-[var(--text-primary)] hover:bg-[var(--accent-secondary)]/10"
+                  } ${isLocked ? "opacity-70" : ""}`
+                }
+                style={({ isActive }) => isActive && !isLocked ? { color: '#ffffff' } : {}}
+              >
+                <span className="relative z-20 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    {isLocked && <FaLock className="text-gray-400 text-xs" />}
+                    {item.label}
                   </span>
-                )}
-                {/* Notification badge for Notifications in mobile menu */}
-                {item.path === "/notifications" && unreadNotifications > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-bold bg-indigo-500 text-white rounded-full">
-                    {unreadNotifications > 99 ? "99+" : unreadNotifications}
-                  </span>
-                )}
-              </span>
-            </NavLink>
-          ))}
+                  {/* Notification badge for Messages in mobile menu */}
+                  {item.path === "/charcha" && unreadCount > 0 && !isLocked && (
+                    <span className="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                  {/* Notification badge for Notifications in mobile menu */}
+                  {item.path === "/notifications" && unreadNotifications > 0 && !isLocked && (
+                    <span className="px-2 py-0.5 text-xs font-bold bg-indigo-500 text-white rounded-full">
+                      {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                    </span>
+                  )}
+                </span>
+              </NavLink>
+            );
+          })}
+
           {/* Theme Toggle Mobile - only show when dark theme is enabled */}
           {isDarkThemeEnabled && (
             <button
@@ -466,16 +468,35 @@ const Navbar = ({ user, onLogout }) => {
             </button>
           )}
           
-          <button
-            onClick={() => { 
-              sessionStorage.removeItem("medha_feature_modal_shown");
-              onLogout(); 
-              setIsMobileMenuOpen(false); 
-            }}
-            className="w-full text-left px-4 py-3 rounded-xl font-medium text-red-500 hover:bg-red-500/10 mt-2"
-          >
-            Logout
-          </button>
+          {/* Logout button - only for logged in users */}
+          {user && (
+            <button
+              onClick={() => { 
+                sessionStorage.removeItem("medha_feature_modal_shown");
+                onLogout(); 
+                setIsMobileMenuOpen(false); 
+              }}
+              className="w-full text-left px-4 py-3 rounded-xl font-medium text-red-500 hover:bg-red-500/10 mt-2"
+            >
+              Logout
+            </button>
+          )}
+
+          {/* Sign in/up for guests in mobile menu */}
+          {!user && (
+            <div className="space-y-2 mt-4 pt-4 border-t border-[var(--accent-secondary)]/20">
+              <NavLink to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                <button className="w-full text-center px-4 py-3 rounded-xl font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] border border-[var(--accent-secondary)]/30">
+                  Log in
+                </button>
+              </NavLink>
+              <NavLink to="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                <button className="w-full text-center px-4 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)]">
+                  Join for Free
+                </button>
+              </NavLink>
+            </div>
+          )}
         </div>
       </motion.div>
     </motion.nav>

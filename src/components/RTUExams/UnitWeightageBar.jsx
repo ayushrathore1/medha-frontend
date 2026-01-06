@@ -1,11 +1,11 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { getBarGradient } from "../../utils/unitWeightageUtils";
-import { FaYoutube, FaChevronDown, FaChevronUp, FaWandMagicSparkles, FaEye, FaSpinner, FaXmark, FaBookOpen, FaPlay, FaList, FaImage, FaBolt, FaBrain, FaArrowsRotate, FaDatabase } from "react-icons/fa6";
+import { FaYoutube, FaChevronDown, FaXmark, FaBookOpen, FaList, FaImage } from "react-icons/fa6";
 import QuestionImageUploader from "./QuestionImageUploader";
 import QuestionImageModal from "./QuestionImageModal";
-import DynamicSolutionRenderer from "./DynamicSolutionRenderer";
+import QuestionAILinks from "./QuestionAILinks";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -30,65 +30,15 @@ const UnitWeightageBar = ({
   index = 0,
   subjectName = "",
   year = "",
-  isAdmin = false, // Admin can upload images
-  onQuestionsUpdated, // Callback when questions are updated
+  isAdmin = false,
+  onQuestionsUpdated,
+  onLinksUpdated,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [solutions, setSolutions] = useState({}); // Stores full response objects
-  const [loadingIdx, setLoadingIdx] = useState(null);
-  const [viewingIdx, setViewingIdx] = useState(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [activePlaylistIndex, setActivePlaylistIndex] = useState(0);
-  const [viewingImageIdx, setViewingImageIdx] = useState(null); // For image modal
-  const [localQuestions, setLocalQuestions] = useState(questions); // Local copy for image updates
-  const [solveMode, setSolveMode] = useState("deep"); // "quick" or "deep"
-  const [processingLayer, setProcessingLayer] = useState(""); // Current layer being processed
-  const [hasFetchedCache, setHasFetchedCache] = useState(false); // Track if we've fetched cached solutions
-
-  // Fetch cached solutions when the unit is expanded
-  useEffect(() => {
-    const fetchCachedSolutions = async () => {
-      if (!isExpanded || hasFetchedCache || !localQuestions || localQuestions.length === 0) {
-        return;
-      }
-      
-      try {
-        const token = localStorage.getItem("token");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        
-        const response = await axios.post(
-          `${BACKEND_URL}/api/chatbot/solve/check-cache`,
-          {
-            questions: localQuestions,
-            subject: subjectName
-          },
-          { headers, timeout: 10000 }
-        );
-        
-        if (response.data.cachedSolutions && Object.keys(response.data.cachedSolutions).length > 0) {
-          // Map qCode to index and set solutions
-          const solutionsByIdx = {};
-          localQuestions.forEach((q, idx) => {
-            if (response.data.cachedSolutions[q.qCode]) {
-              solutionsByIdx[idx] = response.data.cachedSolutions[q.qCode];
-            }
-          });
-          
-          if (Object.keys(solutionsByIdx).length > 0) {
-            setSolutions(prev => ({ ...prev, ...solutionsByIdx }));
-            console.log(`📦 Loaded ${Object.keys(solutionsByIdx).length} cached solutions`);
-          }
-        }
-        
-        setHasFetchedCache(true);
-      } catch (error) {
-        console.log("Could not fetch cached solutions:", error.message);
-        setHasFetchedCache(true); // Don't retry on error
-      }
-    };
-    
-    fetchCachedSolutions();
-  }, [isExpanded, hasFetchedCache, localQuestions, subjectName]);
+  const [viewingImageIdx, setViewingImageIdx] = useState(null);
+  const [localQuestions, setLocalQuestions] = useState(questions);
 
   const barWidth = Math.min(weightagePercentage, 100);
 
@@ -124,109 +74,6 @@ const UnitWeightageBar = ({
     }
   };
 
-  const handleSolve = async (e, question, idx, forceMode = null, forceRegenerate = false) => {
-    e.stopPropagation();
-    
-    // If solution exists and not forcing regenerate, just view it
-    if (solutions[idx] && !forceMode && !forceRegenerate) {
-      setViewingIdx(idx);
-      return;
-    }
-
-    const mode = forceMode || solveMode;
-    setLoadingIdx(idx);
-    setProcessingLayer(mode === "deep" ? "Analyzing question..." : "Generating solution...");
-    
-    try {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
-      // Simulate layer progress for deep mode
-      if (mode === "deep" && !forceRegenerate) {
-        const layerMessages = [
-          "📊 Layer 1: Analyzing question...",
-          "✍️ Layer 2: Generating initial solution...",
-          "🔍 Layer 3: Reviewing solution...",
-          "🌐 Layer 4: Researching RTU patterns...",
-          "⚡ Layer 5: Optimizing solution...",
-          "🎨 Layer 6: Preparing dynamic UI..."
-        ];
-        
-        let layerIdx = 0;
-        const layerInterval = setInterval(() => {
-          if (layerIdx < layerMessages.length) {
-            setProcessingLayer(layerMessages[layerIdx]);
-            layerIdx++;
-          } else {
-            setProcessingLayer("Finalizing...");
-          }
-        }, 2000);
-        
-        // Store interval ID for cleanup
-        setTimeout(() => clearInterval(layerInterval), 15000);
-      }
-      
-      if (forceRegenerate) {
-        setProcessingLayer("🔄 Regenerating fresh solution...");
-      }
-      
-      const response = await axios.post(
-        `${BACKEND_URL}/api/chatbot/solve`,
-        {
-          question: question.text.replace(/<[^>]*>/g, ''),
-          subject: subjectName,
-          unit: `Unit ${unitSerial} - ${unitName}`,
-          marks: question.marks,
-          model: localStorage.getItem("chatbot_model") || "groq",
-          quickMode: mode === "quick",
-          forceRegenerate: forceRegenerate
-        },
-        { headers, timeout: mode === "deep" ? 180000 : 120000 }
-      );
-
-      // Store full response data with cached status
-      setSolutions(prev => ({
-        ...prev,
-        [idx]: {
-          solution: response.data.solution,
-          analysis: response.data.analysis,
-          feedback: response.data.feedback,
-          uiTemplate: response.data.uiTemplate,
-          metadata: response.data.metadata,
-          mode: response.data.mode || mode,
-          cached: response.data.metadata?.cached || false,
-          isError: false
-        }
-      }));
-      setViewingIdx(idx);
-    } catch (error) {
-      console.error("Error solving question:", error);
-      const errorMessage = error.response?.data?.error || 
-        "❌ Failed to generate solution. One of our AI services might be busy. Please try again later.";
-      setSolutions(prev => ({
-        ...prev,
-        [idx]: {
-          solution: errorMessage,
-          analysis: null,
-          feedback: null,
-          uiTemplate: null,
-          metadata: null,
-          mode: mode,
-          cached: false,
-          isError: true
-        }
-      }));
-      setViewingIdx(idx);
-    } finally {
-      setLoadingIdx(null);
-      setProcessingLayer("");
-    }
-  };
-
-  const closeSolution = (e) => {
-    e.stopPropagation();
-    setViewingIdx(null);
-  };
 
   // Handle image update from uploader
   const handleImageUpdated = (qCode, newImageUrl) => {
@@ -351,60 +198,15 @@ const UnitWeightageBar = ({
                          dangerouslySetInnerHTML={{ __html: q.text }}
                        />
 
-                       <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
-                          {/* Show Image button - visible to all users when image exists */}
-                          {q.imageUrl && (
-                            <button
-                              onClick={() => setViewingImageIdx(idx)}
-                              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 transition-all shadow-md hover:shadow-lg"
-                            >
-                              <FaImage /> Show Image
-                            </button>
-                          )}
-                          
-                          {/* Quick Solve button */}
-                          <button
-                            onClick={(e) => handleSolve(e, q, idx, "quick")}
-                            disabled={loadingIdx === idx}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-bold text-white transition-all shadow-md hover:shadow-lg ${
-                              solutions[idx]?.mode === "quick"
-                                ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600" 
-                                : "bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700"
-                            } ${loadingIdx === idx ? "opacity-70 cursor-wait" : ""}`}
-                            title="Quick solve - Single AI, faster"
-                          >
-                            {loadingIdx === idx && solveMode === "quick" ? (
-                              <><FaSpinner className="animate-spin" /> Quick...</>
-                            ) : (
-                              <><FaBolt /> Quick</>
-                            )}
-                          </button>
-                          
-                          {/* Deep Solve button (Multi-Layer AI) */}
-                          <button
-                            onClick={(e) => handleSolve(e, q, idx, "deep")}
-                            disabled={loadingIdx === idx}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-white transition-all shadow-md hover:shadow-lg ${
-                              solutions[idx] && !solutions[idx]?.isError
-                                ? solutions[idx]?.cached 
-                                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                                  : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600"
-                                : "bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
-                            } ${loadingIdx === idx ? "opacity-70 cursor-wait" : ""}`}
-                            title={solutions[idx]?.cached ? "View saved solution" : "Deep solve - 6 AI layers, best quality"}
-                          >
-                            {loadingIdx === idx ? (
-                              <><FaSpinner className="animate-spin" /> {processingLayer || "Processing..."}</>
-                            ) : solutions[idx] && !solutions[idx]?.isError ? (
-                              <>
-                                {solutions[idx]?.cached && <FaDatabase className="text-white/80" />}
-                                <FaEye /> View Solution
-                              </>
-                            ) : (
-                              <><FaBrain /> Deep Solve</>
-                            )}
-                          </button>
-                       </div>
+
+                       {/* Question AI Links Component */}
+                       <QuestionAILinks
+                         question={q}
+                         subjectName={subjectName}
+                         year={year}
+                         isAdmin={isAdmin}
+                         onLinksUpdated={onLinksUpdated}
+                       />
 
                        {/* Admin-only image uploader */}
                        {isAdmin && (
@@ -423,106 +225,6 @@ const UnitWeightageBar = ({
           )}
         </AnimatePresence>
       </motion.div>
-
-      {/* Solution Modal */}
-      <AnimatePresence>
-        {viewingIdx !== null && solutions[viewingIdx] && (
-           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={closeSolution}>
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-                className="rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden border"
-                style={{ backgroundColor: "var(--bg-secondary)", borderColor: "var(--border-default)" }}
-              >
-                 {/* Modal Header */}
-                 <div className={`flex justify-between items-center p-5 border-b bg-gradient-to-r ${
-                   solutions[viewingIdx]?.mode === "deep" 
-                     ? "from-[var(--action-primary)]/10 to-[var(--action-hover)]/10" 
-                     : "from-[var(--color-warning-bg)]/10 to-[var(--color-warning-bg)]/20"
-                 }`} style={{ borderColor: "var(--border-default)" }}>
-                    <div className="flex items-center gap-3">
-                       <div className={`p-2 rounded-lg ${
-                         solutions[viewingIdx]?.mode === "deep" 
-                           ? "bg-[var(--action-primary)]/20 text-[var(--action-primary)]" 
-                           : "bg-[var(--color-warning-bg)]/20 text-[var(--color-warning-text)]"
-                       }`}>
-                          {solutions[viewingIdx]?.mode === "deep" ? <FaBrain /> : <FaBolt />}
-                       </div>
-                       <div>
-                          <h3 className="font-bold text-lg flex items-center gap-2 flex-wrap" style={{ color: "var(--text-primary)" }}>
-                            {solutions[viewingIdx]?.mode === "deep" ? (
-                              <>Multi-Layer AI Solution</>
-                            ) : (
-                              <>Quick AI Solution</>
-                            )}
-                            {/* Cached indicator */}
-                            {solutions[viewingIdx]?.cached && (
-                               <span className="text-xs font-bold px-2 py-0.5 rounded-full border flex items-center gap-1"
-                                     style={{ 
-                                       backgroundColor: "var(--color-success-bg)", 
-                                       color: "var(--color-success-text)",
-                                       borderColor: "transparent",
-                                       opacity: 0.9
-                                     }}>
-                                <FaDatabase size={10} /> Saved
-                              </span>
-                            )}
-                            {solutions[viewingIdx]?.metadata?.totalTime && !solutions[viewingIdx]?.cached && (
-                               <span className="text-xs font-normal px-2 py-0.5 rounded-full"
-                                     style={{ backgroundColor: "var(--bg-tertiary)", color: "var(--text-secondary)" }}>
-                                {(solutions[viewingIdx].metadata.totalTime / 1000).toFixed(1)}s
-                              </span>
-                            )}
-                          </h3>
-                          <p className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                            {subjectName} • Unit {unitSerial}
-                          </p>
-                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       {/* Regenerate Button */}
-                       <button 
-                         onClick={(e) => {
-                           closeSolution(e);
-                           handleSolve(e, localQuestions[viewingIdx], viewingIdx, solutions[viewingIdx]?.mode, true);
-                         }}
-                         disabled={loadingIdx === viewingIdx}
-                         className="flex items-center gap-2 px-3 py-2 text-xs font-bold rounded-lg transition-colors disabled:opacity-50 border hover:bg-[var(--action-primary)]/10"
-                         style={{ 
-                           backgroundColor: "var(--bg-tertiary)", 
-                           color: "var(--action-primary)",
-                           borderColor: "var(--border-default)"
-                         }}
-                         title="Generate a fresh solution"
-                       >
-                         <FaArrowsRotate className={loadingIdx === viewingIdx ? "animate-spin" : ""} />
-                         Regenerate
-                       </button>
-                       <button onClick={closeSolution} className="p-2 rounded-full transition-colors hover:bg-[var(--bg-tertiary)]" style={{ color: "var(--text-tertiary)" }}>
-                          <FaXmark size={20} />
-                       </button>
-                    </div>
-                 </div>
-
-                 {/* Modal Content - Dynamic Solution Renderer */}
-                 <div className="flex-1 overflow-y-auto p-6 md:p-8" style={{ backgroundColor: "var(--bg-primary)" }}>
-                    <DynamicSolutionRenderer
-                      solution={solutions[viewingIdx]?.solution || solutions[viewingIdx]}
-                      analysis={solutions[viewingIdx]?.analysis}
-                      feedback={solutions[viewingIdx]?.feedback}
-                      uiTemplate={solutions[viewingIdx]?.uiTemplate}
-                      metadata={solutions[viewingIdx]?.metadata}
-                      subjectName={subjectName}
-                      unitSerial={unitSerial}
-                      marks={localQuestions[viewingIdx]?.marks}
-                    />
-                 </div>
-              </motion.div>
-           </div>
-        )}
-      </AnimatePresence>
 
       {/* YouTube Video Player Modal */}
       <AnimatePresence>

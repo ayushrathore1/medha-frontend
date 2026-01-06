@@ -14,12 +14,14 @@ const ExamsPage = () => {
   const { user } = useContext(AuthContext);
   
   // Check if user has access to RTU Exams content
+  // Guests (no user) get access by default to look around
+  const isGuest = !user;
   const isRTU = user?.university === "RTU";
   // CSE and AIDS have the same syllabus
   const isSupportedBranch = user?.branch === "CSE" || user?.branch === "AIDS";
   
-  // Only show RTU Exams if user is RTU + CSE/AIDS
-  if (isRTU && isSupportedBranch) {
+  // Show RTU Exams if guest OR (user is RTU + CSE/AIDS)
+  if (isGuest || (isRTU && isSupportedBranch)) {
     return <RTUExams />;
   }
   

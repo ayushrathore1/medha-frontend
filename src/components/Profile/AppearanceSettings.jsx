@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { FaImage, FaFont, FaPalette } from "react-icons/fa6";
+import { FaImage, FaFont, FaPalette, FaLock, FaCrown } from "react-icons/fa6";
 import Button from '../Common/Button';
+import useAuthGuard from '../../hooks/useAuthGuard';
 
 const FONTS = [
   { id: 'Inter', name: 'Inter (Default)' },
@@ -21,8 +22,15 @@ const THEMES = [
 
 const AppearanceSettings = () => {
   const { appearance, updateAppearance, theme, setTheme } = useTheme();
+  const { isAuthenticated, requireAuth } = useAuthGuard();
   const [wallpapers, setWallpapers] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // For guests, only premium-dark theme is allowed
+  const canSelectTheme = (themeId) => {
+    if (isAuthenticated) return true;
+    return themeId === 'premium-dark';
+  };
 
   useEffect(() => {
     const fetchWallpapers = async () => {
@@ -69,16 +77,33 @@ const AppearanceSettings = () => {
           <FaPalette /> Color Theme
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
-          {THEMES.map((t) => (
+          {THEMES.map((t) => {
+            const isLocked = !canSelectTheme(t.id);
+            return (
             <button
               key={t.id}
-              onClick={() => setTheme(t.id)}
+              onClick={() => {
+                if (isLocked) {
+                  requireAuth(() => setTheme(t.id), 'Premium Themes');
+                } else {
+                  setTheme(t.id);
+                }
+              }}
               className={`relative p-3 rounded-lg border-2 transition-all group flex flex-col items-center gap-2 ${
                 theme === t.id
                   ? 'border-indigo-600 ring-2 ring-indigo-600 ring-offset-2 bg-indigo-50'
-                  : 'border-[var(--border-default)] hover:border-indigo-300 bg-[var(--bg-primary)]'
+                  : isLocked
+                    ? 'border-[var(--border-default)] opacity-60 cursor-pointer bg-[var(--bg-primary)]'
+                    : 'border-[var(--border-default)] hover:border-indigo-300 bg-[var(--bg-primary)]'
               }`}
+              title={isLocked ? 'Sign up to unlock this theme' : t.name}
             >
+              {/* Lock overlay for locked themes */}
+              {isLocked && (
+                <div className="absolute top-1 right-1 z-10">
+                  <FaLock className="text-yellow-500" size={10} />
+                </div>
+              )}
               <div 
                 className="w-full h-10 rounded-md shadow-sm border flex items-center justify-center text-lg relative overflow-hidden" 
                 style={{ 
@@ -94,8 +119,13 @@ const AppearanceSettings = () => {
               <span className={`text-xs font-bold text-center ${theme === t.id ? 'text-indigo-700' : 'text-[var(--text-secondary)]'}`}>
                 {t.name}
               </span>
+              {isLocked && (
+                <span className="text-[10px] text-yellow-600 flex items-center gap-1">
+                  <FaCrown size={8} /> Premium
+                </span>
+              )}
             </button>
-          ))}
+          )})}
         </div>
       </div>
       

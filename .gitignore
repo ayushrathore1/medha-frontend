@@ -53,3 +53,8 @@ coverage/
 # Misc
 *.pem
 *.key
+
+# Local build logs and templates
+build_log*.txt
+new_year_email.html
+*.tmp

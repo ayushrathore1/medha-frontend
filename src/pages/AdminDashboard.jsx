@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { 
   FaInbox, FaEnvelopeOpen, FaBug, FaLightbulb, FaCircleCheck, 
   FaClock, FaSpinner, FaTrash, FaXmark, 
-  FaFilter, FaArrowsRotate, FaPaperPlane, FaUser, FaArrowDownAZ, FaCalendarDays, FaMagnifyingGlass, FaWandMagicSparkles, FaEye
+  FaFilter, FaArrowsRotate, FaPaperPlane, FaUser, FaArrowDownAZ, FaCalendarDays, FaMagnifyingGlass, FaWandMagicSparkles, FaEye, FaUsers, FaShieldHalved, FaUserMinus, FaPlus
 } from "react-icons/fa6";
 import Card from "../components/Common/Card";
 import Loader from "../components/Common/Loader";
+import DeleteUserModal from "../components/Admin/DeleteUserModal";
+import InviteTeamModal from "../components/Admin/InviteTeamModal";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -47,6 +49,15 @@ const AdminDashboard = () => {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [selectedHistoryItem, setSelectedHistoryItem] = useState(null); // For viewing recipients
 
+  // Team & User Management State
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loadingTeam, setLoadingTeam] = useState(false);
+  const [deleteModalUser, setDeleteModalUser] = useState(null); // { id, name, email }
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+
   // Password Reset State
   const [resettingPassword, setResettingPassword] = useState(null); // email of user being reset
 
@@ -70,8 +81,10 @@ const AdminDashboard = () => {
       // We'll fetch users only when Email tab is active or pre-fetch now
       fetchStats();
       // We'll fetch users only when Email tab is active or pre-fetch now
+      // We'll fetch users only when Email tab is active or pre-fetch now
       fetchUsers();
       fetchEmailHistory();
+      fetchTeamMembers();
     } catch (error) {
       navigate("/dashboard");
     }
@@ -366,6 +379,68 @@ const AdminDashboard = () => {
     }
   };
 
+  // ==================== TEAM & USER MANAGEMENT LOGIC ====================
+  const fetchTeamMembers = async () => {
+    setLoadingTeam(true);
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/admin/team`, { headers });
+      setTeamMembers(res.data || []);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+    } finally {
+      setLoadingTeam(false);
+    }
+  };
+
+  const initDeleteUser = (user) => {
+    setDeleteModalUser(user);
+    setDeleteConfirmation("");
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteModalUser) return;
+    if (deleteConfirmation !== "DELETE") {
+      alert("Please type DELETE to confirm.");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await axios.delete(`${BACKEND_URL}/api/admin/users/${deleteModalUser._id}`, { headers });
+      setUsers(users.filter(u => u._id !== deleteModalUser._id));
+      setTeamMembers(teamMembers.filter(tm => tm._id !== deleteModalUser._id));
+      setDeleteModalUser(null);
+      alert("User deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert(error.response?.data?.message || "Failed to delete user.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleUpdateRole = async (userId, newRole) => {
+    if (!window.confirm(`Are you sure you want to change this user's role to ${newRole}?`)) return;
+    
+    try {
+      const res = await axios.put(`${BACKEND_URL}/api/admin/users/${userId}/role`, { role: newRole }, { headers });
+      
+      // Update local state
+      setUsers(users.map(u => u._id === userId ? { ...u, role: newRole } : u));
+      
+      if (newRole === 'user') {
+        setTeamMembers(teamMembers.filter(tm => tm._id !== userId));
+      } else {
+        fetchTeamMembers(); // Refresh team list to include new member details properly
+      }
+      
+      alert(`Role updated to ${newRole}`);
+    } catch (error) {
+      console.error("Error updating role:", error);
+      alert(error.response?.data?.message || "Failed to update role.");
+    }
+  };
+
   // ==================== RENDER ====================
 
   if (loading) return <Loader fullScreen />;
@@ -408,8 +483,34 @@ const AdminDashboard = () => {
              >
                <FaClock className="inline mr-2"/> History
              </button>
+             <button 
+               onClick={() => setActiveTab("team")}
+               className={`px-4 py-2 rounded-lg font-semibold transition-all border ${activeTab === 'team' ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-200'}`}
+             >
+               <FaUsers className="inline mr-2"/> Team
+             </button>
           </div>
         </header>
+
+        <InviteTeamModal 
+          isOpen={inviteModalOpen} 
+          onClose={() => {
+            setInviteModalOpen(false);
+            setInviteEmail(""); // Reset email on close
+          }} 
+          token={token}
+          initialEmail={inviteEmail}
+        />
+
+        <DeleteUserModal
+          isOpen={!!deleteModalUser}
+          onClose={() => setDeleteModalUser(null)}
+          onConfirm={handleDeleteUser}
+          userName={deleteModalUser?.name}
+          confirmText={deleteConfirmation}
+          setConfirmText={setDeleteConfirmation}
+          isDeleting={isDeleting}
+        />
 
         {/* ======================= MESSAGES TAB ======================= */}
         {activeTab === "messages" && (
@@ -666,6 +767,40 @@ const AdminDashboard = () => {
                                 "🔑"
                               )}
                               Reset
+                            </button>
+
+                            {/* Role Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (user.role === 'team') {
+                                   handleUpdateRole(user._id, 'user');
+                                } else {
+                                   setInviteEmail(user.email);
+                                   setInviteModalOpen(true);
+                                }
+                              }}
+                              className={`text-xs px-2 py-1 rounded font-medium transition-colors flex items-center gap-1 ${
+                                user.role === 'team' 
+                                  ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' 
+                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              }`}
+                              title={user.role === 'team' ? "Demote to User" : "Invite to Team"}
+                            >
+                              {user.role === 'team' ? <FaShieldHalved /> : <FaPaperPlane className="text-[10px]" />}
+                              {user.role === 'team' ? 'Team' : 'Invite'}
+                            </button>
+
+                            {/* Delete Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                initDeleteUser(user);
+                              }}
+                              className="text-xs px-2 py-1 bg-red-100 text-red-600 hover:bg-red-200 rounded font-medium transition-colors flex items-center gap-1"
+                              title="Delete User"
+                            >
+                              <FaTrash size={10} />
                             </button>
                           </div>
                         </div>
@@ -1043,6 +1178,79 @@ const AdminDashboard = () => {
              </div>
            </div>
          </div>
+       )}
+
+       {/* ======================= TEAM TAB ======================= */}
+       {activeTab === "team" && (
+         <Card className="p-6 min-h-[60vh]">
+           <div className="flex justify-between items-center mb-6">
+             <div>
+               <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                 <FaShieldHalved className="text-purple-600" /> MEDHA Team
+               </h2>
+               <p style={{ color: "var(--text-secondary)" }}>
+                 Manage team members who can help with content and verified resources.
+               </p>
+             </div>
+             <div className="text-right">
+                <div className="text-3xl font-bold text-purple-600">{teamMembers.length}</div>
+                <div className="text-xs text-gray-500">Active Members</div>
+             </div>
+           </div>
+
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             {teamMembers.map(member => (
+               <div 
+                 key={member._id}
+                 className="p-4 rounded-xl border-2 border-purple-100 bg-purple-50/30 flex items-start gap-4 relative group hover:border-purple-300 transition-all"
+               >
+                 <div className="w-12 h-12 rounded-full bg-purple-200 flex items-center justify-center text-purple-700 text-xl font-bold overflow-hidden">
+                   {member.avatar ? (
+                     <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
+                   ) : (
+                     member.name.charAt(0)
+                   )}
+                 </div>
+                 
+                 <div className="flex-1">
+                   <h3 className="font-bold text-gray-900">{member.name}</h3>
+                   <p className="text-sm text-gray-600 mb-2">{member.email}</p>
+                   
+                   <div className="flex gap-2 text-xs">
+                     <span className="px-2 py-0.5 bg-purple-200 text-purple-800 rounded-full font-bold uppercase">
+                       {member.role}
+                     </span>
+                     {member.university && (
+                       <span className="px-2 py-0.5 bg-gray-200 text-gray-700 rounded-full truncate max-w-[120px]">
+                         {member.university}
+                       </span>
+                     )}
+                   </div>
+                 </div>
+
+                 <button
+                   onClick={() => handleUpdateRole(member._id, 'user')}
+                   className="absolute top-2 right-2 p-2 bg-white text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-50"
+                   title="Remove from Team"
+                 >
+                   <FaUserMinus />
+                 </button>
+               </div>
+             ))}
+
+             {/* Add Member Card */}
+             <div 
+               className="p-4 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 min-h-[120px] cursor-pointer hover:border-purple-400 hover:text-purple-500 hover:bg-purple-50 transition-all"
+               onClick={() => setInviteModalOpen(true)}
+             >
+               <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-2 group-hover:bg-purple-100 transition-colors">
+                 <FaPlus />
+               </div>
+               <span className="font-bold text-sm">Add Team Member</span>
+               <span className="text-xs mt-1">Send an invitation email</span>
+             </div>
+           </div>
+         </Card>
        )}
        
        {/* Email Preview Modal */}

@@ -11,9 +11,11 @@ import { FaArrowLeft, FaLayerGroup, FaCircleCheck, FaChartBar, FaEnvelope, FaBui
 import LearnConcepts from "../components/RTUExams/LearnConcepts";
 
 import { useTour } from "../context/TourContext";
+import useAuthGuard from "../hooks/useAuthGuard";
 
 const RTUExams = () => {
   const { isGuestMode } = useTour();
+  const { requireAuth } = useAuthGuard();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("archives"); // 'archives' or 'learn'
   const [viewState, setViewState] = useState("semesters");
@@ -29,6 +31,8 @@ const RTUExams = () => {
   const [selectedYear, setSelectedYear] = useState(isGuestMode ? 2024 : null);
   const [unitWeightageData, setUnitWeightageData] = useState(isGuestMode ? {
     totalPaperMarks: 98,
+    chatgptLink: null,
+    claudeLink: null,
     units: [
       {
         unitSerial: 1,
@@ -71,17 +75,18 @@ const RTUExams = () => {
   const [isAdmin, setIsAdmin] = useState(false); // For admin image upload capability
 
   useEffect(() => {
-    // Skip login redirect if in guest mode (tour)
+    // Skip API calls if in guest mode (tour)
     if (isGuestMode) return;
     
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    // Always fetch subjects for everyone (free feature)
     fetchSubjects();
-    checkAdminStatus(); // Check if user is admin for image upload capability
-  }, [navigate, isGuestMode]);
+    
+    // Only check admin status if logged in
+    const token = localStorage.getItem("token");
+    if (token) {
+      checkAdminStatus();
+    }
+  }, [isGuestMode]);
 
   const checkAdminStatus = async () => {
     try {
@@ -410,7 +415,10 @@ const RTUExams = () => {
                            {['easy', 'medium', 'hard'].map(d => (
                               <button
                                 key={d}
-                                onClick={() => handleDifficultyChange(subject.name, d)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    requireAuth(() => handleDifficultyChange(subject.name, d), 'Voting Difficulty');
+                                }}
                                 className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
                                   subject.difficulty === d 
                                     ? (d === 'easy' 
@@ -478,7 +486,10 @@ const RTUExams = () => {
                             subjectName={selectedSubject?.name || ""}
                             year={selectedYear}
                             isAdmin={isAdmin}
+                            chatgptLink={unitWeightageData.chatgptLink}
+                            claudeLink={unitWeightageData.claudeLink}
                             onQuestionsUpdated={() => fetchUnitWeightage(selectedSubject.name, selectedYear)}
+                            onLinksUpdated={() => fetchUnitWeightage(selectedSubject.name, selectedYear)}
                          />
                       ))}
                    </div>

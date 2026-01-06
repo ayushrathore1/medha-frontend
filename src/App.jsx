@@ -28,6 +28,8 @@ const ResetPassword = React.lazy(() => import("./pages/ResetPassword"));
 const RTUExams = React.lazy(() => import("./pages/RTUExams"));
 const ExamsPage = React.lazy(() => import("./pages/ExamsPage"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
+const TeamDashboard = React.lazy(() => import("./pages/TeamDashboard"));
+const JoinTeam = React.lazy(() => import("./pages/JoinTeam"));
 const PersonalizationSetup = React.lazy(() => import("./pages/PersonalizationSetup"));
 
 // Feature flag for Charcha (discussion forum)
@@ -45,6 +47,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import { TourProvider } from "./context/TourContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { CursorProvider } from "./context/CursorContext";
+import { AuthModalProvider } from "./context/AuthModalContext";
 import CustomCursor from "./components/Common/CustomCursor";
 
 const AppContent = () => {
@@ -52,10 +55,11 @@ const AppContent = () => {
   const { theme } = useTheme();
 
   // Choose Welcome page based on theme
-  const WelcomePage = theme === 'premium-dark' ? WelcomeDark : Welcome;
+  const WelcomePage = Welcome;
 
   return (
     <AuthProvider>
+      <AuthModalProvider>
       <Analytics />
       <TourProvider>
         <CursorProvider>
@@ -84,17 +88,13 @@ const AppContent = () => {
                 <Route
                   path="/exams"
                   element={
-                    <ProtectedRoute>
-                      <PageTransition><ExamsPage /></PageTransition>
-                    </ProtectedRoute>
+                    <PageTransition><ExamsPage /></PageTransition>
                   }
                 />
                 <Route
                   path="/rtu-exams"
                   element={
-                    <ProtectedRoute>
-                      <PageTransition><RTUExams /></PageTransition>
-                    </ProtectedRoute>
+                    <PageTransition><RTUExams /></PageTransition>
                   }
                 />
                 <Route
@@ -146,6 +146,20 @@ const AppContent = () => {
                   }
                 />
                 <Route
+                  path="/team-dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <PageTransition><TeamDashboard /></PageTransition>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/join-team"
+                  element={
+                    <PageTransition><JoinTeam /></PageTransition>
+                  }
+                />
+                <Route
                   path="/profile"
                   element={
                     <ProtectedRoute>
@@ -156,9 +170,7 @@ const AppContent = () => {
                 <Route
                   path="/notes"
                   element={
-                    <ProtectedRoute>
-                      <PageTransition><Notes /></PageTransition>
-                    </ProtectedRoute>
+                    <PageTransition><Notes /></PageTransition>
                   }
                 />
                 <Route
@@ -196,6 +208,7 @@ const AppContent = () => {
       </MainLayout>
         </CursorProvider>
       </TourProvider>
+      </AuthModalProvider>
     </AuthProvider>
   );
 };
