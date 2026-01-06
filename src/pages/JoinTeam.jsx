@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaUserPlus, FaSpinner, FaCheckCircle, FaExclamationCircle } from "react-icons/fa6";
+import { FaUserPlus, FaSpinner, FaCircleCheck, FaCircleExclamation } from "react-icons/fa6";
 import Card from "../components/Common/Card";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -84,7 +84,7 @@ const JoinTeam = () => {
 
         {status === "success" ? (
           <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg text-center mb-6">
-            <FaCheckCircle className="inline text-xl mb-1 mr-2" />
+            <FaCircleCheck className="inline text-xl mb-1 mr-2" />
             <span className="font-bold block">Success!</span>
             {message}
           </div>
@@ -92,7 +92,7 @@ const JoinTeam = () => {
           <form onSubmit={handleVerify} className="space-y-4">
             {status === "error" && (
               <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm flex items-start gap-2">
-                <FaExclamationCircle className="mt-0.5 shrink-0" />
+                <FaCircleExclamation className="mt-0.5 shrink-0" />
                 <span>{message}</span>
               </div>
             )}

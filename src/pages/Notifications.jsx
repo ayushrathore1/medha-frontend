@@ -306,8 +306,6 @@ const Notifications = () => {
                   <span 
                     className="px-3 py-1 rounded-lg text-xs font-black tracking-wide"
                     style={{ 
-                      backgroundColor: idx === 0 ? "rgba(var(--action-primary-rgb), 0.1)" : "var(--bg-tertiary)", // Note: standard hex vars don't have alpha helpers in raw CSS unless rgb values. I'll use inline opacity or just hardcode low opacity primary for now or use the var directly with opacity in color mix if supported.
-                      // Fallback: use a low opacity color for active.
                       backgroundColor: idx === 0 ? "var(--action-primary)" : "var(--bg-tertiary)",
                       color: idx === 0 ? "#fff" : "var(--text-tertiary)",
                       opacity: idx === 0 ? 0.9 : 1 
