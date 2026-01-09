@@ -72,6 +72,7 @@ const MedhaAnimationViewer = ({
   const [showIntro, setShowIntro] = useState(true);
   const [showGlobalUpload, setShowGlobalUpload] = useState(false);
   const [showNotePanel, setShowNotePanel] = useState(true); // User can hide/show notes
+  const [showFullscreenNote, setShowFullscreenNote] = useState(false); // Premium fullscreen view
 
   const [slideData, setSlideData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -171,7 +172,12 @@ const MedhaAnimationViewer = ({
           break;
         case "Escape":
           e.preventDefault();
-          onClose();
+          // Close fullscreen note first, then main viewer
+          if (showFullscreenNote) {
+            setShowFullscreenNote(false);
+          } else {
+            onClose();
+          }
           break;
         case "f":
         case "F":
@@ -193,7 +199,14 @@ const MedhaAnimationViewer = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, showIntro, currentStep, totalSteps, hasAudio]);
+  }, [
+    isOpen,
+    showIntro,
+    currentStep,
+    totalSteps,
+    hasAudio,
+    showFullscreenNote,
+  ]);
 
   // Content ID state for when we auto-create content
   const [localContentId, setLocalContentId] = useState(contentId);
@@ -768,8 +781,9 @@ const MedhaAnimationViewer = ({
 
       {/* Global Upload Popup */}
       {showGlobalUpload && (
-        <div className="absolute top-16 right-20 z-50 bg-[#1c1c1e] border border-white/10 rounded-xl p-5 shadow-2xl w-72">
-          <h3 className="text-white text-sm font-bold mb-4">
+        <div className="absolute top-16 right-20 z-50 bg-[#1c1c1e] border border-white/10 rounded-xl p-5 shadow-2xl w-80">
+          <h3 className="text-white text-sm font-bold mb-4 flex items-center gap-2">
+            <FaGlobe className="text-blue-400" />
             Global Voice Note
           </h3>
           <div className="space-y-4">
@@ -778,30 +792,70 @@ const MedhaAnimationViewer = ({
               <label className="text-xs text-gray-400 block mb-2 font-medium">
                 Hindi Audio
               </label>
-              <input
-                type="file"
-                accept="audio/*"
-                className="text-white text-xs w-full mb-2"
-                onChange={(e) => setPendingHindiFile(e.target.files[0])}
-              />
-              {pendingHindiFile && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-green-400 truncate flex-1">
-                    {pendingHindiFile.name}
-                  </span>
-                  <button
-                    onClick={() =>
-                      handleGlobalUpload(pendingHindiFile, "hindi")
-                    }
-                    disabled={loading}
-                    className="ml-2 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold rounded-lg disabled:opacity-50"
-                  >
-                    {loading ? "Saving..." : "Save"}
-                  </button>
+              {audioHindiUrl && !pendingHindiFile ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 bg-green-500/10 rounded-lg px-3 py-2 border border-green-500/20">
+                    <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <span className="text-green-400 text-xs">✓</span>
+                    </div>
+                    <span className="text-xs text-green-400 flex-1">
+                      Audio uploaded
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const audioPreview = new Audio(audioHindiUrl);
+                        audioPreview.play();
+                      }}
+                      className="flex-1 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1"
+                    >
+                      <FaPlay size={8} /> Preview
+                    </button>
+                    <label className="flex-1 px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-xs font-medium rounded-lg cursor-pointer transition-all flex items-center justify-center gap-1">
+                      <FaEdit size={10} /> Change
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        className="hidden"
+                        onChange={(e) => setPendingHindiFile(e.target.files[0])}
+                      />
+                    </label>
+                  </div>
                 </div>
-              )}
-              {audioHindiUrl && !pendingHindiFile && (
-                <div className="text-xs text-green-500">✓ Audio uploaded</div>
+              ) : (
+                <>
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    className="text-white text-xs w-full mb-2"
+                    onChange={(e) => setPendingHindiFile(e.target.files[0])}
+                  />
+                  {pendingHindiFile && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-green-400 truncate flex-1">
+                        {pendingHindiFile.name}
+                      </span>
+                      <div className="flex gap-1 ml-2">
+                        <button
+                          onClick={() => setPendingHindiFile(null)}
+                          className="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleGlobalUpload(pendingHindiFile, "hindi")
+                          }
+                          disabled={loading}
+                          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold rounded-lg disabled:opacity-50"
+                        >
+                          {loading ? "..." : "Save"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -810,30 +864,72 @@ const MedhaAnimationViewer = ({
               <label className="text-xs text-gray-400 block mb-2 font-medium">
                 English Audio
               </label>
-              <input
-                type="file"
-                accept="audio/*"
-                className="text-white text-xs w-full mb-2"
-                onChange={(e) => setPendingEnglishFile(e.target.files[0])}
-              />
-              {pendingEnglishFile && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-green-400 truncate flex-1">
-                    {pendingEnglishFile.name}
-                  </span>
-                  <button
-                    onClick={() =>
-                      handleGlobalUpload(pendingEnglishFile, "english")
-                    }
-                    disabled={loading}
-                    className="ml-2 px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold rounded-lg disabled:opacity-50"
-                  >
-                    {loading ? "Saving..." : "Save"}
-                  </button>
+              {audioEnglishUrl && !pendingEnglishFile ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 bg-green-500/10 rounded-lg px-3 py-2 border border-green-500/20">
+                    <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <span className="text-green-400 text-xs">✓</span>
+                    </div>
+                    <span className="text-xs text-green-400 flex-1">
+                      Audio uploaded
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const audioPreview = new Audio(audioEnglishUrl);
+                        audioPreview.play();
+                      }}
+                      className="flex-1 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1"
+                    >
+                      <FaPlay size={8} /> Preview
+                    </button>
+                    <label className="flex-1 px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-xs font-medium rounded-lg cursor-pointer transition-all flex items-center justify-center gap-1">
+                      <FaEdit size={10} /> Change
+                      <input
+                        type="file"
+                        accept="audio/*"
+                        className="hidden"
+                        onChange={(e) =>
+                          setPendingEnglishFile(e.target.files[0])
+                        }
+                      />
+                    </label>
+                  </div>
                 </div>
-              )}
-              {audioEnglishUrl && !pendingEnglishFile && (
-                <div className="text-xs text-green-500">✓ Audio uploaded</div>
+              ) : (
+                <>
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    className="text-white text-xs w-full mb-2"
+                    onChange={(e) => setPendingEnglishFile(e.target.files[0])}
+                  />
+                  {pendingEnglishFile && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-green-400 truncate flex-1">
+                        {pendingEnglishFile.name}
+                      </span>
+                      <div className="flex gap-1 ml-2">
+                        <button
+                          onClick={() => setPendingEnglishFile(null)}
+                          className="px-2 py-1 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded-lg"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleGlobalUpload(pendingEnglishFile, "english")
+                          }
+                          disabled={loading}
+                          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold rounded-lg disabled:opacity-50"
+                        >
+                          {loading ? "..." : "Save"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -1067,7 +1163,7 @@ const MedhaAnimationViewer = ({
                           </button>
                         )}
                         <button
-                          onClick={() => setShowNoteCard(true)}
+                          onClick={() => setShowFullscreenNote(true)}
                           className="p-2 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-all"
                           title="Expand Note"
                         >
@@ -1294,6 +1390,329 @@ const MedhaAnimationViewer = ({
         isEditable={canEdit}
         stepNumber={currentStep}
       />
+
+      {/* Premium Fullscreen Note Viewer */}
+      <AnimatePresence>
+        {showFullscreenNote && currentData?.notes?.content && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[100000] flex items-center justify-center"
+            style={{
+              background: "rgba(0, 0, 0, 0.95)",
+              backdropFilter: "blur(30px)",
+            }}
+            onClick={() => setShowFullscreenNote(false)}
+          >
+            {/* Animated Background Elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <motion.div
+                className="absolute top-1/4 -left-32 w-96 h-96 rounded-full"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(255, 215, 0, 0.08) 0%, transparent 70%)",
+                }}
+                animate={{
+                  x: [0, 50, 0],
+                  y: [0, 30, 0],
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              <motion.div
+                className="absolute bottom-1/4 -right-32 w-80 h-80 rounded-full"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(255, 215, 0, 0.06) 0%, transparent 70%)",
+                }}
+                animate={{
+                  x: [0, -40, 0],
+                  y: [0, -20, 0],
+                }}
+                transition={{
+                  duration: 10,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            </div>
+
+            <motion.div
+              initial={{ scale: 0.9, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-3xl mx-4 max-h-[85vh] flex flex-col"
+            >
+              {/* Premium Card */}
+              <div
+                className="relative rounded-3xl overflow-hidden shadow-2xl flex flex-col"
+                style={{
+                  background:
+                    "linear-gradient(145deg, rgba(28, 28, 30, 0.98) 0%, rgba(20, 20, 22, 0.99) 100%)",
+                  border: "1px solid rgba(255, 215, 0, 0.2)",
+                  boxShadow:
+                    "0 50px 100px -20px rgba(0, 0, 0, 0.7), 0 0 60px rgba(255, 215, 0, 0.1)",
+                }}
+              >
+                {/* Golden Top Border Glow */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-[3px]"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, transparent 0%, #FFD700 30%, #FFC125 50%, #FFD700 70%, transparent 100%)",
+                  }}
+                />
+
+                {/* Shine Effect */}
+                <motion.div
+                  className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden rounded-3xl"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <motion.div
+                    className="absolute -top-1/2 -left-1/2 w-full h-full"
+                    style={{
+                      background:
+                        "linear-gradient(45deg, transparent 30%, rgba(255, 215, 0, 0.03) 50%, transparent 70%)",
+                    }}
+                    animate={{
+                      x: ["0%", "200%"],
+                      y: ["0%", "200%"],
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  />
+                </motion.div>
+
+                {/* Premium Header */}
+                <div
+                  className="px-8 py-6 flex items-center justify-between relative"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(255, 215, 0, 0.08) 0%, rgba(255,255,255,0.02) 100%)",
+                    borderBottom: "1px solid rgba(255, 215, 0, 0.15)",
+                  }}
+                >
+                  <div className="flex items-center gap-4">
+                    {/* Step Badge */}
+                    <motion.div
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{
+                        delay: 0.2,
+                        type: "spring",
+                        stiffness: 200,
+                      }}
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl relative overflow-hidden"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #B8860B 0%, #FFD700 50%, #DAA520 100%)",
+                        boxShadow: "0 8px 32px rgba(255, 215, 0, 0.4)",
+                      }}
+                    >
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          background:
+                            "linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 50%)",
+                        }}
+                      />
+                      <span className="text-black font-black text-xl relative z-10">
+                        {currentStep}
+                      </span>
+                    </motion.div>
+                    <div>
+                      <motion.h2
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="font-bold text-2xl tracking-tight"
+                        style={{
+                          background:
+                            "linear-gradient(90deg, #FFD700, #FFC125, #FFE066)",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          backgroundClip: "text",
+                        }}
+                      >
+                        Teacher's Note
+                      </motion.h2>
+                      <motion.p
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="text-white/50 text-sm font-medium tracking-wide mt-1"
+                      >
+                        Step {currentStep} of {totalSteps} •{" "}
+                        {currentStepObj.title || "Lecture Content"}
+                      </motion.p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Edit Button for Admin/Team */}
+                    {canEdit && (
+                      <motion.button
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.5 }}
+                        onClick={() => {
+                          setShowFullscreenNote(false);
+                          setShowNoteCard(true);
+                        }}
+                        className="p-3 rounded-xl hover:bg-amber-500/20 text-amber-400/70 hover:text-amber-400 transition-all"
+                        title="Edit Note"
+                      >
+                        <FaEdit size={18} />
+                      </motion.button>
+                    )}
+                    {/* Close Button */}
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.5 }}
+                      onClick={() => setShowFullscreenNote(false)}
+                      className="p-3 rounded-xl hover:bg-white/10 text-white/60 hover:text-white transition-all"
+                    >
+                      <FaTimes size={18} />
+                    </motion.button>
+                  </div>
+                </div>
+
+                {/* Content Area */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="flex-1 overflow-y-auto px-8 py-8"
+                  style={{
+                    maxHeight: "50vh",
+                    scrollbarWidth: "thin",
+                    scrollbarColor: "rgba(255, 215, 0, 0.3) transparent",
+                  }}
+                >
+                  <p
+                    className="leading-relaxed"
+                    style={{
+                      fontFamily:
+                        "'SF Pro Text', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+                      fontSize: "18px",
+                      fontWeight: 400,
+                      color: "rgba(255, 255, 255, 0.95)",
+                      letterSpacing: "-0.01em",
+                      lineHeight: 1.8,
+                      whiteSpace: "pre-wrap",
+                      textRendering: "optimizeLegibility",
+                      WebkitFontSmoothing: "antialiased",
+                    }}
+                  >
+                    {currentData.notes.content}
+                  </p>
+
+                  {/* Image */}
+                  {currentData.notes.imageUrl && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="mt-8 rounded-2xl overflow-hidden"
+                      style={{
+                        border: "1px solid rgba(255, 215, 0, 0.2)",
+                        boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
+                      }}
+                    >
+                      <img
+                        src={currentData.notes.imageUrl}
+                        alt="Note illustration"
+                        className="w-full h-auto object-cover"
+                      />
+                    </motion.div>
+                  )}
+                </motion.div>
+
+                {/* Premium Footer */}
+                <div
+                  className="px-8 py-5 flex items-center justify-between relative"
+                  style={{
+                    background: "rgba(255, 215, 0, 0.04)",
+                    borderTop: "1px solid rgba(255, 215, 0, 0.12)",
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.6, type: "spring" }}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center relative overflow-hidden"
+                      style={{
+                        background: "linear-gradient(135deg, #B8860B, #FFD700)",
+                      }}
+                    >
+                      <span className="text-xs font-black text-black">M</span>
+                    </motion.div>
+                    <span
+                      className="text-sm font-medium"
+                      style={{ color: "rgba(255, 215, 0, 0.6)" }}
+                    >
+                      Medha Learning
+                    </span>
+                  </div>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.7 }}
+                    className="text-sm font-semibold px-4 py-2 rounded-xl"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(218, 165, 32, 0.1))",
+                      color: "#FFD700",
+                      border: "1px solid rgba(255, 215, 0, 0.25)",
+                    }}
+                  >
+                    ✦ Premium Content
+                  </motion.div>
+                </div>
+
+                {/* Bottom Golden Glow */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-[2px]"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, transparent 0%, rgba(255, 215, 0, 0.4) 50%, transparent 100%)",
+                  }}
+                />
+              </div>
+
+              {/* Keyboard Hint */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="mt-4 text-center"
+              >
+                <span className="text-white/30 text-xs">
+                  Press{" "}
+                  <kbd className="px-2 py-0.5 bg-white/10 rounded text-white/50 mx-1">
+                    ESC
+                  </kbd>{" "}
+                  or click outside to close
+                </span>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Voice Chatbot - AI Assistant */}
       <VoiceChatbot
