@@ -9,11 +9,13 @@ import {
   FaEye,
   FaHeart,
   FaGraduationCap,
-  FaPlus
+  FaPlus,
+  FaMagic
 } from 'react-icons/fa';
 import ContentCard from './ContentCard';
 import MedhaVideoPlayer from './MedhaVideoPlayer';
 import MedhaPDFViewer from './MedhaPDFViewer';
+import MedhaAnimationViewer from './MedhaAnimationViewer';
 import AdminContentUpload from './AdminContentUpload';
 import AdminContentEdit from './AdminContentEdit';
 import Loader from '../Common/Loader';
@@ -28,11 +30,12 @@ const LearnConcepts = () => {
   const [content, setContent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [contentLoading, setContentLoading] = useState(false);
-  const [filter, setFilter] = useState('all'); // 'all', 'video', 'pdf'
+  const [filter, setFilter] = useState('all'); // 'all', 'video', 'pdf', 'animation'
   
   // Modal states
   const [activeVideo, setActiveVideo] = useState(null);
   const [activePDF, setActivePDF] = useState(null);
+  const [activeAnimation, setActiveAnimation] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [editContent, setEditContent] = useState(null);
   
@@ -165,6 +168,8 @@ const LearnConcepts = () => {
       setActiveVideo(item);
     } else if (item.type === 'pdf') {
       setActivePDF(item);
+    } else if (item.type === 'animation') {
+      setActiveAnimation(item);
     }
   };
 
@@ -247,7 +252,7 @@ const LearnConcepts = () => {
                         {subject.subject}
                       </h3>
 
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-wrap">
                         {subject.videoCount > 0 && (
                           <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--action-primary)]/10 rounded-full text-sm font-medium text-[var(--action-primary)]">
                             <FaPlay size={10} />
@@ -258,6 +263,12 @@ const LearnConcepts = () => {
                           <span className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-danger-bg)]/20 rounded-full text-sm font-medium text-[var(--color-danger-text)]">
                             <FaFilePdf size={10} />
                             {subject.pdfCount} {subject.pdfCount === 1 ? 'PDF' : 'PDFs'}
+                          </span>
+                        )}
+                        {subject.animationCount > 0 && (
+                          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/10 rounded-full text-sm font-medium text-purple-400">
+                            <FaMagic size={10} />
+                            {subject.animationCount} {subject.animationCount === 1 ? 'Animation' : 'Animations'}
                           </span>
                         )}
                       </div>
@@ -292,7 +303,8 @@ const LearnConcepts = () => {
                 {[
                   { key: 'all', label: 'All' },
                   { key: 'video', label: 'Videos', icon: FaPlay },
-                  { key: 'pdf', label: 'PDFs', icon: FaFilePdf }
+                  { key: 'pdf', label: 'PDFs', icon: FaFilePdf },
+                  { key: 'animation', label: 'Animations', icon: FaMagic }
                 ].map(({ key, label, icon: Icon }) => (
                   <button
                     key={key}
@@ -343,9 +355,10 @@ const LearnConcepts = () => {
                     type={item.type}
                     title={item.title}
                     description={item.description}
-                    thumbnailUrl={item.thumbnailUrl || item.pdfThumbnailUrl}
+                    thumbnailUrl={item.thumbnailUrl || item.pdfThumbnailUrl || item.animationThumbnailUrl}
                     duration={item.duration}
                     pageCount={item.pageCount}
+                    animationSteps={item.animationSteps}
                     likeCount={item.likeCount}
                     views={item.views}
                     isLiked={item.isLiked}
@@ -385,6 +398,20 @@ const LearnConcepts = () => {
         pageCount={activePDF?.pageCount}
         audioHindiUrl={activePDF?.audioHindiUrl}
         audioEnglishUrl={activePDF?.audioEnglishUrl}
+      />
+
+      {/* Animation Viewer Modal */}
+      <MedhaAnimationViewer
+        isOpen={!!activeAnimation}
+        onClose={() => setActiveAnimation(null)}
+        animationId={activeAnimation?.animationId}
+        contentId={activeAnimation?._id}
+        title={activeAnimation?.title}
+        totalSteps={activeAnimation?.animationSteps}
+        audioHindiUrl={activeAnimation?.audioHindiUrl}
+        audioEnglishUrl={activeAnimation?.audioEnglishUrl}
+        isAdmin={isAdmin}
+        isTeam={false}
       />
 
       {/* Admin Upload Modal */}

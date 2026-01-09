@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import ChatbotWidget from "../components/Chatbot/ChatbotWidget";
+import { AuthContext } from "../AuthContext";
 import { FaPlus, FaClockRotateLeft, FaTrash, FaPenToSquare, FaCheck, FaXmark, FaComments, FaRobot, FaBolt, FaChevronDown } from "react-icons/fa6";
 import { SiGooglegemini } from "react-icons/si";
 import Loader from "../components/Common/Loader";
@@ -12,6 +13,7 @@ import { useTour } from "../context/TourContext";
 
 const Chatbot = () => {
   const { isGuestMode } = useTour();
+  const { user } = useContext(AuthContext);
   const [messages, setMessages] = useState(isGuestMode ? [
     { sender: "bot", text: "Hey there! 👋 I'm Medha AI. Since you're on a tour, I've pre-loaded some examples for you!" },
     { sender: "user", text: "What is photosynthesis?" },
@@ -391,6 +393,7 @@ const Chatbot = () => {
             onEditMessage={handleEditMessage}
             onRegenerateResponse={handleRegenerateResponse}
             isTyping={isTyping}
+            userAvatar={user?.avatar}
          />
       </div>
     </div>

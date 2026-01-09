@@ -11,8 +11,10 @@ import {
   FaImage,
   FaTrash,
   FaPlay,
-  FaVolumeUp
+  FaVolumeUp,
+  FaMagic
 } from 'react-icons/fa';
+import { getAllAnimations } from './animations';
 
 /**
  * AdminContentUpload - YouTube-style upload modal for admins
@@ -24,8 +26,9 @@ const AdminContentUpload = ({
   onSuccess
 }) => {
   const [step, setStep] = useState('select'); // 'select', 'details', 'uploading', 'complete'
-  const [contentType, setContentType] = useState(null); // 'video' or 'pdf'
+  const [contentType, setContentType] = useState(null); // 'video', 'pdf', or 'animation'
   const [subjects, setSubjects] = useState([]);
+  const [availableAnimations, setAvailableAnimations] = useState([]);
   
   // Form data
   const [formData, setFormData] = useState({
@@ -34,7 +37,10 @@ const AdminContentUpload = ({
     description: '',
     unit: '',
     duration: '',
-    pageCount: ''
+    pageCount: '',
+    // Animation specific
+    animationId: '',
+    animationSteps: ''
   });
   
   // File states
@@ -63,6 +69,9 @@ const AdminContentUpload = ({
   useEffect(() => {
     if (isOpen) {
       fetchSubjects();
+      // Load available animations
+      const animations = getAllAnimations();
+      setAvailableAnimations(animations);
     }
   }, [isOpen]);
 
@@ -178,8 +187,13 @@ const AdminContentUpload = ({
   };
 
   const handleSubmit = async () => {
-    if (!mainFile) {
+    // For video/pdf, require file. For animation, require animationId
+    if (contentType !== 'animation' && !mainFile) {
       setError('Please select a file to upload');
+      return;
+    }
+    if (contentType === 'animation' && !formData.animationId) {
+      setError('Please select an animation component');
       return;
     }
     if (!formData.subject || !formData.title) {
@@ -192,10 +206,14 @@ const AdminContentUpload = ({
     setError(null);
 
     try {
-      // Upload main file
-      setUploadStatus(`Uploading ${contentType}...`);
-      const folder = contentType === 'video' ? '/Medha/Learn/Videos' : '/Medha/Learn/PDFs';
-      const mainUpload = await uploadToImageKit(mainFile, folder);
+      let mainUpload = null;
+      
+      // Upload main file only for video/pdf
+      if (contentType === 'video' || contentType === 'pdf') {
+        setUploadStatus(`Uploading ${contentType}...`);
+        const folder = contentType === 'video' ? '/Medha/Learn/Videos' : '/Medha/Learn/PDFs';
+        mainUpload = await uploadToImageKit(mainFile, folder);
+      }
 
       // Upload thumbnail if provided
       let thumbnailUpload = null;
@@ -223,12 +241,33 @@ const AdminContentUpload = ({
         contentData.videoUrl = mainUpload.url;
         contentData.videoFileId = mainUpload.fileId;
         contentData.duration = formData.duration;
-      } else {
+      } else if (contentType === 'pdf') {
         contentData.pdfUrl = mainUpload.url;
         contentData.pdfFileId = mainUpload.fileId;
         contentData.pageCount = formData.pageCount ? parseInt(formData.pageCount) : null;
         
-        // Upload audio files if provided
+        // Upload audio files if provided for PDF
+        if (audioHindiFile) {
+          setUploadStatus('Uploading Hindi audio...');
+          setUploadProgress(0);
+          const hindiAudio = await uploadToImageKit(audioHindiFile, '/Medha/Learn/Audio');
+          contentData.audioHindiUrl = hindiAudio.url;
+          contentData.audioHindiFileId = hindiAudio.fileId;
+        }
+        
+        if (audioEnglishFile) {
+          setUploadStatus('Uploading English audio...');
+          setUploadProgress(0);
+          const englishAudio = await uploadToImageKit(audioEnglishFile, '/Medha/Learn/Audio');
+          contentData.audioEnglishUrl = englishAudio.url;
+          contentData.audioEnglishFileId = englishAudio.fileId;
+        }
+      } else if (contentType === 'animation') {
+        contentData.animationId = formData.animationId;
+        contentData.animationSteps = formData.animationSteps ? parseInt(formData.animationSteps) : 1;
+        contentData.animationThumbnailUrl = thumbnailUpload?.url || null;
+        
+        // Upload audio files if provided for Animation
         if (audioHindiFile) {
           setUploadStatus('Uploading Hindi audio...');
           setUploadProgress(0);
@@ -270,7 +309,9 @@ const AdminContentUpload = ({
       description: '',
       unit: '',
       duration: '',
-      pageCount: ''
+      pageCount: '',
+      animationId: '',
+      animationSteps: ''
     });
     setMainFile(null);
     setThumbnailFile(null);
@@ -311,9 +352,9 @@ const AdminContentUpload = ({
           <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "var(--border-default)" }}>
             <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
               {step === 'select' && 'Upload Content'}
-              {step === 'details' && `Upload ${contentType === 'video' ? 'Video' : 'PDF'}`}
-              {step === 'uploading' && 'Uploading...'}
-              {step === 'complete' && 'Upload Complete!'}
+              {step === 'details' && `${contentType === 'animation' ? 'Add' : 'Upload'} ${contentType === 'video' ? 'Video' : contentType === 'pdf' ? 'PDF' : 'Animation'}`}
+              {step === 'uploading' && (contentType === 'animation' ? 'Saving...' : 'Uploading...')}
+              {step === 'complete' && (contentType === 'animation' ? 'Animation Added!' : 'Upload Complete!')}
             </h2>
             <button
               onClick={handleClose}
@@ -363,6 +404,18 @@ const AdminContentUpload = ({
                     <span className="font-bold" style={{ color: "var(--text-primary)" }}>PDF Notes</span>
                     <span className="text-sm" style={{ color: "var(--text-tertiary)" }}>Study materials</span>
                   </button>
+
+                  <button
+                    onClick={() => { setContentType('animation'); setStep('details'); }}
+                    className="flex flex-col items-center gap-4 p-8 border-2 border-dashed rounded-2xl transition-all group hover:bg-purple-500/10 col-span-2"
+                    style={{ borderColor: "var(--border-default)" }}
+                  >
+                    <div className="p-4 bg-purple-100 rounded-full group-hover:bg-purple-500 transition-colors">
+                      <FaMagic size={32} className="text-purple-600 group-hover:text-white transition-colors" />
+                    </div>
+                    <span className="font-bold" style={{ color: "var(--text-primary)" }}>Animated Visualization</span>
+                    <span className="text-sm" style={{ color: "var(--text-tertiary)" }}>Step-by-step concept animations</span>
+                  </button>
                 </div>
               </div>
             )}
@@ -370,7 +423,8 @@ const AdminContentUpload = ({
             {/* Step 2: Upload Form */}
             {step === 'details' && (
               <div className="space-y-6">
-                {/* File Upload Area */}
+                {/* File Upload Area - Only for video and pdf */}
+                {(contentType === 'video' || contentType === 'pdf') && (
                 <div
                   onDrop={handleMainFileDrop}
                   onDragOver={(e) => e.preventDefault()}
@@ -418,6 +472,7 @@ const AdminContentUpload = ({
                     </>
                   )}
                 </div>
+                )}
 
                 {/* Thumbnail Upload */}
                 <div>
@@ -540,7 +595,7 @@ const AdminContentUpload = ({
                         }}
                       />
                     </div>
-                  ) : (
+                  ) : contentType === 'pdf' ? (
                     <div>
                       <label className="block text-sm font-bold mb-2" style={{ color: "var(--text-secondary)" }}>Page Count</label>
                       <input
@@ -558,18 +613,82 @@ const AdminContentUpload = ({
                         }}
                       />
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
-                {/* Audio Explanation Upload (PDF only) */}
-                {contentType === 'pdf' && (
+                {/* Animation Selection (Animation only) */}
+                {contentType === 'animation' && (
+                  <div className="mt-6 p-4 rounded-xl border" style={{ backgroundColor: "rgba(168, 85, 247, 0.1)", borderColor: "rgba(168, 85, 247, 0.2)" }}>
+                    <div className="flex items-center gap-2 mb-4">
+                      <FaMagic className="text-purple-400" />
+                      <label className="font-bold text-purple-400">Animation Selection</label>
+                    </div>
+                    <p className="text-sm mb-4 text-purple-300/80">
+                      Select the animation component to use for this concept visualization.
+                    </p>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>Animation Component *</label>
+                        <select
+                          value={formData.animationId}
+                          onChange={(e) => {
+                            const selected = availableAnimations.find(a => a.id === e.target.value);
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              animationId: e.target.value,
+                              animationSteps: selected?.totalSteps?.toString() || '',
+                              title: prev.title || selected?.title || ''
+                            }));
+                          }}
+                          className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none"
+                          style={{ 
+                            backgroundColor: "var(--bg-tertiary)", 
+                            borderColor: "var(--border-default)", 
+                            color: "var(--text-primary)",
+                            "--tw-ring-color": "var(--action-primary)"
+                          }}
+                        >
+                          <option value="">Select an animation</option>
+                          {availableAnimations.map(anim => (
+                            <option key={anim.id} value={anim.id}>
+                              {anim.title} ({anim.totalSteps} steps) - {anim.subject}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-secondary)" }}>Number of Steps</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={formData.animationSteps}
+                          onChange={(e) => setFormData(prev => ({ ...prev, animationSteps: e.target.value }))}
+                          placeholder="Auto-detected"
+                          className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:outline-none"
+                          style={{ 
+                            backgroundColor: "var(--bg-tertiary)", 
+                            borderColor: "var(--border-default)", 
+                            color: "var(--text-primary)",
+                            "--tw-ring-color": "var(--action-primary)"
+                          }}
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Audio Explanation Upload (PDF and Animation) */}
+                {(contentType === 'pdf' || contentType === 'animation') && (
                   <div className="mt-6 p-4 rounded-xl border" style={{ backgroundColor: "var(--color-warning-bg)", backgroundOpacity: 0.1, borderColor: "var(--color-warning-bg)", borderOpacity: 0.2 }}>
                     <div className="flex items-center gap-2 mb-4">
                       <FaVolumeUp style={{ color: "var(--color-warning-text)" }} />
                       <label className="font-bold" style={{ color: "var(--color-warning-text)" }}>Audio Explanations (Optional)</label>
                     </div>
                     <p className="text-sm mb-4" style={{ color: "var(--color-warning-text)", opacity: 0.8 }}>
-                      Upload audio files to help students understand the PDF content.
+                      Upload audio files to help students understand the {contentType === 'pdf' ? 'PDF' : 'animation'} content.
                     </p>
                     
                     <div className="grid grid-cols-2 gap-4">
@@ -651,15 +770,23 @@ const AdminContentUpload = ({
                 {/* Submit Button */}
                 <button
                   onClick={handleSubmit}
-                  disabled={!mainFile || !formData.subject || !formData.title}
+                  disabled={
+                    (contentType !== 'animation' && !mainFile) ||
+                    (contentType === 'animation' && !formData.animationId) ||
+                    !formData.subject || 
+                    !formData.title
+                  }
                   className={`w-full py-4 rounded-xl font-bold text-white transition-all ${
-                    !mainFile || !formData.subject || !formData.title
+                    (contentType !== 'animation' && !mainFile) ||
+                    (contentType === 'animation' && !formData.animationId) ||
+                    !formData.subject || 
+                    !formData.title
                       ? 'bg-slate-300 cursor-not-allowed'
                       : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:shadow-lg hover:scale-[1.02]'
                   }`}
                 >
                   <FaCloudUploadAlt className="inline mr-2" />
-                  Upload {contentType === 'video' ? 'Video' : 'PDF'}
+                  {contentType === 'video' ? 'Upload Video' : contentType === 'pdf' ? 'Upload PDF' : 'Add Animation'}
                 </button>
               </div>
             )}

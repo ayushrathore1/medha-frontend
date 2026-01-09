@@ -69,9 +69,9 @@ const Login = () => {
         <div className="text-center mb-8">
            <Link to="/">
             <img
-              src="https://ik.imagekit.io/ayushrathore1/Medha/image.png"
+              src="https://ik.imagekit.io/ayushrathore1/MEDHA%20Revision%20Logo%20(5)/6.svg?updatedAt=1767677218473"
               alt="MEDHA logo"
-              className="w-16 h-16 mx-auto mb-4 rounded-2xl shadow-lg"
+              className="w-20 h-20 mx-auto mb-4 object-contain"
             />
            </Link>
           <h2 className="text-4xl font-black tracking-tight text-slate-900 mb-2">

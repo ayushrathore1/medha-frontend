@@ -18,9 +18,12 @@ import ThoughtDumpCard from "../components/Dashboard/ThoughtDumpCard";
 import ActivityCalendar from "../components/Dashboard/ActivityCalendar";
 
 import { useTour } from "../context/TourContext";
+import { AuthContext } from "../AuthContext";
+import { useContext } from "react";
 
 const Dashboard = () => {
   const { isGuestMode } = useTour();
+  const { user } = useContext(AuthContext);
   const [stats, setStats] = useState({
     streak: isGuestMode ? 12 : 0,
     cardsLearned: isGuestMode ? 142 : 0,
@@ -33,7 +36,6 @@ const Dashboard = () => {
     notesCreated: isGuestMode ? 8 : 0,
   });
   const [loading, setLoading] = useState(!isGuestMode);
-  const [userName, setUserName] = useState(isGuestMode ? "Alex" : "Student");
   const [showFeatureModal, setShowFeatureModal] = useState(false);
   const [greeting, setGreeting] = useState("Good Morning");
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
@@ -67,7 +69,6 @@ const Dashboard = () => {
       ]);
       
       setStats(statsRes.data);
-      setUserName(statsRes.data.userName || "Student");
 
       // Check for Feature Announcement Modal
       const user = userRes.data;
@@ -127,7 +128,7 @@ const Dashboard = () => {
             animate={{ opacity: 1, x: 0 }}
           >
             <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tight mb-2">
-              {greeting}, {userName}! <span className="inline-block animate-wave origin-bottom-right">👋</span>
+              {greeting}, {isGuestMode ? "Alex" : (user?.name || "Student")}! <span className="inline-block animate-wave origin-bottom-right">👋</span>
             </h1>
             <p className="text-lg text-[var(--text-secondary)] font-medium">
               Let's make today productive.

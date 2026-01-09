@@ -5,7 +5,7 @@ import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaBook, FaGlobe, FaMagnifyingGlass, FaUpload, FaPlus, FaCloudArrowUp, FaFileLines, FaTrash, FaPen, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp, FaFolder, FaFolderOpen, FaCircleInfo, FaHeart, FaRegHeart, FaLock } from "react-icons/fa6";
+import { FaBook, FaGlobe, FaMagnifyingGlass, FaUpload, FaPlus, FaCloudArrowUp, FaFileLines, FaTrash, FaPen, FaEye, FaEyeSlash, FaChevronDown, FaChevronUp, FaFolder, FaFolderOpen, FaCircleInfo, FaHeart, FaRegHeart, FaLock, FaUser } from "react-icons/fa6";
 import useAuthGuard from "../hooks/useAuthGuard";
 
 const API_BASE = `${import.meta.env.VITE_BACKEND_URL}`;
@@ -688,7 +688,11 @@ const Notes = () => {
                                      </p>
                                      <div className="flex items-center gap-2 pt-3 border-t border-[var(--border-default)]">
                                         <div className="w-5 h-5 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-[10px] font-bold text-[var(--text-tertiary)]">
-                                          {getOwnerName(note).charAt(0).toUpperCase()}
+                                          {note.owner?.avatar ? (
+                                            <img src={note.owner.avatar} alt="Owner" className="w-full h-full object-cover" />
+                                          ) : (
+                                            <FaUser size={10} />
+                                          )}
                                         </div>
                                         <span className="text-[10px] font-bold text-[var(--text-tertiary)] line-clamp-1">{getOwnerName(note)}</span>
                                      </div>

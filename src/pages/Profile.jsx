@@ -10,7 +10,7 @@ import AppearanceSettings from "../components/Profile/AppearanceSettings";
 import { AuthContext } from "../AuthContext";
 import { useCursor } from "../context/CursorContext";
 import { generateAvatarOptions, getAvatarByIndex } from "../utils/avatarUtils";
-import { FaMars, FaVenus, FaGenderless, FaTrash, FaCamera, FaXmark, FaWandMagicSparkles, FaCrop } from "react-icons/fa6";
+import { FaMars, FaVenus, FaGenderless, FaTrash, FaCamera, FaXmark, FaWandMagicSparkles, FaCrop, FaUser } from "react-icons/fa6";
 
 const UNIVERSITIES = ["RTU", "GGSIPU", "DTU", "AKTU"];
 const BRANCHES = ["CSE", "IT", "ECE", "EE", "ME", "Civil", "AIDS"];
@@ -225,6 +225,12 @@ const Profile = () => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  // Reset img error when data changes
+  useEffect(() => {
+    setImgError(false);
+  }, [userData?.avatar, userData?.avatarIndex, userData?.gender, userData?.email]);
 
   // Deletion reason options
   const DELETE_REASONS = [
@@ -371,24 +377,13 @@ const Profile = () => {
         return formData.customAvatar;
     }
     
-    // 2. Previewing selected preset avatar (Edit Mode)
-    if (isEditing && formData.selectedAvatar !== -1) {
-        const seed = formData.email || "default";
-        const gender = formData.gender || "Other";
-        return getAvatarByIndex(seed, gender, formData.selectedAvatar);
-    }
-
-    // 3. Saved Custom Avatar (View Mode / Default Edit Mode if not changed)
+    // 2. Saved Custom Avatar (View Mode / Default Edit Mode if not changed)
     if (userData?.avatar) {
         return userData.avatar;
     }
 
-    // 4. Default DiceBear Avatar
-    // Fallback if userData is null to prevent error
-    const email = userData?.email || "default";
-    const gender = userData?.gender || "Other";
-    const index = userData?.avatarIndex || 0;
-    return getAvatarByIndex(email, gender, index);
+    // 3. Fallback is now handled by conditional rendering (FaUser icon)
+    return null;
   };
 
   // Get avatar options for picker - regenerates when gender changes
@@ -412,20 +407,20 @@ const Profile = () => {
           {/* Avatar with Gender Badge */}
           <div className="flex justify-center mb-6">
             <div className="relative">
-              <img
-                src={getAvatarUrl()}
-                alt={userData?.name || "User Avatar"}
-                className="w-24 h-24 rounded-full shadow-xl border-4 border-white"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-              <div
-                className="w-24 h-24 rounded-full items-center justify-center text-4xl font-bold text-white shadow-xl bg-gradient-to-br from-indigo-600 to-violet-600 hidden"
-              >
-                {userData?.name?.[0]?.toUpperCase() || "U"}
-              </div>
+              {!imgError && getAvatarUrl() ? (
+                <img
+                  src={getAvatarUrl()}
+                  alt={userData?.name || "User Avatar"}
+                  className="w-24 h-24 rounded-full shadow-xl border-4 border-white object-cover"
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <div
+                  className="w-24 h-24 rounded-full flex items-center justify-center text-4xl text-white shadow-xl bg-gradient-to-br from-indigo-600 to-violet-600"
+                >
+                  <FaUser />
+                </div>
+              )}
               {/* Gender Badge */}
               {userData?.gender && (
                 <div className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center shadow-lg border-2 border-white ${
@@ -483,6 +478,8 @@ const Profile = () => {
                   </div>
                 </div>
 
+                {/* Avatar list temporarily disabled as requested */}
+                {/* 
                 <div className="flex items-center gap-2 mb-3">
                   <div className="h-px bg-slate-200 flex-1"></div>
                   <span className="text-xs text-slate-400 font-bold uppercase">Or choose from list</span>
@@ -518,6 +515,7 @@ const Profile = () => {
                     : (formData.gender ? `Showing ${formData.gender.toLowerCase()} avatars` : "Select gender to see matching avatars")
                   }
                 </p>
+                */}
               </div>
 
               {/* Name */}

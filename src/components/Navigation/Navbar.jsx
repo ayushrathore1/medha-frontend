@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { FaCrown, FaMoon, FaSun, FaLock } from "react-icons/fa6";
+import { FaCrown, FaMoon, FaSun, FaLock, FaUser } from "react-icons/fa6";
 import { PlayCircle } from "lucide-react";
 import { useTour } from "../../context/TourContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -75,7 +75,15 @@ const Navbar = ({ user, onLogout }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0); // Messages
   const [unreadNotifications, setUnreadNotifications] = useState(0); // Notifications
+  const [imgError, setImgError] = useState(false);
+  const [mobileImgError, setMobileImgError] = useState(false);
   const prevUnreadNotifications = useRef(0);
+
+  // Reset image errors when user profile changes
+  useEffect(() => {
+    setImgError(false);
+    setMobileImgError(false);
+  }, [user?.avatar, user?.avatarIndex, user?.gender, user?.email]);
 
   // Generate nav items based on user's university
   const baseNavItems = getBaseNavItems(user?.university);
@@ -192,12 +200,8 @@ const Navbar = ({ user, onLogout }) => {
     if (user?.avatar) {
       return user.avatar;
     }
-    // 2. Fallback to generated DiceBear avatar
-    return getAvatarByIndex(
-      user?.email || user?._id || 'default',
-      user?.gender || 'Other',
-      user?.avatarIndex || 0
-    );
+    // 2. Fallback is now handled by conditional rendering (FaUser icon)
+    return null;
   };
 
   return (
@@ -213,15 +217,19 @@ const Navbar = ({ user, onLogout }) => {
           className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:opacity-90 transition-opacity shrink-0"
           onClick={handleLogoClick}
         >
+          {/* Logo Icon */}
           <img
-            src="https://ik.imagekit.io/ayushrathore1/Medha/image.png"
-            alt="MEDHA logo"
-            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl shadow-md bg-white"
+            src={
+              theme === "premium-dark"
+                ? "https://ik.imagekit.io/ayushrathore1/MEDHA%20Revision%20Logo%20(5)/8.svg?updatedAt=1767677218616" // Dark Mode Icon
+                : "https://ik.imagekit.io/ayushrathore1/MEDHA%20Revision%20Logo%20(5)/6.svg?updatedAt=1767677218473" // Light Mode Icon
+            }
+            alt="MEDHA Icon"
+            className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
             draggable="false"
           />
-          <span className="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-violet-500 to-fuchsia-500 bg-clip-text text-transparent hidden sm:inline">
-            MEDHA
-          </span>
+          
+
         </div>
 
         {/* Desktop Nav - Always show for all users */}
@@ -308,20 +316,19 @@ const Navbar = ({ user, onLogout }) => {
                 className="ml-2 h-10 w-10 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 hover:bg-white/80 shadow-sm transition overflow-hidden flex items-center justify-center"
                 title="Profile"
               >
-                <img
-                  alt="Profile"
-                  src={getProfileAvatarUrl()}
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                  draggable="false"
-                />
-                <div className="h-full w-full rounded-full items-center justify-center text-sm font-bold text-white bg-gradient-to-br from-[var(--action-primary)] to-[var(--accent-secondary)] hidden">
-                  {user?.name?.[0]?.toUpperCase() || "U"}
-                </div>
+                {!imgError && getProfileAvatarUrl() ? (
+                  <img
+                    alt="Profile"
+                    src={getProfileAvatarUrl()}
+                    className="h-full w-full object-cover"
+                    onError={() => setImgError(true)}
+                    draggable="false"
+                  />
+                ) : (
+                  <div className="h-full w-full rounded-full flex items-center justify-center text-xl text-white bg-gradient-to-br from-[var(--action-primary)] to-[var(--accent-secondary)]">
+                    <FaUser />
+                  </div>
+                )}
               </button>
 
               <button
@@ -368,21 +375,20 @@ const Navbar = ({ user, onLogout }) => {
           {user && (
             <button
               onClick={handleProfileClick}
-              className="h-9 w-9 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 overflow-hidden"
+              className="h-9 w-9 rounded-full border border-[var(--accent-secondary)]/30 bg-white/50 overflow-hidden flex items-center justify-center"
             >
-              <img
-                src={getProfileAvatarUrl()}
-                alt="Profile"
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-              <div className="h-full w-full items-center justify-center bg-gray-200 text-xs font-bold hidden">
-                {user?.name?.[0] || "U"}
-              </div>
+              {!mobileImgError && getProfileAvatarUrl() ? (
+                <img
+                  src={getProfileAvatarUrl()}
+                  alt="Profile"
+                  className="h-full w-full object-cover"
+                  onError={() => setMobileImgError(true)}
+                />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center bg-gray-200 text-gray-400">
+                  <FaUser size={16} />
+                </div>
+              )}
             </button>
           )}
           <button

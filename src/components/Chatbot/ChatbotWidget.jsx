@@ -95,7 +95,7 @@ const TypewriterText = ({ text, speed = 10, onComplete }) => {
   );
 };
 
-const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateResponse, isTyping }) => {
+const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateResponse, isTyping, userAvatar }) => {
   const [input, setInput] = useState("");
   const [animatingIndex, setAnimatingIndex] = useState(-1);
   const [editingIndex, setEditingIndex] = useState(-1);
@@ -371,8 +371,12 @@ const ChatbotWidget = ({ messages, onSendMessage, onEditMessage, onRegenerateRes
 
             {/* User Avatar */}
             {msg.sender === "user" && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center shadow-sm self-start mt-1">
-                <FaUser className="text-[var(--text-tertiary)] text-sm" />
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center shadow-sm self-start mt-1 overflow-hidden">
+                {userAvatar ? (
+                  <img src={userAvatar} alt="User" className="w-full h-full object-cover" />
+                ) : (
+                  <FaUser className="text-[var(--text-tertiary)] text-sm" />
+                )}
               </div>
             )}
           </motion.div>

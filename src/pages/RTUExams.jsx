@@ -7,8 +7,9 @@ import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import YearSelector from "../components/RTUExams/YearSelector";
 import UnitWeightageBar from "../components/RTUExams/UnitWeightageBar";
-import { FaArrowLeft, FaLayerGroup, FaCircleCheck, FaChartBar, FaEnvelope, FaBuildingColumns, FaBook, FaPlay, FaGraduationCap } from "react-icons/fa6";
+import { FaArrowLeft, FaLayerGroup, FaCircleCheck, FaChartBar, FaEnvelope, FaBuildingColumns, FaBook, FaPlay, FaGraduationCap, FaWandMagicSparkles } from "react-icons/fa6";
 import LearnConcepts from "../components/RTUExams/LearnConcepts";
+import VisualizeConcepts from "../components/RTUExams/VisualizeConcepts";
 
 import { useTour } from "../context/TourContext";
 import useAuthGuard from "../hooks/useAuthGuard";
@@ -17,7 +18,7 @@ const RTUExams = () => {
   const { isGuestMode } = useTour();
   const { requireAuth } = useAuthGuard();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("archives"); // 'archives' or 'learn'
+  const [activeTab, setActiveTab] = useState("archives"); // 'archives', 'learn', or 'visualize'
   const [viewState, setViewState] = useState("semesters");
   const [subjects, setSubjects] = useState(isGuestMode ? [
     { name: "Digital Electronics", difficulty: "medium", total: 10, viewed: 5 },
@@ -222,6 +223,7 @@ const RTUExams = () => {
 
   const getHeaderTitle = () => {
     if (activeTab === 'learn') return "Learn the Concepts";
+    if (activeTab === 'visualize') return "Visualize the Concepts";
     switch (viewState) {
       case "semesters": return "The Archives";
       case "subjects": return "3rd Semester";
@@ -233,6 +235,7 @@ const RTUExams = () => {
 
   const getHeaderSubtitle = () => {
     if (activeTab === 'learn') return "Watch video lectures and download study materials.";
+    if (activeTab === 'visualize') return "Experience immersive step-by-step animated explanations.";
     switch (viewState) {
       case "semesters": return "Access previous year papers and smart analysis.";
       case "subjects": return "Choose a subject to explore exam patterns.";
@@ -274,29 +277,40 @@ const RTUExams = () => {
            </motion.div>
 
            {/* Tab Navigation */}
-           {(activeTab === 'learn' || (activeTab === 'archives' && viewState === 'semesters')) && (
+           {(activeTab === 'learn' || activeTab === 'visualize' || (activeTab === 'archives' && viewState === 'semesters')) && (
              <div className="flex items-center gap-2 mt-8 bg-[var(--bg-secondary)] rounded-2xl p-2 shadow-sm border border-[var(--border-default)]">
                <button
                  onClick={() => { setActiveTab('archives'); setViewState('semesters'); }}
-                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
                    activeTab === 'archives'
                      ? 'bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-hover)] text-white shadow-md'
                      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
                  }`}
                >
-                 <FaBuildingColumns size={16} />
-                 The Archives
+                 <FaBuildingColumns size={14} />
+                 Archives
                </button>
                <button
                  onClick={() => setActiveTab('learn')}
-                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
                    activeTab === 'learn'
                      ? 'bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-hover)] text-white shadow-md'
                      : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
                  }`}
                >
-                 <FaGraduationCap size={16} />
-                 Learn the Concepts
+                 <FaGraduationCap size={14} />
+                 Learn
+               </button>
+               <button
+                 onClick={() => setActiveTab('visualize')}
+                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
+                   activeTab === 'visualize'
+                     ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                     : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
+                 }`}
+               >
+                 <FaWandMagicSparkles size={14} />
+                 Visualize
                </button>
              </div>
            )}
@@ -305,6 +319,11 @@ const RTUExams = () => {
         {/* Learn the Concepts Tab */}
         {activeTab === 'learn' && (
           <LearnConcepts />
+        )}
+
+        {/* Visualize the Concepts Tab */}
+        {activeTab === 'visualize' && (
+          <VisualizeConcepts />
         )}
 
         {/* Archives Tab */}

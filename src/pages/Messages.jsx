@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   FaPaperPlane, FaMagnifyingGlass, FaUserCircle, FaBroadcastTower, 
   FaArrowLeft, FaXmark, FaSpinner, FaCheck, FaCheckDouble,
-  FaCrown, FaUsers, FaCommentDots, FaEnvelope, FaTrash
+  FaCrown, FaUsers, FaCommentDots, FaEnvelope, FaTrash, FaUser
 } from "react-icons/fa6";
 import Card from "../components/Common/Card";
 import Loader from "../components/Common/Loader";
@@ -235,6 +235,11 @@ const Messages = () => {
     return other?.name || "Unknown";
   };
 
+  const getChatPartner = (conv) => {
+    if (conv.isBroadcast) return null;
+    return conv.participants?.find(p => p._id !== currentUserId);
+  };
+
   // Format timestamp
   const formatTime = (date) => {
     if (!date) return "";
@@ -337,8 +342,14 @@ const Messages = () => {
                     style={{ borderColor: "var(--accent-secondary)" }}
                   >
                     {/* Avatar */}
-                    <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold">
-                      {conv.isBroadcast ? "📢" : getChatPartnerName(conv)?.[0]?.toUpperCase()}
+                    <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold overflow-hidden">
+                      {conv.isBroadcast ? (
+                        "📢"
+                      ) : getChatPartner(conv)?.avatar ? (
+                        <img src={getChatPartner(conv).avatar} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <FaUser />
+                      )}
                     </div>
                     
                     {/* Info */}
@@ -384,8 +395,14 @@ const Messages = () => {
                     <FaArrowLeft style={{ color: "var(--text-primary)" }} />
                   </button>
                   
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold">
-                    {selectedConv.isBroadcast ? "📢" : getChatPartnerName(selectedConv)?.[0]?.toUpperCase()}
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold overflow-hidden">
+                    {selectedConv.isBroadcast ? (
+                      "📢"
+                    ) : getChatPartner(selectedConv)?.avatar ? (
+                      <img src={getChatPartner(selectedConv).avatar} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <FaUser />
+                    )}
                   </div>
                   
                   <div>
@@ -553,8 +570,12 @@ const Messages = () => {
                     className="p-4 flex items-center gap-3 hover:bg-white/5 cursor-pointer transition border-b"
                     style={{ borderColor: "var(--accent-secondary)" }}
                   >
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold">
-                      {contact.name?.[0]?.toUpperCase() || "U"}
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold overflow-hidden">
+                      {contact.avatar ? (
+                        <img src={contact.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <FaUser />
+                      )}
                     </div>
                     <div className="flex-1">
                       <p className="font-medium" style={{ color: "var(--text-primary)" }}>{contact.name}</p>

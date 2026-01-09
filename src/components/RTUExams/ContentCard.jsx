@@ -8,7 +8,8 @@ import {
   FaEye,
   FaClock,
   FaEdit,
-  FaTrash
+  FaTrash,
+  FaMagic
 } from 'react-icons/fa';
 
 /**
@@ -17,12 +18,13 @@ import {
  */
 const ContentCard = ({
   id,
-  type, // 'video' or 'pdf'
+  type, // 'video', 'pdf', or 'animation'
   title,
   description,
   thumbnailUrl,
   duration, // For videos
   pageCount, // For PDFs
+  animationSteps, // For animations
   likeCount,
   views,
   isLiked,
@@ -73,13 +75,14 @@ const ContentCard = ({
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--action-primary)]/10 to-[var(--action-hover)]/10">
               {type === 'video' ? (
                 <FaPlay size={40} className="text-[var(--action-primary)]/30" />
-              ) : (
+              ) : type === 'pdf' ? (
                 <FaFilePdf size={40} className="text-[var(--color-danger-text)]/30" />
+              ) : (
+                <FaMagic size={40} className="text-purple-400/30" />
               )}
             </div>
           )}
 
-          {/* Play/View Overlay */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
@@ -88,22 +91,26 @@ const ContentCard = ({
             >
               {type === 'video' ? (
                 <FaPlay size={24} className="text-[var(--action-primary)] ml-1" />
-              ) : (
+              ) : type === 'pdf' ? (
                 <FaFilePdf size={24} className="text-[var(--color-danger-text)]" />
+              ) : (
+                <FaMagic size={24} className="text-purple-400" />
               )}
             </motion.div>
           </div>
 
-          {/* Duration/Page Count Badge */}
-          {(duration || pageCount) && (
+          {/* Duration/Page Count/Steps Badge */}
+          {(duration || pageCount || animationSteps) && (
             <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs font-bold rounded-md">
               {type === 'video' ? (
                 <span className="flex items-center gap-1">
                   <FaClock size={10} />
                   {duration}
                 </span>
-              ) : (
+              ) : type === 'pdf' ? (
                 <span>{pageCount} pages</span>
+              ) : (
+                <span>{animationSteps} steps</span>
               )}
             </div>
           )}
@@ -112,9 +119,11 @@ const ContentCard = ({
           <div className={`absolute top-2 left-2 px-2 py-1 text-xs font-bold rounded-md ${
             type === 'video' 
               ? 'bg-[var(--action-primary)] text-white' 
-              : 'bg-[var(--color-danger-text)] text-white'
+              : type === 'pdf'
+              ? 'bg-[var(--color-danger-text)] text-white'
+              : 'bg-purple-500 text-white'
           }`}>
-            {type === 'video' ? 'VIDEO' : 'PDF'}
+            {type === 'video' ? 'VIDEO' : type === 'pdf' ? 'PDF' : 'ANIMATION'}
           </div>
           
           {/* Admin Edit Button */}

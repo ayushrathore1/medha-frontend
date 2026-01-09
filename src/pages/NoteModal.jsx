@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
-import { FaDownload, FaSpinner } from "react-icons/fa6";
+import { FaDownload, FaSpinner, FaUser } from "react-icons/fa6";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -236,8 +236,13 @@ const NoteModal = ({ note, onClose }) => {
         {/* Footer Metadata */}
         <div className="flex flex-wrap gap-3 items-center mt-6 pt-4 border-t border-slate-100">
            {note.owner && (
-            <span className="flex items-center gap-2 text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
-              👤 {note.owner.name || note.owner.email?.split("@")[0] || "Unknown"}
+            <span className="flex items-center gap-2 text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-full overflow-hidden">
+              {note.owner?.avatar ? (
+                <img src={note.owner.avatar} alt="Author" className="w-5 h-5 rounded-full object-cover" />
+              ) : (
+                <FaUser className="text-slate-400" />
+              )}
+              <span>{note.owner.name || note.owner.email?.split("@")[0] || "Unknown"}</span>
             </span>
            )}
            <span className={`px-3 py-1 rounded-full text-sm font-bold ${note.isPublic ? "bg-emerald-100 text-emerald-700" : "bg-indigo-100 text-indigo-700"}`}>
