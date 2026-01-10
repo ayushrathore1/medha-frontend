@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaHistory, FaCrown, FaInbox, FaBug, FaLightbulb, FaArrowRight, FaEnvelope, FaComments } from "react-icons/fa6";
+import {
+  FaHistory,
+  FaCrown,
+  FaInbox,
+  FaBug,
+  FaLightbulb,
+  FaArrowRight,
+  FaEnvelope,
+  FaComments,
+  FaUsers,
+} from "react-icons/fa6";
 import Card from "../components/Common/Card";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -101,61 +111,87 @@ const updates = [
   },
 ];
 
-
 const Updates = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isTeam, setIsTeam] = useState(false);
   const [adminStats, setAdminStats] = useState(null);
 
-  // Check if user is admin and fetch stats
+  // Check if user is admin/team and fetch stats
   useEffect(() => {
-    const checkAdminAndFetchStats = async () => {
+    const checkAccessAndFetchStats = async () => {
       const token = localStorage.getItem("token");
       if (!token) return;
 
       try {
-        const res = await axios.get(`${BACKEND_URL}/api/messages/check-admin`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        if (res.data.isAdmin) {
+        // Check admin access
+        const adminRes = await axios.get(
+          `${BACKEND_URL}/api/messages/check-admin`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (adminRes.data.isAdmin) {
           setIsAdmin(true);
           // Fetch stats
-          const statsRes = await axios.get(`${BACKEND_URL}/api/messages/admin/stats`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const statsRes = await axios.get(
+            `${BACKEND_URL}/api/messages/admin/stats`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           setAdminStats(statsRes.data.stats);
         }
+
+        // Check team access (if not admin)
+        if (!adminRes.data.isAdmin) {
+          try {
+            const teamRes = await axios.get(`${BACKEND_URL}/api/team/check`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (teamRes.data.hasAccess) {
+              setIsTeam(true);
+            }
+          } catch (e) {
+            // Not a team member
+          }
+        }
       } catch (error) {
-        console.error("Admin check error:", error);
+        console.error("Access check error:", error);
       }
     };
 
-    checkAdminAndFetchStats();
+    checkAccessAndFetchStats();
   }, []);
 
   return (
-    <div 
+    <div
       className="min-h-screen pt-20 px-4 sm:px-6 pb-12"
       style={{ backgroundColor: "var(--bg-primary)" }}
     >
       <div className="max-w-6xl mx-auto">
         {/* Admin Quick Access Panel */}
         {isAdmin && (
-          <div 
+          <div
             className="mb-8 p-4 rounded-2xl border-2"
-            style={{ 
-              background: "linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(249, 115, 22, 0.1))",
-              borderColor: "rgba(245, 158, 11, 0.3)"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(249, 115, 22, 0.1))",
+              borderColor: "rgba(245, 158, 11, 0.3)",
             }}
           >
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <FaCrown className="text-2xl text-amber-500" />
                 <div>
-                  <h3 className="text-lg font-bold text-amber-400">Admin Dashboard</h3>
+                  <h3 className="text-lg font-bold text-amber-400">
+                    Admin Dashboard
+                  </h3>
                   <p className="text-sm text-amber-300/70">
-                    {adminStats ? `${adminStats.unread} unread • ${adminStats.pending} pending` : "Loading..."}
+                    {adminStats
+                      ? `${adminStats.unread} unread • ${adminStats.pending} pending`
+                      : "Loading..."}
                   </p>
                 </div>
               </div>
@@ -163,13 +199,16 @@ const Updates = () => {
                 {adminStats && (
                   <div className="flex gap-3 text-sm">
                     <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400">
-                      <FaInbox className="inline mr-1" /> {adminStats.total} total
+                      <FaInbox className="inline mr-1" /> {adminStats.total}{" "}
+                      total
                     </span>
                     <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-400">
-                      <FaBug className="inline mr-1" /> {adminStats.bugReports} bugs
+                      <FaBug className="inline mr-1" /> {adminStats.bugReports}{" "}
+                      bugs
                     </span>
                     <span className="px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400">
-                      <FaLightbulb className="inline mr-1" /> {adminStats.featureRequests} ideas
+                      <FaLightbulb className="inline mr-1" />{" "}
+                      {adminStats.featureRequests} ideas
                     </span>
                   </div>
                 )}
@@ -180,6 +219,38 @@ const Updates = () => {
                   Open Dashboard <FaArrowRight />
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Team Quick Access Panel (for team members who aren't admins) */}
+        {isTeam && !isAdmin && (
+          <div
+            className="mb-8 p-4 rounded-2xl border-2"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(168, 85, 247, 0.1))",
+              borderColor: "rgba(139, 92, 246, 0.3)",
+            }}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <FaUsers className="text-2xl text-purple-500" />
+                <div>
+                  <h3 className="text-lg font-bold text-purple-400">
+                    Team Dashboard
+                  </h3>
+                  <p className="text-sm text-purple-300/70">
+                    Manage content and view user statistics
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate("/team-dashboard")}
+                className="px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 transition-all flex items-center gap-2"
+              >
+                Open Team Dashboard <FaArrowRight />
+              </button>
             </div>
           </div>
         )}
@@ -201,7 +272,10 @@ const Updates = () => {
               <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600">
                 <FaHistory className="text-white text-xl" />
               </div>
-              <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
+              <h2
+                className="text-2xl font-bold"
+                style={{ color: "var(--text-primary)" }}
+              >
                 What's New in Medha
               </h2>
             </div>
@@ -215,23 +289,32 @@ const Updates = () => {
                     </div>
                   )}
                   <div className="flex items-center gap-3 mb-3">
-                    <span 
+                    <span
                       className="px-3 py-1 rounded-full text-sm font-bold"
-                      style={{ backgroundColor: "rgba(139, 92, 246, 0.2)", color: "#a78bfa" }}
+                      style={{
+                        backgroundColor: "rgba(139, 92, 246, 0.2)",
+                        color: "#a78bfa",
+                      }}
                     >
                       v{update.version}
                     </span>
-                    <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                    <span
+                      className="text-sm"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
                       {update.date}
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold mb-3" style={{ color: "var(--text-primary)" }}>
+                  <h3
+                    className="text-lg font-bold mb-3"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     {update.title}
                   </h3>
                   <ul className="space-y-2">
                     {update.features.map((feature, fIdx) => (
-                      <li 
-                        key={fIdx} 
+                      <li
+                        key={fIdx}
                         className="text-sm"
                         style={{ color: "var(--text-secondary)" }}
                       >
@@ -250,7 +333,10 @@ const Updates = () => {
               <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
                 <FaEnvelope className="text-white text-xl" />
               </div>
-              <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
+              <h2
+                className="text-2xl font-bold"
+                style={{ color: "var(--text-primary)" }}
+              >
                 Get in Touch
               </h2>
             </div>
@@ -258,11 +344,15 @@ const Updates = () => {
             <Card>
               <div className="text-center py-4">
                 <FaComments className="text-5xl mx-auto mb-4 text-emerald-500" />
-                <h3 className="text-xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
+                <h3
+                  className="text-xl font-bold mb-2"
+                  style={{ color: "var(--text-primary)" }}
+                >
                   Need Help or Have Feedback?
                 </h3>
                 <p className="mb-6" style={{ color: "var(--text-secondary)" }}>
-                  Use our new messaging system to chat directly with us. We'd love to hear from you!
+                  Use our new messaging system to chat directly with us. We'd
+                  love to hear from you!
                 </p>
                 <button
                   onClick={() => navigate("/messages")}
@@ -280,4 +370,3 @@ const Updates = () => {
 };
 
 export default Updates;
-
