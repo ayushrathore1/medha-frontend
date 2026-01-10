@@ -77,6 +77,16 @@ export const AnimationSteps = [
 ];
 
 // ============================================
+// PARTS (for multi-part audio support)
+// Each part has its own audio file
+// ============================================
+export const parts = [
+  { partNumber: 1, name: "Exception Handling", startScene: 1, endScene: 26, icon: "🛡️", color: colors.danger },
+  { partNumber: 2, name: "Templates", startScene: 27, endScene: 52, icon: "📐", color: colors.primary },
+  { partNumber: 3, name: "Stream Classes", startScene: 53, endScene: 78, icon: "🌊", color: colors.success },
+  { partNumber: 4, name: "File Handling", startScene: 79, endScene: 104, icon: "📁", color: colors.secondary },
+];
+// ============================================
 // SECTION MARKERS (for navigation)
 // Each section has a defined audio range
 // ============================================
@@ -165,4 +175,4 @@ export const getSceneFromAudioTime = (audioTime) => {
   return 1;
 };
 
-export default { metadata, AnimationSteps, sections, getSceneAudioTime, getSceneFromAudioTime };
+export default { metadata, AnimationSteps, parts, sections, getSceneAudioTime, getSceneFromAudioTime };

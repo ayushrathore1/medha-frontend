@@ -2,7 +2,7 @@
  * MedhaAnimationViewer - "The Compiler's Atelier" (Apple Edition)
  * True Black. High Contrast. Precision.
  */
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
@@ -109,8 +109,6 @@ const MedhaAnimationViewer = ({
 
   useEffect(() => {
     if (!isOpen || !animationId) return;
-    // Skip if we already have audio URLs from props
-    if (initialAudioHindi || initialAudioEnglish) return;
 
     const fetchAudioUrls = async () => {
       try {
@@ -123,9 +121,13 @@ const MedhaAnimationViewer = ({
           }
         );
         if (res.data.success) {
-          if (res.data.audioHindiUrl) setAudioHindiUrl(res.data.audioHindiUrl);
-          if (res.data.audioEnglishUrl)
+          // Only set global audio if not already provided via props
+          if (!initialAudioHindi && res.data.audioHindiUrl) {
+            setAudioHindiUrl(res.data.audioHindiUrl);
+          }
+          if (!initialAudioEnglish && res.data.audioEnglishUrl) {
             setAudioEnglishUrl(res.data.audioEnglishUrl);
+          }
           // Store transcript for sync
           if (res.data.audioTranscript) {
             setAudioTranscript(res.data.audioTranscript);
@@ -139,6 +141,11 @@ const MedhaAnimationViewer = ({
             Object.keys(res.data.manualSlideTimings).length > 0
           ) {
             setManualTimings(res.data.manualSlideTimings);
+          }
+          // ALWAYS store multi-part audio data (even if global audio exists)
+          if (res.data.partAudios && res.data.partAudios.length > 0) {
+            setPartAudios(res.data.partAudios);
+            console.log("Loaded partAudios:", res.data.partAudios);
           }
         }
       } catch (error) {
@@ -170,15 +177,85 @@ const MedhaAnimationViewer = ({
   const [audioDuration, setAudioDuration] = useState(553); // 9:13 total
   const [audioSyncMode, setAudioSyncMode] = useState(false); // When true, audio drives slides
 
+  // Multi-part audio state (for animations with separate audio per section)
+  const [partAudios, setPartAudios] = useState([]); // Array of per-part audio data from backend
+  const [animationParts, setAnimationParts] = useState([]); // Part definitions from animation component
+  const [currentPartIndex, setCurrentPartIndex] = useState(0); // Which part is currently active
+  const [showPartBreak, setShowPartBreak] = useState(false); // Show break screen between parts
+
+
   // Voice recording
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
 
   const canEdit = isAdmin || isTeam;
-  const hasAudio = audioHindiUrl || audioEnglishUrl;
+  
+  // Multi-part audio helpers
+  const hasMultiPartAudio = partAudios.length > 0;
+  
+  const hasAudio = audioHindiUrl || audioEnglishUrl || hasMultiPartAudio;
   const currentAudioUrl =
     audioLang === "hindi" ? audioHindiUrl : audioEnglishUrl;
+
+  
+  // Get which part a step belongs to (uses partAudios or animationParts)
+  const getCurrentPartFromStep = useCallback((step) => {
+    const parts = partAudios.length > 0 ? partAudios : animationParts;
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (step >= part.startScene && step <= part.endScene) {
+        return i;
+      }
+    }
+    return 0;
+  }, [partAudios, animationParts]);
+
+  // Get current part's audio URL based on currentPartIndex
+  const currentPartAudioUrl = useMemo(() => {
+    if (!hasMultiPartAudio) return null;
+    const part = partAudios[currentPartIndex];
+    if (!part) return null;
+    return audioLang === "hindi" ? part.audioHindiUrl : part.audioEnglishUrl;
+  }, [hasMultiPartAudio, partAudios, currentPartIndex, audioLang]);
+
+  // Initialize currentPartIndex when partAudios first loads
+  useEffect(() => {
+    if (partAudios.length > 0) {
+      const initialPartIndex = getCurrentPartFromStep(currentStep);
+      setCurrentPartIndex(initialPartIndex);
+      // Auto-enable sync mode for multi-part audio
+      setAudioSyncMode(true);
+      console.log("Initialized part to:", initialPartIndex, "for step:", currentStep, "- Sync mode enabled");
+    }
+  }, [partAudios.length]); // Only run when partAudios changes from empty to filled
+
+  // Detect part changes when step changes (after initial load)
+  const prevStepRef = useRef(currentStep);
+  useEffect(() => {
+    if (!hasMultiPartAudio) return;
+    if (prevStepRef.current === currentStep) return; // Skip if step hasn't changed
+    
+    const prevStep = prevStepRef.current;
+    prevStepRef.current = currentStep;
+    
+    const newPartIndex = getCurrentPartFromStep(currentStep);
+    const prevPartIndex = getCurrentPartFromStep(prevStep);
+    
+    if (newPartIndex !== prevPartIndex) {
+      // Part changed! Pause current audio and optionally show break screen
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setIsPlaying(false);
+      setCurrentPartIndex(newPartIndex);
+      
+      // Show break screen if moving forward to next part
+      if (newPartIndex > prevPartIndex) {
+        setShowPartBreak(true);
+      }
+    }
+  }, [currentStep, hasMultiPartAudio, getCurrentPartFromStep]);
 
   // Keyboard Controls
   useEffect(() => {
@@ -230,8 +307,10 @@ const MedhaAnimationViewer = ({
           break;
         case "Escape":
           e.preventDefault();
-          // Close fullscreen note first, then main viewer
-          if (showFullscreenNote) {
+          // Close in order: part break > fullscreen note > main viewer
+          if (showPartBreak) {
+            setShowPartBreak(false);
+          } else if (showFullscreenNote) {
             setShowFullscreenNote(false);
           } else {
             setIsAutoPlaying(false); // Stop auto-play on close
@@ -361,8 +440,19 @@ const MedhaAnimationViewer = ({
       if (audioSyncMode && isPlaying) {
         let targetScene = currentStep;
 
+        // PRIORITY 0: Multi-Part Audio Auto-Sync (divides part duration by slide count)
+        if (hasMultiPartAudio && partAudios[currentPartIndex]) {
+          const part = partAudios[currentPartIndex];
+          const partDuration = part.audioDuration || audioRef.current?.duration || 300;
+          const slidesInPart = (part.endScene - part.startScene) + 1;
+          const timePerSlide = partDuration / slidesInPart;
+          
+          // Calculate which slide within this part based on audio time
+          const slideIndex = Math.floor(time / timePerSlide);
+          targetScene = Math.min(part.startScene + slideIndex, part.endScene);
+        }
         // PRIORITY 1: Manual Slide Timings (User Recorded)
-        if (manualTimings && Object.keys(manualTimings).length > 0) {
+        else if (manualTimings && Object.keys(manualTimings).length > 0) {
           // Find the highest slide number whose start time is <= current time
           let bestSlide = 1;
           const slides = Object.entries(manualTimings).sort(
@@ -427,6 +517,9 @@ const MedhaAnimationViewer = ({
     currentStep,
     audioTranscript,
     manualTimings,
+    hasMultiPartAudio,
+    partAudios,
+    currentPartIndex,
   ]);
 
   // Sync current scene to audio when manually changing slides (seeks audio)
@@ -650,6 +743,42 @@ const MedhaAnimationViewer = ({
     } catch (err) {
       console.error(err);
       alert("Upload failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Multi-Part Audio Upload
+  const handlePartAudioUpload = async (partNumber, partData, audioUrl) => {
+    if (!animationId) {
+      alert("Cannot upload: No animation ID available.");
+      return;
+    }
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+      const res = await axios.put(
+        `${baseUrl}/api/learn/animation/${animationId}/part-audio/${partNumber}`,
+        {
+          partName: partData.name || partData.partName,
+          startScene: partData.startScene,
+          endScene: partData.endScene,
+          audioHindiUrl: audioUrl,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (res.data.success) {
+        setPartAudios(res.data.partAudios);
+        alert(`Part ${partNumber} audio saved successfully!`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Part audio upload failed");
     } finally {
       setLoading(false);
     }
@@ -958,6 +1087,101 @@ const MedhaAnimationViewer = ({
         )}
       </AnimatePresence>
 
+      {/* Part Break Screen Overlay */}
+      <AnimatePresence>
+        {showPartBreak && hasMultiPartAudio && partAudios[currentPartIndex] && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center"
+            style={{
+              background: "rgba(0, 0, 0, 0.95)",
+              backdropFilter: "blur(20px)",
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="text-center max-w-md px-8"
+            >
+              {/* Part icon */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="text-6xl mb-6"
+              >
+                {partAudios[currentPartIndex]?.partName?.includes("Exception") ? "🛡️" :
+                 partAudios[currentPartIndex]?.partName?.includes("Template") ? "📐" :
+                 partAudios[currentPartIndex]?.partName?.includes("Stream") ? "🌊" :
+                 partAudios[currentPartIndex]?.partName?.includes("File") ? "📁" : "📚"}
+              </motion.div>
+              
+              {/* Part label */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="text-blue-400 text-sm font-semibold tracking-widest mb-2 uppercase"
+              >
+                Part {currentPartIndex + 1} of {partAudios.length}
+              </motion.div>
+              
+              {/* Part name */}
+              <motion.h2
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-3xl font-bold text-white mb-4"
+              >
+                {partAudios[currentPartIndex]?.partName || `Part ${currentPartIndex + 1}`}
+              </motion.h2>
+              
+              {/* Scene range */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="text-gray-400 text-sm mb-8"
+              >
+                Scenes {partAudios[currentPartIndex]?.startScene} - {partAudios[currentPartIndex]?.endScene}
+              </motion.p>
+              
+              {/* Continue button */}
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setShowPartBreak(false);
+                  // Auto-play new part's audio if there was audio playing before
+                  if (currentPartAudioUrl) {
+                    setTimeout(() => setIsPlaying(true), 500);
+                  }
+                }}
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-semibold rounded-full shadow-lg hover:shadow-blue-500/30 transition-all"
+              >
+                Start Part {currentPartIndex + 1} →
+              </motion.button>
+              
+              {/* Skip hint */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                transition={{ delay: 1 }}
+                className="text-gray-500 text-xs mt-6"
+              >
+                Press <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-gray-400">ESC</kbd> to skip
+              </motion.p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 🍎 TOP BAR (Transparent, Glassy) */}
       <header className="h-14 flex items-center justify-between px-6 border-b border-white/5 bg-black/50 backdrop-blur-md z-20">
         <div className="flex items-center gap-4">
@@ -1025,7 +1249,7 @@ const MedhaAnimationViewer = ({
               </button>
               <audio
                 ref={audioRef}
-                src={currentAudioUrl}
+                src={currentPartAudioUrl || currentAudioUrl}
                 onEnded={() => setIsPlaying(false)}
                 className="hidden"
               />
@@ -1213,6 +1437,65 @@ const MedhaAnimationViewer = ({
               )}
             </div>
 
+            {/* Multi-Part Audio Section */}
+            <div className="border-t border-white/10 pt-4 mt-4">
+              <h4 className="text-white text-xs font-bold mb-3 flex items-center gap-2">
+                <span className="text-purple-400">📚</span>
+                Multi-Part Audio (4 Parts)
+              </h4>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {[
+                  { partNumber: 1, name: "Exception Handling", startScene: 1, endScene: 26, icon: "🛡️" },
+                  { partNumber: 2, name: "Templates", startScene: 27, endScene: 52, icon: "📐" },
+                  { partNumber: 3, name: "Stream Classes", startScene: 53, endScene: 78, icon: "🌊" },
+                  { partNumber: 4, name: "File Handling", startScene: 79, endScene: 104, icon: "📁" },
+                ].map((part) => {
+                  const existingPart = partAudios.find(p => p.partNumber === part.partNumber);
+                  const hasPartAudio = existingPart?.audioHindiUrl;
+                  
+                  return (
+                    <div key={part.partNumber} className="bg-black/30 rounded-lg p-2 flex items-center gap-2">
+                      <span className="text-lg">{part.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-white font-medium truncate">{part.name}</div>
+                        <div className="text-[10px] text-gray-500">Scenes {part.startScene}-{part.endScene}</div>
+                      </div>
+                      {hasPartAudio ? (
+                        <div className="flex items-center gap-1">
+                          <span className="text-green-400 text-xs">✓</span>
+                          <button
+                            onClick={() => {
+                              const audio = new Audio(existingPart.audioHindiUrl);
+                              audio.play();
+                            }}
+                            className="px-2 py-1 bg-blue-500/20 text-blue-400 text-[10px] rounded"
+                          >
+                            ▶
+                          </button>
+                        </div>
+                      ) : (
+                        <input
+                          type="text"
+                          placeholder="Paste audio URL..."
+                          className="flex-1 max-w-[120px] px-2 py-1 text-[10px] bg-black/50 border border-white/10 rounded text-white placeholder-gray-500"
+                          onBlur={(e) => {
+                            if (e.target.value) {
+                              handlePartAudioUpload(part.partNumber, part, e.target.value);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && e.target.value) {
+                              handlePartAudioUpload(part.partNumber, part, e.target.value);
+                            }
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Close button */}
             <button
               onClick={() => {
@@ -1252,39 +1535,83 @@ const MedhaAnimationViewer = ({
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
-                {normalizedSteps.map((step, i) => {
-                  const stepNum = i + 1;
-                  const sData = slideData.find((s) => s.stepNumber === stepNum);
-                  const isHidden = sData?.isHidden;
-                  const isActive = currentStep === stepNum;
-
-                  if (isHidden && !canEdit) return null;
-
+              <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                {/* Part-based grouping */}
+                {(hasMultiPartAudio ? partAudios : [
+                  { partNumber: 1, partName: "Exception Handling", startScene: 1, endScene: 26, icon: "🛡️" },
+                  { partNumber: 2, partName: "Templates", startScene: 27, endScene: 52, icon: "📐" },
+                  { partNumber: 3, partName: "Stream Classes", startScene: 53, endScene: 78, icon: "🌊" },
+                  { partNumber: 4, partName: "File Handling", startScene: 79, endScene: 104, icon: "📁" },
+                ]).map((part, partIdx) => {
+                  const partName = part.partName || part.name;
+                  const isCurrentPart = currentPartIndex === partIdx;
+                  const partSteps = normalizedSteps.slice(part.startScene - 1, part.endScene);
+                  const hasPartAudio = part.audioHindiUrl || part.audioEnglishUrl;
+                  
                   return (
-                    <button
-                      key={i}
-                      onClick={() => goToStep(stepNum)}
-                      className={`w-full text-left px-4 py-3 rounded-xl flex items-center justify-between group transition-all duration-200 ${
-                        isActive
-                          ? "bg-[#1c1c1e] text-white shadow-lg"
-                          : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
-                      }`}
-                    >
-                      <div className="flex flex-col gap-0.5">
-                        <span
-                          className={`text-[10px] font-bold uppercase tracking-wider ${isActive ? "text-blue-500" : "text-gray-600"}`}
-                        >
-                          Step {String(stepNum).padStart(2, "0")}
-                        </span>
-                        <span className="text-sm font-medium">
-                          {step.title || `Scene ${stepNum}`}
-                        </span>
+                    <div key={partIdx} className="mb-2">
+                      {/* Part Header */}
+                      <div 
+                        className={`px-3 py-2 rounded-lg flex items-center gap-2 cursor-pointer transition-all ${
+                          isCurrentPart 
+                            ? "bg-blue-500/10 border border-blue-500/30" 
+                            : "hover:bg-white/5"
+                        }`}
+                        onClick={() => goToStep(part.startScene)}
+                      >
+                        <span className="text-lg">{part.icon || "📚"}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-xs font-bold truncate ${isCurrentPart ? "text-blue-400" : "text-gray-400"}`}>
+                            {partName}
+                          </div>
+                          <div className="text-[10px] text-gray-600">
+                            Steps {part.startScene}-{part.endScene}
+                            {hasPartAudio && <span className="ml-1 text-green-400">🎧</span>}
+                          </div>
+                        </div>
+                        {isCurrentPart && (
+                          <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                        )}
                       </div>
-                      {sData?.notes?.content && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_5px_rgba(191,90,242,0.8)]" />
+                      
+                      {/* Steps within part (show only for current part) */}
+                      {isCurrentPart && (
+                        <div className="ml-4 mt-1 space-y-0.5 border-l border-white/10 pl-2">
+                          {partSteps.map((step, stepIdx) => {
+                            const stepNum = part.startScene + stepIdx;
+                            const sData = slideData.find((s) => s.stepNumber === stepNum);
+                            const isHidden = sData?.isHidden;
+                            const isActive = currentStep === stepNum;
+
+                            if (isHidden && !canEdit) return null;
+
+                            return (
+                              <button
+                                key={stepNum}
+                                onClick={() => goToStep(stepNum)}
+                                className={`w-full text-left px-3 py-2 rounded-lg flex items-center justify-between transition-all ${
+                                  isActive
+                                    ? "bg-[#1c1c1e] text-white"
+                                    : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                                }`}
+                              >
+                                <div className="flex flex-col gap-0.5 min-w-0">
+                                  <span className={`text-[9px] font-bold uppercase tracking-wider ${isActive ? "text-blue-500" : "text-gray-600"}`}>
+                                    {String(stepNum).padStart(2, "0")}
+                                  </span>
+                                  <span className="text-xs font-medium truncate">
+                                    {step.title || `Scene ${stepNum}`}
+                                  </span>
+                                </div>
+                                {sData?.notes?.content && (
+                                  <div className="w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       )}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -1619,6 +1946,35 @@ const MedhaAnimationViewer = ({
 
           {/* AUDIO-SYNCED PLAYER CONTROLS */}
           <div className="bg-black px-6 py-4 z-30">
+            {/* Current Part Indicator (for multi-part audio) */}
+            {hasMultiPartAudio && partAudios[currentPartIndex] && (
+              <div className="flex items-center justify-between mb-3 px-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">
+                    {partAudios[currentPartIndex]?.partName?.includes("Exception") ? "🛡️" :
+                     partAudios[currentPartIndex]?.partName?.includes("Template") ? "📐" :
+                     partAudios[currentPartIndex]?.partName?.includes("Stream") ? "🌊" :
+                     partAudios[currentPartIndex]?.partName?.includes("File") ? "📁" : "📚"}
+                  </span>
+                  <div>
+                    <div className="text-xs text-white font-semibold">
+                      {partAudios[currentPartIndex]?.partName || `Part ${currentPartIndex + 1}`}
+                    </div>
+                    <div className="text-[10px] text-gray-500">
+                      Part {currentPartIndex + 1} of {partAudios.length} • Scenes {partAudios[currentPartIndex]?.startScene}-{partAudios[currentPartIndex]?.endScene}
+                    </div>
+                  </div>
+                </div>
+                {isPlaying && (
+                  <div className="flex items-center gap-1">
+                    <div className="w-1 h-3 bg-blue-500 rounded-full animate-pulse" />
+                    <div className="w-1 h-4 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: "0.1s"}} />
+                    <div className="w-1 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: "0.2s"}} />
+                  </div>
+                )}
+              </div>
+            )}
+            
             {/* Audio Progress Bar (clickable to seek) */}
             {hasAudio && (
               <div className="mb-3">
