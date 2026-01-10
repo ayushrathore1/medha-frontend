@@ -238,18 +238,18 @@ const Updates = () => {
                 <FaUsers className="text-2xl text-purple-500" />
                 <div>
                   <h3 className="text-lg font-bold text-purple-400">
-                    Team Dashboard
+                    Team Access
                   </h3>
                   <p className="text-sm text-purple-300/70">
-                    Manage content and view user statistics
+                    Manage content, emails, messages & view statistics
                   </p>
                 </div>
               </div>
               <button
-                onClick={() => navigate("/team-dashboard")}
+                onClick={() => navigate("/admin")}
                 className="px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 transition-all flex items-center gap-2"
               >
-                Open Team Dashboard <FaArrowRight />
+                Open Dashboard <FaArrowRight />
               </button>
             </div>
           </div>
