@@ -43,14 +43,13 @@ const CinematicIntro = ({ title, onComplete }) => {
            initial={{ scale: 0.8, opacity: 0 }}
            animate={{ scale: stage >= 1 ? 1 : 0.8, opacity: stage >= 1 ? 1 : 0 }}
            transition={{ duration: 0.8, ease: "easeOut" }}
-           className="mb-4 relative overflow-hidden"
+           className="mb-4 relative overflow-hidden landscape:h-[120px]"
            style={{ height: '180px' }}
         >
            <img 
              src="https://ik.imagekit.io/ayushrathore1/MEDHA%20Revision%20Logo%20(5)/4.svg?updatedAt=1767677218648"
              alt="Medha Logo"
-             className="w-[512px] h-[512px] drop-shadow-[0_0_60px_rgba(59,130,246,0.5)]"
-             style={{ marginTop: '-166px' }}
+             className="w-[512px] h-[512px] drop-shadow-[0_0_60px_rgba(59,130,246,0.5)] landscape:w-[300px] landscape:h-[300px] -mt-[166px] landscape:-mt-[90px]"
            />
         </motion.div>
 
@@ -73,7 +72,7 @@ const CinematicIntro = ({ title, onComplete }) => {
                initial={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                transition={{ duration: 0.8, ease: "easeOut" }}
-               className="text-5xl md:text-7xl font-bold tracking-tight leading-none"
+               className="text-5xl md:text-7xl landscape:text-4xl font-bold tracking-tight leading-none"
                style={{
                  background: 'linear-gradient(to bottom, #ffffff, #9ca3af)',
                  WebkitBackgroundClip: 'text',

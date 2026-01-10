@@ -110,7 +110,55 @@ const MedhaAnimationViewer = ({
     setAudioEnglishUrl(initialAudioEnglish);
   }, [initialAudioHindi, initialAudioEnglish]);
 
-  // Fetch audio URLs and transcript from backend if not provided via props (happens on refresh)
+
+  // Orientation Enforcement Logic
+  const [isPortrait, setIsPortrait] = useState(false);
+  const [showRotationPrompt, setShowRotationPrompt] = useState(false);
+
+  useEffect(() => {
+    const checkOrientation = () => {
+      // Check if mobile device (width < 768px) and in portrait
+      const isMobile = window.innerWidth < 768;
+      const isPortraitMode = window.innerHeight > window.innerWidth;
+      
+      if (isMobile && isPortraitMode) {
+        setIsPortrait(true);
+        setShowRotationPrompt(true);
+      } else {
+        setIsPortrait(false);
+        setShowRotationPrompt(false);
+      }
+    };
+
+    // Initial check
+    checkOrientation();
+
+    // Listen for resize/orientation change
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+
+    // Try to lock orientation to landscape on mount (if supported)
+    const lockOrientation = async () => {
+      if (document.documentElement.requestFullscreen) {
+        try {
+          // Some browsers require full screen before locking
+          // We won't force full screen here to avoid jarring UX without user interaction
+          // But if already full screen, we try to lock
+          if (document.fullscreenElement && screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock("landscape");
+          }
+        } catch (e) {
+          console.log("Orientation lock failed/not supported", e);
+        }
+      }
+    };
+    lockOrientation();
+
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
   const [audioTranscript, setAudioTranscript] = useState(null); // Saved transcript for sync
   const [manualTimings, setManualTimings] = useState(null); // Saved manual timings for precision sync
 
@@ -537,6 +585,58 @@ const MedhaAnimationViewer = ({
     [goToStep, currentStep]
   );
 
+  // Seek Handler
+  const handleSeek = useCallback((seconds) => {
+    if (audioRef.current) {
+       const newTime = Math.min(Math.max(audioRef.current.currentTime + seconds, 0), audioRef.current.duration || 100);
+       audioRef.current.currentTime = newTime;
+       setAudioCurrentTime(newTime);
+    }
+  }, []);
+
+  // 👆 Mobile Double Tap Logic
+  const lastTapRef = useRef(0);
+  const [doubleTapFeedback, setDoubleTapFeedback] = useState(null); // 'left' | 'right'
+
+  const handleMobileTap = (e) => {
+    // Only on mobile/touch (or if we want to support click double tap too)
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    
+    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      // Double tap detected!
+      const screenWidth = window.innerWidth;
+      // Handle both touch and mouse events
+      const clientX = e.type.includes('touch') 
+        ? (e.touches && e.touches[0] ? e.touches[0].clientX : e.changedTouches[0].clientX)
+        : e.clientX;
+      
+      if (clientX < screenWidth * 0.35) {
+        // Left side -> Rewind
+        if (hasAudio) {
+          handleSeek(-10);
+          setDoubleTapFeedback('left');
+          setTimeout(() => setDoubleTapFeedback(null), 600);
+        }
+      } else if (clientX > screenWidth * 0.65) {
+        // Right side -> Forward
+        if (hasAudio) {
+           handleSeek(10);
+           setDoubleTapFeedback('right');
+           setTimeout(() => setDoubleTapFeedback(null), 600);
+        }
+      } else {
+         // Center double tap - maybe toggle play/pause or fullscreen?
+         // For now let single click handler deal with center
+      }
+      lastTapRef.current = 0; // Reset to prevent triple tap triggering twice
+    } else {
+      lastTapRef.current = now;
+      // If we need to distinguish single vs double, we'd need a timer here, 
+      // but simpler is to let single tap fire immediately for play/pause.
+    }
+  };
+
   // Keyboard Controls (Moved here to avoid hoisting issues with handleNext/Prev)
   useEffect(() => {
     if (!isOpen || showIntro || showAudioSyncTool) return; // Disable controls during intro or when sync tool is open
@@ -546,6 +646,20 @@ const MedhaAnimationViewer = ({
       if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
 
       switch (e.key) {
+        case "J": 
+        case "j":
+          e.preventDefault();
+          if (hasAudio && audioRef.current) {
+             handleSeek(-10);
+          }
+          break;
+        case "L":
+        case "l":
+          e.preventDefault();
+          if (hasAudio && audioRef.current) {
+             handleSeek(10);
+          }
+          break;
         case "ArrowRight":
           e.preventDefault();
           setHasUsedArrowKeys(true);
@@ -571,24 +685,7 @@ const MedhaAnimationViewer = ({
             setIsPlaying((prev) => !prev);
           }
           break;
-        case "j":
-        case "J":
-          e.preventDefault();
-          if (audioRef.current) {
-             const newTime = Math.max(0, audioRef.current.currentTime - 10);
-             audioRef.current.currentTime = newTime;
-             setAudioCurrentTime(newTime);
-          }
-          break;
-        case "l":
-        case "L":
-          e.preventDefault();
-          if (audioRef.current) {
-             const newTime = Math.min(audioDuration, audioRef.current.currentTime + 10);
-             audioRef.current.currentTime = newTime;
-             setAudioCurrentTime(newTime);
-          }
-          break;
+        // J/L seek logic handled above with handleSeek
         case "ArrowUp":
           e.preventDefault();
           // Increase slide duration (slower)
@@ -1058,7 +1155,7 @@ const MedhaAnimationViewer = ({
       style={{ 
         background: APPLE_THEME.bg, 
         color: APPLE_THEME.textSec,
-        cursor: showIntro ? 'none' : (cursorVisible ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'8\' fill=\'%230A84FF\' fill-opacity=\'0.3\'/%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'4\' fill=\'%230A84FF\'/%3E%3C/svg%3E") 12 12, crosshair' : 'none')
+        cursor: showIntro ? 'none' : 'auto'
       }}
       onMouseMove={() => {
         if (showIntro) return;
@@ -1076,6 +1173,58 @@ const MedhaAnimationViewer = ({
             title={title}
             onComplete={() => setShowIntro(false)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* ROTATION PROMPT OVERLAY */}
+      <AnimatePresence>
+        {showRotationPrompt && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100001] bg-black flex flex-col items-center justify-center p-8 text-center"
+          >
+            <motion.div
+              animate={{ rotate: 90 }}
+              transition={{ 
+                duration: 1.5, 
+                repeat: Infinity, 
+                repeatDelay: 1,
+                ease: "easeInOut" 
+              }}
+              className="mb-8 text-blue-500"
+            >
+              <FaMobileAlt size={64} />
+            </motion.div>
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Please Rotate Your Device
+            </h2>
+            <p className="text-gray-400 mb-8 max-w-xs">
+              For the best cinematic experience, please view this animation in landscape mode.
+            </p>
+            <button
+              onClick={() => {
+                // Attempt to force landscape via fullscreen API on user click
+                if (document.documentElement.requestFullscreen) {
+                  document.documentElement.requestFullscreen().then(() => {
+                     if (screen.orientation && screen.orientation.lock) {
+                       screen.orientation.lock("landscape").catch(console.error);
+                     }
+                  }).catch(console.error);
+                }
+              }}
+              className="px-6 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg shadow-blue-500/30 animate-pulse"
+            >
+              Rotate to Landscape
+            </button>
+            <button 
+              onClick={() => setShowRotationPrompt(false)}
+              className="mt-6 text-gray-600 text-sm hover:text-gray-400 transition-colors"
+            >
+              Continue in Portrait (Not Recommended)
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -1313,7 +1462,7 @@ const MedhaAnimationViewer = ({
       </AnimatePresence>
 
       {/* 🍎 TOP BAR (Transparent, Glassy) */}
-      <header className="h-14 flex items-center justify-between px-6 border-b border-white/5 bg-black/50 backdrop-blur-md z-20">
+      <header className="h-14 landscape:h-10 flex items-center justify-between px-6 landscape:px-4 border-b border-white/5 bg-black/50 backdrop-blur-md z-20 transition-all duration-300">
         <div className="flex items-center gap-4">
           <button
             onClick={onClose}
@@ -1322,7 +1471,7 @@ const MedhaAnimationViewer = ({
             <FaTimes />
           </button>
           
-          {/* Share Button (New) */}
+          {/* Share Button (New) - Hide on mobile landscape */}
           <button
             onClick={async () => {
               // Always use production URL for sharing
@@ -1336,15 +1485,15 @@ const MedhaAnimationViewer = ({
                 console.error("Failed to copy link", err);
               }
             }}
-            className="p-2 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400 rounded-full transition-colors"
+            className="p-2 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400 rounded-full transition-colors landscape:hidden md:landscape:block"
             title="Share this scene"
           >
             <FaShare />
           </button>
           
-          {/* View Count (New) */}
+          {/* View Count (New) - Hide on mobile landscape */}
           {initialViews > 0 && (
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5 landscape:hidden md:landscape:flex">
               <FaEye className="text-gray-400" size={12} />
               <span className="text-xs font-semibold text-gray-300">
                 {initialViews > 1000 ? `${(initialViews / 1000).toFixed(1)}k` : initialViews}
@@ -1675,14 +1824,14 @@ const MedhaAnimationViewer = ({
       {/* 🍎 MAIN LAYOUT */}
       <div className="flex-1 flex overflow-hidden">
         {/* ... Sidebar and Stage Implementation (Keep Existing Logic, mainly just added keyboard listener context to stage) ... */}
-        {/* SIDEBAR (Navigator) */}
+        {/* SIDEBAR (Navigator) - Optimized Overlay for Landscape */}
         <AnimatePresence initial={false}>
           {showSidebar && (
             <motion.aside
               initial={{ width: 0, opacity: 0 }}
               animate={{ width: 280, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              className="border-r border-white/5 bg-[#000000] flex flex-col"
+              className="border-r border-white/5 bg-[#000000]/95 backdrop-blur-xl flex flex-col absolute inset-y-0 left-0 z-30 landscape:static md:landscape:static h-full"
             >
               <div className="p-4 border-b border-white/5 flex items-center justify-between">
                 <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
@@ -1817,8 +1966,54 @@ const MedhaAnimationViewer = ({
 
           <div
             className="flex-1 overflow-hidden relative"
-            onClick={() => (hasAudio ? setIsPlaying(!isPlaying) : handleNext())}
+            onClick={(e) => {
+              // Handle Double Tap Logic inside Click
+              handleMobileTap(e);
+              // Fallback single click logic (if not double tap handled?)
+              // Actually we want single click to toggle play, but double tap to seek.
+              // A simple way: execute single click logic directly. Double tap will just seek ON TOP of it (might pause briefly then seek). 
+              // Perfect YouTube behavior is slightly delayed single click, but immediate response is snappier.
+              // Let's just run play/pause for now. 
+               
+              // Check if it's a center tap or we want to allow play/pause always
+              if (hasAudio) {
+                 // Debouncing play/pause might be needed if we want strict YouTube styling, but for now simple:
+                 setIsPlaying(!isPlaying);
+              } else {
+                 handleNext();
+              }
+            }}
+            onTouchEnd={(e) => {
+               // Also handle touch end for taps to be responsive
+               // handleMobileTap(e); // Removing this duplicate call as onClick handles mostly everything, 
+               // but for strict mobile we might use onTouchStart/End.
+               // Let's stick to onClick for simplicity as it covers both pointer types usually.
+            }}
           >
+            {/* Double Tap Feedback Overlay */}
+            <AnimatePresence>
+              {doubleTapFeedback && (
+                 <motion.div
+                   initial={{ opacity: 0 }}
+                   animate={{ opacity: 1 }}
+                   exit={{ opacity: 0 }}
+                   className={`absolute inset-y-0 w-1/3 flex items-center justify-center pointer-events-none z-50 bg-white/10 ${doubleTapFeedback === 'left' ? 'left-0 rounded-r-[50%]' : 'right-0 rounded-l-[50%]'}`}
+                 >
+                   <div className="flex flex-col items-center justify-center text-white drop-shadow-md">
+                     <motion.div
+                       initial={{ scale: 0.5, opacity: 0 }}
+                       animate={{ 
+                         scale: [0.8, 1.2, 1], 
+                         opacity: [0, 1, 0] 
+                       }}
+                       transition={{ duration: 0.6 }}
+                     >
+                       <span className="text-4xl font-bold">{doubleTapFeedback === 'left' ? '« 10s' : '10s »'}</span>
+                     </motion.div>
+                   </div>
+                 </motion.div>
+              )}
+            </AnimatePresence>
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
