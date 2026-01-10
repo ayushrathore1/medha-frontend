@@ -126,7 +126,7 @@ const VisualizeConcepts = () => {
               opacity: [0.3, 0.5, 0.3],
             }}
             transition={{ duration: 10, repeat: Infinity }}
-            className="absolute top-[-20%] left-[20%] w-[600px] h-[600px] bg-blue-600/20 blur-[120px] rounded-full mix-blend-screen"
+            className="absolute top-[-20%] left-[20%] w-[600px] h-[600px] bg-amber-600/20 blur-[120px] rounded-full mix-blend-screen"
           />
           <motion.div
             animate={{
@@ -134,7 +134,7 @@ const VisualizeConcepts = () => {
               opacity: [0.2, 0.4, 0.2],
             }}
             transition={{ duration: 15, repeat: Infinity, delay: 2 }}
-            className="absolute bottom-[-20%] right-[20%] w-[500px] h-[500px] bg-purple-600/20 blur-[120px] rounded-full mix-blend-screen"
+            className="absolute bottom-[-20%] right-[20%] w-[500px] h-[500px] bg-yellow-600/20 blur-[120px] rounded-full mix-blend-screen"
           />
         </div>
 
@@ -144,23 +144,31 @@ const VisualizeConcepts = () => {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="relative z-10 text-center max-w-5xl"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md mb-8">
-            <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6]"></span>
-            <span className="text-xs font-semibold tracking-wide text-white uppercase">
-              Medha Animation Engine 2.0
+          <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full border border-amber-500/20 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 backdrop-blur-md mb-8">
+            <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_12px_#f59e0b]"></span>
+            <span className="text-xs font-bold tracking-[0.2em] text-amber-300 uppercase">
+              Medha Experiences
             </span>
           </div>
 
-          <h1 className="text-6xl md:text-8xl font-bold tracking-tight mb-8 text-white leading-[0.9] text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400">
-            See the code
+          <h1 
+            className="text-6xl md:text-8xl font-black tracking-tight mb-8 leading-[0.95]"
+            style={{
+              background: 'linear-gradient(to bottom, #ffffff, #a1a1aa)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            Experience Learning.
             <br />
-            come to life.
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300">Differently.</span>
           </h1>
 
-          <p className="text-2xl text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed">
-            Zero-cost abstractions, visualized.
+          <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed">
+            Immersive animated journeys through complex concepts.
             <br />
-            <span className="text-blue-500">Master C++ like never before.</span>
+            <span className="text-amber-400">Watch. Understand. Master.</span>
           </p>
         </motion.div>
       </section>
@@ -180,78 +188,104 @@ const VisualizeConcepts = () => {
               className="group cursor-pointer"
             >
               <div
-                className="relative h-full overflow-hidden rounded-[32px] bg-[#1c1c1e] transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/10"
+                className="relative h-full overflow-hidden rounded-[32px] bg-[#1c1c1e] transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-amber-500/10"
                 style={{
                   border: "1px solid rgba(255,255,255,0.05)",
                 }}
               >
-                {/* Card Preview Image Area */}
-                <div className="h-64 relative bg-[#000] flex items-center justify-center overflow-hidden">
-                  {/* Abstract Grid */}
+                {/* Card Preview Image Area - Redesigned with Topic Name */}
+                <div className="h-72 relative bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] flex flex-col items-center justify-center overflow-hidden">
+                  {/* Subtle Grid Pattern */}
                   <div
-                    className="absolute inset-0 opacity-20"
+                    className="absolute inset-0 opacity-10"
                     style={{
                       backgroundImage:
-                        "radial-gradient(circle, #333 1px, transparent 1px)",
-                      backgroundSize: "24px 24px",
+                        "linear-gradient(rgba(245,158,11,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.1) 1px, transparent 1px)",
+                      backgroundSize: "40px 40px",
                     }}
                   />
+                  
+                  {/* Golden Glow Background */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-amber-500/5 via-transparent to-transparent" />
 
-                  {/* Glowing Icon */}
-                  <motion.div
+                  {/* Topic Title with Golden Shine - Hides on hover */}
+                  <motion.h2
                     animate={{
-                      scale: hoveredCard === animation.id ? 1.1 : 1,
-                      filter:
-                        hoveredCard === animation.id
-                          ? "drop-shadow(0 0 30px rgba(10,132,255,0.6))"
-                          : "none",
+                      opacity: hoveredCard === animation.id ? 0 : 1,
+                      scale: hoveredCard === animation.id ? 0.95 : 1,
+                      textShadow: "0 0 20px rgba(245,158,11,0.3)"
                     }}
-                    className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white shadow-xl z-10"
+                    transition={{ duration: 0.2 }}
+                    className="text-3xl md:text-4xl font-black text-center px-6 leading-tight z-10"
+                    style={{
+                      background: 'linear-gradient(135deg, #fcd34d, #f59e0b, #fbbf24)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    }}
                   >
-                    <FaCode size={32} />
+                    {animation.title}
+                  </motion.h2>
+
+                  {/* Scenes Badge - Hides on hover */}
+                  <motion.div 
+                    animate={{ opacity: hoveredCard === animation.id ? 0 : 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="mt-4 px-4 py-1.5 bg-white/5 border border-amber-500/20 rounded-full z-10"
+                  >
+                    <span className="text-xs font-bold text-amber-300 tracking-wider">
+                      {animation.totalSteps} SCENES
+                    </span>
                   </motion.div>
 
-                  {/* Play Button Overlay */}
+                  {/* Play Button Overlay with Golden Shine */}
                   <div
-                    className={`absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center transition-opacity duration-300 ${hoveredCard === animation.id ? "opacity-100" : "opacity-0"}`}
+                    className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-300 ${hoveredCard === animation.id ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+                    style={{
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.85), rgba(0,0,0,0.8))',
+                    }}
                   >
-                    <div className="px-6 py-3 bg-white text-black rounded-full font-bold flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                      <FaPlay size={12} /> Watch Layout
+                    {/* Golden shine particles */}
+                    <div className="absolute inset-0 overflow-hidden">
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-amber-500/20 blur-[80px] rounded-full" />
                     </div>
+                    
+                    <motion.div 
+                      initial={{ scale: 0.8, y: 20 }}
+                      animate={{ scale: hoveredCard === animation.id ? 1 : 0.8, y: hoveredCard === animation.id ? 0 : 20 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="relative z-10 px-10 py-5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 text-amber-950 rounded-full font-bold text-lg flex items-center gap-3 shadow-2xl"
+                      style={{
+                        boxShadow: '0 0 60px rgba(245,158,11,0.5), 0 20px 40px rgba(0,0,0,0.3)'
+                      }}
+                    >
+                      <FaPlay size={16} /> Start Experience
+                    </motion.div>
                   </div>
                 </div>
 
                 {/* Card Content */}
-                <div className="p-8">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-blue-500 text-xs font-bold uppercase tracking-wider">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-amber-400 text-xs font-bold uppercase tracking-wider">
                       {animation.subject}
                     </span>
-                    <div className="flex items-center gap-3">
-                      {animation.views > 0 && (
-                        <span className="text-[10px] font-bold text-gray-400 flex items-center gap-1">
-                          <FaEye /> {animation.views > 1000 ? `${(animation.views / 1000).toFixed(1)}k` : animation.views}
-                        </span>
-                      )}
-                      <span className="text-xs font-bold text-gray-500 border border-white/10 px-2 py-1 rounded-md">
-                        {animation.totalSteps} SCENES
+                    {animation.views > 0 && (
+                      <span className="text-[10px] font-bold text-gray-500 flex items-center gap-1">
+                        <FaEye /> {animation.views > 1000 ? `${(animation.views / 1000).toFixed(1)}k` : animation.views} views
                       </span>
-                    </div>
+                    )}
                   </div>
 
-                  <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">
-                    {animation.title}
-                  </h3>
-
-                  <p className="text-gray-400 leading-relaxed text-sm font-medium">
+                  <p className="text-gray-400 leading-relaxed text-sm font-medium line-clamp-2">
                     {animation.description}
                   </p>
 
-                  <div className="mt-8 flex items-center gap-2 text-sm font-semibold text-white group-hover:translate-x-1 transition-transform">
-                    Start Learning{" "}
+                  <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-amber-400 group-hover:text-amber-300 group-hover:translate-x-1 transition-all">
+                    Begin Experience{" "}
                     <FaArrowRight
                       size={12}
-                      className="text-gray-500 group-hover:text-white transition-colors"
+                      className="transition-transform group-hover:translate-x-1"
                     />
                   </div>
                 </div>

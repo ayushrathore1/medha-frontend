@@ -301,17 +301,20 @@ const RTUExams = () => {
                  <FaGraduationCap size={14} />
                  Learn
                </button>
-               <button
-                 onClick={() => setActiveTab('visualize')}
-                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
-                   activeTab === 'visualize'
-                     ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
-                     : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
-                 }`}
-               >
-                 <FaWandMagicSparkles size={14} />
-                 Visualize
-               </button>
+                <button
+                  onClick={() => setActiveTab('visualize')}
+                  className={`relative flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
+                    activeTab === 'visualize'
+                      ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-lg'
+                      : 'bg-gradient-to-r from-amber-500/10 to-yellow-500/10 text-amber-400 border border-amber-500/30 hover:border-amber-500/50 hover:from-amber-500/20 hover:to-yellow-500/20'
+                  }`}
+                >
+                  <FaWandMagicSparkles size={14} />
+                  <span>Visualize</span>
+                  {activeTab !== 'visualize' && (
+                    <span className="ml-1 text-[10px] font-black text-amber-300 tracking-wider">✦ NEW</span>
+                  )}
+                </button>
              </div>
            )}
         </div>
