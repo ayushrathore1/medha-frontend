@@ -3,11 +3,13 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { 
   FaUser, FaMagnifyingGlass, FaArrowDownAZ, FaCalendarDays, FaSpinner, 
-  FaBook, FaLightbulb, FaCloudArrowUp
+  FaBook, FaLightbulb, FaCloudArrowUp, FaShieldHalved, FaPaperPlane, FaUsers, FaTrash
 } from "react-icons/fa6";
 import Card from "../components/Common/Card";
 import Loader from "../components/Common/Loader";
 import Button from "../components/Common/Button";
+import DeleteUserModal from "../components/Admin/DeleteUserModal";
+import InviteTeamModal from "../components/Admin/InviteTeamModal";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -21,6 +23,14 @@ const TeamDashboard = () => {
   const [userSearch, setUserSearch] = useState("");
   const [userSort, setUserSort] = useState("newest");
   const [universityFilter, setUniversityFilter] = useState("");
+
+  // Team & User Management State
+  const [deleteModalUser, setDeleteModalUser] = useState(null); // { id, name, email }
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [resettingPassword, setResettingPassword] = useState(null);
 
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
@@ -74,6 +84,63 @@ const TeamDashboard = () => {
     return [...new Set(users.map(u => u.university).filter(Boolean))].sort();
   };
 
+  const initDeleteUser = (user) => {
+    setDeleteModalUser(user);
+    setDeleteConfirmation("");
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteModalUser) return;
+    if (deleteConfirmation !== "DELETE") {
+      alert("Please type DELETE to confirm.");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await axios.delete(`${BACKEND_URL}/api/admin/users/${deleteModalUser._id}`, { headers });
+      setUsers(users.filter(u => u._id !== deleteModalUser._id));
+      setDeleteModalUser(null);
+      alert("User deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert(error.response?.data?.message || "Failed to delete user.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleUpdateRole = async (userId, newRole) => {
+    if (!window.confirm(`Are you sure you want to change this user's role to ${newRole}?`)) return;
+    
+    try {
+      await axios.put(`${BACKEND_URL}/api/admin/users/${userId}/role`, { role: newRole }, { headers });
+      
+      // Update local state
+      setUsers(users.map(u => u._id === userId ? { ...u, role: newRole } : u));
+      
+      alert(`Role updated to ${newRole}`);
+    } catch (error) {
+      console.error("Error updating role:", error);
+      alert(error.response?.data?.message || "Failed to update role.");
+    }
+  };
+
+  const handlePasswordReset = async (email, userName) => {
+    if (!window.confirm(`Send password reset link to ${userName} (${email})?`)) return;
+    
+    setResettingPassword(email);
+    try {
+      const res = await axios.post(`${BACKEND_URL}/api/auth/admin/trigger-reset`, { email }, { headers });
+      alert(`✅ ${res.data.message}`);
+    } catch (error) {
+      console.error("Error sending reset:", error);
+      alert(`❌ Failed: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setResettingPassword(null);
+    }
+  };
+
   if (loading) return <Loader fullScreen />;
 
   return (
@@ -82,6 +149,26 @@ const TeamDashboard = () => {
       style={{ backgroundColor: "var(--bg-primary)" }}
     >
       <div className="max-w-7xl mx-auto">
+        <InviteTeamModal 
+          isOpen={inviteModalOpen} 
+          onClose={() => {
+            setInviteModalOpen(false);
+            setInviteEmail(""); // Reset email on close
+          }} 
+          token={token}
+          initialEmail={inviteEmail}
+        />
+
+        <DeleteUserModal
+          isOpen={!!deleteModalUser}
+          onClose={() => setDeleteModalUser(null)}
+          onConfirm={handleDeleteUser}
+          userName={deleteModalUser?.name}
+          confirmText={deleteConfirmation}
+          setConfirmText={setDeleteConfirmation}
+          isDeleting={isDeleting}
+        />
+
         <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-purple-400 to-indigo-500 bg-clip-text text-transparent mb-2">
@@ -158,7 +245,7 @@ const TeamDashboard = () => {
               {getFilteredUsers().map(user => (
                 <div 
                   key={user._id}
-                  className="p-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] flex justify-between items-center"
+                  className="p-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] flex flex-wrap justify-between items-center gap-4"
                 >
                   <div>
                     <h3 className="font-bold text-[var(--text-primary)]">{user.name}</h3>
@@ -174,8 +261,41 @@ const TeamDashboard = () => {
                       )}
                     </div>
                   </div>
-                  <div className="text-right text-xs text-[var(--text-tertiary)]">
-                    Joined: {new Date(user.createdAt).toLocaleDateString()}
+                  
+                  <div className="flex items-center gap-2">
+                     <button
+                        onClick={() => handlePasswordReset(user.email, user.name)}
+                        disabled={resettingPassword === user.email}
+                        className="text-xs px-3 py-1.5 bg-[var(--color-warning-bg)]/20 hover:bg-[var(--color-warning-bg)]/30 text-[var(--color-warning-text)] rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
+                      >
+                        {resettingPassword === user.email ? <FaSpinner className="animate-spin" /> : "🔑"} Reset
+                      </button>
+
+                      <button
+                        onClick={() => {
+                           if (user.role === 'team') {
+                              handleUpdateRole(user._id, 'user');
+                           } else {
+                              setInviteEmail(user.email);
+                              setInviteModalOpen(true);
+                           }
+                        }}
+                        className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1 ${
+                          user.role === 'team' 
+                            ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' 
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {user.role === 'team' ? <FaShieldHalved /> : <FaPaperPlane className="text-[10px]" />}
+                        {user.role === 'team' ? 'Demote' : 'Invite Team'}
+                      </button>
+
+                      <button
+                        onClick={() => initDeleteUser(user)}
+                        className="text-xs px-3 py-1.5 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg font-medium transition-colors flex items-center gap-1"
+                      >
+                        <FaTrash /> Delete
+                      </button>
                   </div>
                 </div>
               ))}
