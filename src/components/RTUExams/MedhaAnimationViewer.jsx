@@ -24,6 +24,8 @@ import {
   FaArrowLeft,
   FaGlobe,
   FaMusic,
+  FaShare,
+  FaKeyboard,
 } from "react-icons/fa";
 import { getAnimation } from "./animations";
 import SlideNoteCard from "./animations/SlideNoteCard";
@@ -63,6 +65,9 @@ const MedhaAnimationViewer = ({
   audioEnglishUrl: initialAudioEnglish,
   isAdmin = false,
   isTeam = false,
+  initialViews = 0,
+  initialStep = 1,
+  partAudios: initialPartAudios = [],
 }) => {
   const containerRef = useRef(null);
   const audioRef = useRef(null);
@@ -77,7 +82,7 @@ const MedhaAnimationViewer = ({
   const totalSteps = normalizedSteps.length;
 
   // State
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(initialStep);
   const [editMode, setEditMode] = useState(false);
   const [showNoteCard, setShowNoteCard] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
@@ -163,6 +168,7 @@ const MedhaAnimationViewer = ({
   const [showAudioHint, setShowAudioHint] = useState(false);
   const [showNavigationHint, setShowNavigationHint] = useState(false);
   const [hasUsedArrowKeys, setHasUsedArrowKeys] = useState(false);
+  const [showControlsHelp, setShowControlsHelp] = useState(false);
 
   // Auto-play state (Video-like experience)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
@@ -178,7 +184,7 @@ const MedhaAnimationViewer = ({
   const [audioSyncMode, setAudioSyncMode] = useState(false); // When true, audio drives slides
 
   // Multi-part audio state (for animations with separate audio per section)
-  const [partAudios, setPartAudios] = useState([]); // Array of per-part audio data from backend
+  const [partAudios, setPartAudios] = useState(initialPartAudios); // Array of per-part audio data from backend
   const [animationParts, setAnimationParts] = useState([]); // Part definitions from animation component
   const [currentPartIndex, setCurrentPartIndex] = useState(0); // Which part is currently active
   const [showPartBreak, setShowPartBreak] = useState(false); // Show break screen between parts
@@ -233,6 +239,21 @@ const MedhaAnimationViewer = ({
   // Detect part changes when step changes (after initial load)
   const prevStepRef = useRef(currentStep);
   useEffect(() => {
+    // URL Deep Linking: Update browser URL without reloading
+    if (window.location.pathname.includes('/visualize/')) {
+      const url = new URL(window.location);
+      const pathParts = url.pathname.split('/');
+      // Path format: /visualize/:animationId/:step
+      // If step param exists, replace it, otherwise append it
+      if (pathParts.length >= 4) {
+        pathParts[3] = currentStep.toString();
+      } else {
+        pathParts.push(currentStep.toString());
+      }
+      const newPath = pathParts.join('/');
+      window.history.replaceState(null, '', newPath);
+    }
+
     if (!hasMultiPartAudio) return;
     if (prevStepRef.current === currentStep) return; // Skip if step hasn't changed
     
@@ -258,102 +279,7 @@ const MedhaAnimationViewer = ({
   }, [currentStep, hasMultiPartAudio, getCurrentPartFromStep]);
 
   // Keyboard Controls
-  useEffect(() => {
-    if (!isOpen || showIntro || showAudioSyncTool) return; // Disable controls during intro or when sync tool is open
 
-    const handleKeyDown = (e) => {
-      // Ignore if typing in an input
-      if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
-
-      switch (e.key) {
-        case "ArrowRight":
-          e.preventDefault();
-          setHasUsedArrowKeys(true);
-          setShowNavigationHint(false);
-          handleNext();
-          break;
-        case " ":
-          e.preventDefault();
-          // Space toggles Global Audio (Play/Pause)
-          if (hasAudio) {
-            setIsPlaying((prev) => !prev);
-          }
-          break;
-        case "j":
-        case "J":
-          e.preventDefault();
-          if (audioRef.current) audioRef.current.currentTime -= 10;
-          break;
-        case "k":
-        case "K":
-          e.preventDefault();
-          if (audioRef.current) audioRef.current.currentTime += 10;
-          break;
-        case "ArrowLeft":
-          e.preventDefault();
-          setHasUsedArrowKeys(true);
-          setShowNavigationHint(false);
-          handlePrev();
-          break;
-        case "ArrowUp":
-          e.preventDefault();
-          // Increase slide duration (slower)
-          setSlideDuration((prev) => Math.min(prev + 2, 20));
-          break;
-        case "ArrowDown":
-          e.preventDefault();
-          // Decrease slide duration (faster)
-          setSlideDuration((prev) => Math.max(prev - 2, 4));
-          break;
-        case "Escape":
-          e.preventDefault();
-          // Close in order: part break > fullscreen note > main viewer
-          if (showPartBreak) {
-            setShowPartBreak(false);
-          } else if (showFullscreenNote) {
-            setShowFullscreenNote(false);
-          } else {
-            setIsAutoPlaying(false); // Stop auto-play on close
-            onClose();
-          }
-          break;
-        case "f":
-        case "F":
-          e.preventDefault();
-          if (document.fullscreenElement) document.exitFullscreen();
-          else document.documentElement.requestFullscreen();
-          break;
-        case "m":
-        case "M":
-          e.preventDefault();
-          if (hasAudio) {
-            setAudioLang((prev) => (prev === "hindi" ? "english" : "hindi"));
-          }
-          break;
-        case "a":
-        case "A":
-          e.preventDefault();
-          // Toggle global audio if available
-          if (hasAudio) {
-            setIsPlaying((prev) => !prev);
-          }
-          break;
-        default:
-          break;
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    isOpen,
-    showIntro,
-    showAudioSyncTool,
-    currentStep,
-    totalSteps,
-    hasAudio,
-    showFullscreenNote,
-  ]);
 
   // Content ID state for when we auto-create content
   const [localContentId, setLocalContentId] = useState(contentId);
@@ -608,6 +534,125 @@ const MedhaAnimationViewer = ({
     () => goToStep(currentStep > 1 ? currentStep - 1 : currentStep),
     [goToStep, currentStep]
   );
+
+  // Keyboard Controls (Moved here to avoid hoisting issues with handleNext/Prev)
+  useEffect(() => {
+    if (!isOpen || showIntro || showAudioSyncTool) return; // Disable controls during intro or when sync tool is open
+
+    const handleKeyDown = (e) => {
+      // Ignore if typing in an input
+      if (["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
+
+      switch (e.key) {
+        case "ArrowRight":
+          e.preventDefault();
+          setHasUsedArrowKeys(true);
+          setShowNavigationHint(false);
+          handleNext();
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          setHasUsedArrowKeys(true);
+          setShowNavigationHint(false);
+          handlePrev();
+          break;
+        case "Tab":
+          e.preventDefault();
+          setShowControlsHelp((prev) => !prev);
+          break;
+        case " ":
+        case "k": 
+        case "K":
+          e.preventDefault();
+          // Space/K toggles Global Audio (Play/Pause) - Standard YouTube style
+          if (hasAudio) {
+            setIsPlaying((prev) => !prev);
+          }
+          break;
+        case "j":
+        case "J":
+          e.preventDefault();
+          if (audioRef.current) {
+             const newTime = Math.max(0, audioRef.current.currentTime - 10);
+             audioRef.current.currentTime = newTime;
+             setAudioCurrentTime(newTime);
+          }
+          break;
+        case "l":
+        case "L":
+          e.preventDefault();
+          if (audioRef.current) {
+             const newTime = Math.min(audioDuration, audioRef.current.currentTime + 10);
+             audioRef.current.currentTime = newTime;
+             setAudioCurrentTime(newTime);
+          }
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          // Increase slide duration (slower)
+          setSlideDuration((prev) => Math.min(prev + 2, 20));
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          // Decrease slide duration (faster)
+          setSlideDuration((prev) => Math.max(prev - 2, 4));
+          break;
+        case "Escape":
+          e.preventDefault();
+          // Close in order: help > part break > fullscreen note > main viewer
+          if (showControlsHelp) {
+            setShowControlsHelp(false);
+          } else if (showPartBreak) {
+            setShowPartBreak(false);
+          } else if (showFullscreenNote) {
+            setShowFullscreenNote(false);
+          } else {
+            setIsAutoPlaying(false); // Stop auto-play on close
+            onClose();
+          }
+          break;
+        case "f":
+        case "F":
+          e.preventDefault();
+          if (document.fullscreenElement) document.exitFullscreen();
+          else document.documentElement.requestFullscreen();
+          break;
+        case "m":
+        case "M":
+          e.preventDefault();
+          if (hasAudio) {
+            setAudioLang((prev) => (prev === "hindi" ? "english" : "hindi"));
+          }
+          break;
+        case "a":
+        case "A":
+          e.preventDefault();
+          // Toggle global audio if available
+          if (hasAudio) {
+            setIsPlaying((prev) => !prev);
+          }
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    isOpen,
+    showIntro,
+    showAudioSyncTool,
+    currentStep,
+    totalSteps,
+    hasAudio,
+    showFullscreenNote,
+    showControlsHelp,
+    showPartBreak,
+    handleNext,
+    handlePrev,
+    audioDuration
+  ]);
 
   // Auto-play logic - Video-like experience
   // DISABLED when audioSyncMode is on (audio drives slides instead)
@@ -1087,6 +1132,79 @@ const MedhaAnimationViewer = ({
         )}
       </AnimatePresence>
 
+      {/* KEYBOARD CONTROLS HELP (Tab) */}
+      <AnimatePresence>
+        {showControlsHelp && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowControlsHelp(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-[#1c1c1e] border border-white/10 rounded-2xl p-8 max-w-lg w-full shadow-2xl relative overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+              
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center border border-purple-500/20">
+                    <FaKeyboard className="text-purple-400" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white tracking-tight">Keyboard Controls</h3>
+                    <p className="text-gray-400 text-sm">Master your learning flow</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowControlsHelp(false)}
+                  className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+                >
+                  <FaTimes size={20} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { keys: ["J"], label: "Rewind 10s", icon: "↺" },
+                  { keys: ["L"], label: "Forward 10s", icon: "↻" },
+                  { keys: ["Space", "K"], label: "Play / Pause", icon: "⏯" },
+                  { keys: ["←", "→"], label: "Prev / Next Slide", icon: "↔" },
+                  { keys: ["Tab"], label: "Toggle Controls", icon: "⌨" },
+                  { keys: ["M"], label: "Switch Language", icon: "🌐" },
+                  { keys: ["F"], label: "Toggle Fullscreen", icon: "⛶" },
+                  { keys: ["Esc"], label: "Close Viewer", icon: "✕" },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
+                    <div className="flex items-center gap-2">
+                       <span className="text-gray-500 text-xs">{item.icon}</span>
+                       <span className="text-gray-300 text-sm font-medium">{item.label}</span>
+                    </div>
+                    <div className="flex gap-1">
+                      {item.keys.map((k, j) => (
+                        <kbd key={j} className="px-2 py-1 bg-black/40 rounded-md text-xs font-mono text-gray-400 border border-white/10 min-w-[24px] text-center">
+                          {k}
+                        </kbd>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-6 text-center text-xs text-gray-500">
+                Press <kbd className="bg-white/10 px-1 rounded text-gray-400">Tab</kbd> anytime to view this guide
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Part Break Screen Overlay */}
       <AnimatePresence>
         {showPartBreak && hasMultiPartAudio && partAudios[currentPartIndex] && (
@@ -1191,6 +1309,37 @@ const MedhaAnimationViewer = ({
           >
             <FaTimes />
           </button>
+          
+          {/* Share Button (New) */}
+          <button
+            onClick={async () => {
+              // Always use production URL for sharing
+              const baseUrl = "https://medha-revision.vercel.app";
+              const url = `${baseUrl}/visualize/${animationId}/${currentStep}`;
+              try {
+                await navigator.clipboard.writeText(url);
+                // Show toast (reusing audio hint structure logic for simplicity or adding new state)
+                alert("Link Copied! Share this animation with anyone."); 
+              } catch (err) {
+                console.error("Failed to copy link", err);
+              }
+            }}
+            className="p-2 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400 rounded-full transition-colors"
+            title="Share this scene"
+          >
+            <FaShare />
+          </button>
+          
+          {/* View Count (New) */}
+          {initialViews > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+              <FaEye className="text-gray-400" size={12} />
+              <span className="text-xs font-semibold text-gray-300">
+                {initialViews > 1000 ? `${(initialViews / 1000).toFixed(1)}k` : initialViews}
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span>
             <span className="text-white font-medium tracking-wide text-sm">

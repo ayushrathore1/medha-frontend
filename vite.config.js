@@ -16,7 +16,7 @@ export default defineConfig({
           'vendor-pdf': ['react-pdf'],
           'vendor-utils': ['date-fns', 'axios'],
           'vendor-auth': ['@clerk/clerk-react'],
-          // Icons (react-icons, lucide-react) removed - will be tree-shaken per-component
+          // Other libraries (swr, markdown, katex) left to auto-chunk to avoid circular deps
         },
       },
     },

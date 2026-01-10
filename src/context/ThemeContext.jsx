@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getOptimizedWallpaperUrl } from '../utils/imageUtils';
 
 const ThemeContext = createContext();
 
@@ -59,7 +60,9 @@ export const ThemeProvider = ({ children }) => {
     if (!appearance.bgImage || appearance.bgImage === 'none') {
       root.style.setProperty('--bg-image', 'none');
     } else {
-      root.style.setProperty('--bg-image', `url("${appearance.bgImage}")`);
+      // Optimize Cloudinary URLs for performance (WebP/AVIF, quality reduction)
+      const optimizedUrl = getOptimizedWallpaperUrl(appearance.bgImage);
+      root.style.setProperty('--bg-image', `url("${optimizedUrl}")`);
     }
 
     // Overlay

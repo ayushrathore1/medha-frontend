@@ -31,6 +31,7 @@ const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const TeamDashboard = React.lazy(() => import("./pages/TeamDashboard"));
 const JoinTeam = React.lazy(() => import("./pages/JoinTeam"));
 const PersonalizationSetup = React.lazy(() => import("./pages/PersonalizationSetup"));
+const VisualizationPage = React.lazy(() => import("./pages/VisualizationPage"));
 
 // Feature flag for Charcha (discussion forum)
 const CHARCHA_ENABLED = import.meta.env.VITE_ENABLE_CHARCHA === 'true';
@@ -96,6 +97,15 @@ const AppContent = () => {
                   element={
                     <PageTransition><RTUExams /></PageTransition>
                   }
+                />
+                {/* Shareable visualization URLs */}
+                <Route
+                  path="/visualize/:animationId"
+                  element={<VisualizationPage />}
+                />
+                <Route
+                  path="/visualize/:animationId/:step"
+                  element={<VisualizationPage />}
                 />
                 <Route
                   path="/dashboard"

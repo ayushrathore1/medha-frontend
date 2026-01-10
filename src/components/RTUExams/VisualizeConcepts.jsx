@@ -3,6 +3,7 @@
  * True Black. High Energy.
  */
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import {
@@ -12,6 +13,7 @@ import {
   FaLayerGroup,
   FaMicrochip,
   FaArrowRight,
+  FaEye,
 } from "react-icons/fa";
 import { getAllAnimations } from "./animations";
 import MedhaAnimationViewer from "./MedhaAnimationViewer";
@@ -28,6 +30,7 @@ const APPLE_THEME = {
 };
 
 const VisualizeConcepts = () => {
+  const navigate = useNavigate();
   const [animations, setAnimations] = useState([]);
   const [activeAnimation, setActiveAnimation] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -104,7 +107,8 @@ const VisualizeConcepts = () => {
   }, []);
 
   const handleAnimationClick = (animation) => {
-    setActiveAnimation(animation);
+    // Navigate to shareable URL - enables direct links and browser history
+    navigate(`/visualize/${animation.id}`);
   };
 
   return (
@@ -223,9 +227,16 @@ const VisualizeConcepts = () => {
                     <span className="text-blue-500 text-xs font-bold uppercase tracking-wider">
                       {animation.subject}
                     </span>
-                    <span className="text-xs font-bold text-gray-500 border border-white/10 px-2 py-1 rounded-md">
-                      {animation.totalSteps} SCENES
-                    </span>
+                    <div className="flex items-center gap-3">
+                      {animation.views > 0 && (
+                        <span className="text-[10px] font-bold text-gray-400 flex items-center gap-1">
+                          <FaEye /> {animation.views > 1000 ? `${(animation.views / 1000).toFixed(1)}k` : animation.views}
+                        </span>
+                      )}
+                      <span className="text-xs font-bold text-gray-500 border border-white/10 px-2 py-1 rounded-md">
+                        {animation.totalSteps} SCENES
+                      </span>
+                    </div>
                   </div>
 
                   <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">

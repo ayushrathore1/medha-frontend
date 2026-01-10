@@ -335,16 +335,19 @@
     }
     </script>
 
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&family=Lexend:wght@400;700;900&family=Nunito:wght@400;700&family=Orbitron:wght@400;500;700;900&family=Outfit:wght@300;400;500;600;700&family=Rajdhani:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="/src/style.css" rel="stylesheet">
-
-    <!-- Preconnect for Performance -->
+    <!-- Preconnect for Performance (MUST be before stylesheets) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://ik.imagekit.io">
+    <link rel="preconnect" href="https://ik.imagekit.io" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
     <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-    <link rel="dns-prefetch" href="https://ik.imagekit.io">
+    <link rel="dns-prefetch" href="https://res.cloudinary.com">
+
+    <!-- Fonts - Reduced to 4 essential families for performance -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"></noscript>
+    <link href="/src/style.css" rel="stylesheet">
   </head>
   <body>
     <div id="root"></div>
