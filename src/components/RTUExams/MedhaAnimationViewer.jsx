@@ -23,11 +23,23 @@ import {
   FaList,
   FaArrowLeft,
   FaGlobe,
+  FaMusic,
 } from "react-icons/fa";
 import { getAnimation } from "./animations";
 import SlideNoteCard from "./animations/SlideNoteCard";
 import CinematicIntro from "./animations/CinematicIntro";
-import VoiceChatbot from "./animations/VoiceChatbot";
+// Voice chatbot - kept for future use
+// import VoiceChatbot from "./animations/VoiceChatbot";
+// Text-based chatbot with full context awareness
+import AnimationTextChatbot from "./animations/AnimationTextChatbot";
+import AudioSyncTool from "./animations/AudioSyncTool";
+
+// Audio sync functions for Unit 5 animation
+import {
+  getSceneFromAudioTime,
+  getSceneAudioTime,
+  sections as audioSections,
+} from "./animations/Unit5OneShotAnimation";
 
 const APPLE_THEME = {
   bg: "#000000",
@@ -73,6 +85,7 @@ const MedhaAnimationViewer = ({
   const [showGlobalUpload, setShowGlobalUpload] = useState(false);
   const [showNotePanel, setShowNotePanel] = useState(true); // User can hide/show notes
   const [showFullscreenNote, setShowFullscreenNote] = useState(false); // Premium fullscreen view
+  const [showAudioSyncTool, setShowAudioSyncTool] = useState(false); // Admin audio sync tool
 
   const [slideData, setSlideData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -90,7 +103,10 @@ const MedhaAnimationViewer = ({
     setAudioEnglishUrl(initialAudioEnglish);
   }, [initialAudioHindi, initialAudioEnglish]);
 
-  // Fetch audio URLs from backend if not provided via props (happens on refresh)
+  // Fetch audio URLs and transcript from backend if not provided via props (happens on refresh)
+  const [audioTranscript, setAudioTranscript] = useState(null); // Saved transcript for sync
+  const [manualTimings, setManualTimings] = useState(null); // Saved manual timings for precision sync
+
   useEffect(() => {
     if (!isOpen || !animationId) return;
     // Skip if we already have audio URLs from props
@@ -110,6 +126,17 @@ const MedhaAnimationViewer = ({
           if (res.data.audioHindiUrl) setAudioHindiUrl(res.data.audioHindiUrl);
           if (res.data.audioEnglishUrl)
             setAudioEnglishUrl(res.data.audioEnglishUrl);
+          // Store transcript for sync
+          if (res.data.audioTranscript) {
+            setAudioTranscript(res.data.audioTranscript);
+            if (res.data.audioTranscript.duration) {
+              setAudioDuration(res.data.audioTranscript.duration);
+            }
+          }
+          // Store manual timings
+          if (res.data.manualSlideTimings && Object.keys(res.data.manualSlideTimings).length > 0) {
+            setManualTimings(res.data.manualSlideTimings);
+          }
         }
       } catch (error) {
         // Content may not exist yet, that's okay
@@ -125,6 +152,19 @@ const MedhaAnimationViewer = ({
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showAudioHint, setShowAudioHint] = useState(false);
 
+  // Auto-play state (Video-like experience)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [slideProgress, setSlideProgress] = useState(0);
+  const [slideDuration, setSlideDuration] = useState(12); // seconds per slide (slower default)
+  const [playbackSpeedMultiplier, setPlaybackSpeedMultiplier] = useState(1); // 0.5x, 1x, 1.5x, 2x
+  const autoPlayIntervalRef = useRef(null);
+  const progressIntervalRef = useRef(null);
+
+  // Audio Sync State
+  const [audioCurrentTime, setAudioCurrentTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(553); // 9:13 total
+  const [audioSyncMode, setAudioSyncMode] = useState(false); // When true, audio drives slides
+
   // Voice recording
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
@@ -137,7 +177,7 @@ const MedhaAnimationViewer = ({
 
   // Keyboard Controls
   useEffect(() => {
-    if (!isOpen || showIntro) return; // Disable controls during intro
+    if (!isOpen || showIntro || showAudioSyncTool) return; // Disable controls during intro or when sync tool is open
 
     const handleKeyDown = (e) => {
       // Ignore if typing in an input
@@ -150,9 +190,8 @@ const MedhaAnimationViewer = ({
           break;
         case " ":
           e.preventDefault();
-          if (hasAudio) {
-            setIsPlaying((prev) => !prev);
-          }
+          // Space toggles auto-play (video-like experience)
+          setIsAutoPlaying((prev) => !prev);
           break;
         case "ArrowLeft":
           e.preventDefault();
@@ -160,15 +199,13 @@ const MedhaAnimationViewer = ({
           break;
         case "ArrowUp":
           e.preventDefault();
-          if (hasAudio) {
-            setPlaybackSpeed((prev) => Math.min(prev + 0.25, 2));
-          }
+          // Increase slide duration (slower)
+          setSlideDuration((prev) => Math.min(prev + 2, 20));
           break;
         case "ArrowDown":
           e.preventDefault();
-          if (hasAudio) {
-            setPlaybackSpeed((prev) => Math.max(prev - 0.25, 0.5));
-          }
+          // Decrease slide duration (faster)
+          setSlideDuration((prev) => Math.max(prev - 2, 4));
           break;
         case "Escape":
           e.preventDefault();
@@ -176,6 +213,7 @@ const MedhaAnimationViewer = ({
           if (showFullscreenNote) {
             setShowFullscreenNote(false);
           } else {
+            setIsAutoPlaying(false); // Stop auto-play on close
             onClose();
           }
           break;
@@ -192,6 +230,14 @@ const MedhaAnimationViewer = ({
             setAudioLang((prev) => (prev === "hindi" ? "english" : "hindi"));
           }
           break;
+        case "a":
+        case "A":
+          e.preventDefault();
+          // Toggle global audio if available
+          if (hasAudio) {
+            setIsPlaying((prev) => !prev);
+          }
+          break;
         default:
           break;
       }
@@ -202,6 +248,7 @@ const MedhaAnimationViewer = ({
   }, [
     isOpen,
     showIntro,
+    showAudioSyncTool,
     currentStep,
     totalSteps,
     hasAudio,
@@ -281,6 +328,116 @@ const MedhaAnimationViewer = ({
     }
   }, [playbackSpeed]);
 
+  // Audio time tracking and sync
+  useEffect(() => {
+    if (!audioRef.current || !hasAudio) return;
+
+    const handleTimeUpdate = () => {
+      const time = audioRef.current?.currentTime || 0;
+      setAudioCurrentTime(time);
+
+      // If in sync mode and audio is playing, update scene based on audio time
+      if (audioSyncMode && isPlaying) {
+        let targetScene = currentStep;
+        
+        // PRIORITY 1: Manual Slide Timings (User Recorded)
+        if (manualTimings && Object.keys(manualTimings).length > 0) {
+          // Find the highest slide number whose start time is <= current time
+          let bestSlide = 1;
+          const slides = Object.entries(manualTimings).sort((a,b) => Number(a[0]) - Number(b[0]));
+          
+          for (const [slideNum, startTime] of slides) {
+            if (time >= startTime) {
+              bestSlide = Number(slideNum);
+            } else {
+              break; // Future slide
+            }
+          }
+          targetScene = bestSlide;
+        }
+        // PRIORITY 2: AI Transcript Segments
+        else if (audioTranscript?.segments?.length > 0) {
+          // Find the segment that contains this time
+          for (const seg of audioTranscript.segments) {
+            if (time >= seg.start && time < seg.end) {
+              targetScene = seg.slideNumber;
+              break;
+            }
+            // If past segment end but before next, use last matching
+            if (time >= seg.end) {
+              targetScene = seg.slideNumber;
+            }
+          }
+        } else {
+          // Fallback to section-based timing function
+          targetScene = getSceneFromAudioTime(time);
+        }
+        
+        if (targetScene !== currentStep) {
+          setCurrentStep(targetScene);
+        }
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      if (audioRef.current?.duration) {
+        setAudioDuration(audioRef.current.duration);
+      }
+    };
+
+    audioRef.current.addEventListener("timeupdate", handleTimeUpdate);
+    audioRef.current.addEventListener("loadedmetadata", handleLoadedMetadata);
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.removeEventListener("timeupdate", handleTimeUpdate);
+        audioRef.current.removeEventListener(
+          "loadedmetadata",
+          handleLoadedMetadata
+        );
+      }
+    };
+  }, [hasAudio, audioSyncMode, isPlaying, currentStep, audioTranscript, manualTimings]);
+
+  // Sync current scene to audio when manually changing slides (seeks audio)
+  const syncSceneToAudio = useCallback(
+    (sceneNumber) => {
+      if (audioRef.current && hasAudio) {
+        let targetTime = 0;
+        
+        // PRIORITY 1: Manual Slide Timings
+        if (manualTimings && manualTimings[sceneNumber] !== undefined) {
+          targetTime = manualTimings[sceneNumber];
+        }
+        // PRIORITY 2: Saved Transcript Segments
+        else if (audioTranscript?.segments?.length > 0) {
+          const matchingSegment = audioTranscript.segments.find(
+            seg => seg.slideNumber === sceneNumber
+          );
+          if (matchingSegment) {
+            targetTime = matchingSegment.start;
+          } else {
+            // Fallback to section-based
+            targetTime = getSceneAudioTime(sceneNumber);
+          }
+        } else {
+          targetTime = getSceneAudioTime(sceneNumber);
+        }
+        
+        audioRef.current.currentTime = targetTime;
+        setAudioCurrentTime(targetTime);
+      }
+    },
+    [hasAudio, audioTranscript, manualTimings]
+  );
+
+  // Format seconds to mm:ss
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
   // Show audio hint after intro completes
   useEffect(() => {
     if (!showIntro && hasAudio) {
@@ -290,8 +447,7 @@ const MedhaAnimationViewer = ({
     }
   }, [showIntro, hasAudio]);
 
-  // Navigation
-  // Wrap in useCallback to use in useEffect
+  // Navigation - Define before auto-play logic that depends on it
   const goToStep = useCallback(
     (step) => {
       if (step >= 1 && step <= totalSteps) {
@@ -302,10 +458,86 @@ const MedhaAnimationViewer = ({
     [totalSteps, slideData, canEdit]
   );
 
-  const handleNext = () =>
-    goToStep(currentStep < totalSteps ? currentStep + 1 : currentStep);
-  const handlePrev = () =>
-    goToStep(currentStep > 1 ? currentStep - 1 : currentStep);
+  const handleNext = useCallback(
+    () => goToStep(currentStep < totalSteps ? currentStep + 1 : currentStep),
+    [goToStep, currentStep, totalSteps]
+  );
+
+  const handlePrev = useCallback(
+    () => goToStep(currentStep > 1 ? currentStep - 1 : currentStep),
+    [goToStep, currentStep]
+  );
+
+  // Auto-play logic - Video-like experience
+  // DISABLED when audioSyncMode is on (audio drives slides instead)
+  useEffect(() => {
+    // Clear existing intervals
+    if (autoPlayIntervalRef.current) {
+      clearTimeout(autoPlayIntervalRef.current);
+    }
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+
+    // Don't run auto-play timer when audio sync is enabled - audio drives slides
+    if (audioSyncMode) {
+      return;
+    }
+
+    if (isAutoPlaying && !showIntro && !showAudioSyncTool) {
+      // Calculate actual duration based on speed multiplier
+      const actualDuration = slideDuration / playbackSpeedMultiplier;
+
+      // Reset progress when starting
+      setSlideProgress(0);
+
+      // Progress update interval (every 100ms for smooth progress bar)
+      const progressStep = 100 / (actualDuration * 10);
+      progressIntervalRef.current = setInterval(() => {
+        setSlideProgress((prev) => {
+          if (prev >= 100) return 100;
+          return prev + progressStep;
+        });
+      }, 100);
+
+      // Auto advance to next slide
+      autoPlayIntervalRef.current = setTimeout(() => {
+        if (currentStep < totalSteps) {
+          goToStep(currentStep + 1);
+        } else {
+          // Reached the end, stop auto-play
+          setIsAutoPlaying(false);
+        }
+      }, actualDuration * 1000);
+    }
+
+    return () => {
+      if (autoPlayIntervalRef.current)
+        clearTimeout(autoPlayIntervalRef.current);
+      if (progressIntervalRef.current)
+        clearInterval(progressIntervalRef.current);
+    };
+  }, [
+    isAutoPlaying,
+    slideDuration,
+    playbackSpeedMultiplier,
+    currentStep,
+    totalSteps,
+    audioSyncMode,
+    showIntro,
+    showAudioSyncTool,
+    goToStep,
+  ]);
+
+  // Reset progress when step changes
+  useEffect(() => {
+    setSlideProgress(0);
+  }, [currentStep]);
+
+  // Toggle auto-play function
+  const toggleAutoPlay = useCallback(() => {
+    setIsAutoPlaying((prev) => !prev);
+  }, []);
 
   // Global Audio Upload
   const handleGlobalUpload = async (file, language) => {
@@ -1337,45 +1569,190 @@ const MedhaAnimationViewer = ({
             )}
           </div>
 
-          {/* SCRUBBER */}
-          <div className="h-20 bg-black flex flex-col justify-center px-8 z-30">
-            <div className="flex items-center gap-6">
+          {/* AUDIO-SYNCED PLAYER CONTROLS */}
+          <div className="bg-black px-6 py-4 z-30">
+            {/* Audio Progress Bar (clickable to seek) */}
+            {hasAudio && (
+              <div className="mb-3">
+                <div
+                  className="relative h-2 bg-[#1c1c1e] rounded-full overflow-hidden cursor-pointer group"
+                  onClick={(e) => {
+                    if (!audioRef.current) return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    const newTime = percent * audioDuration;
+                    audioRef.current.currentTime = newTime;
+                    setAudioCurrentTime(newTime);
+                    // Also update scene to match
+                    const targetScene = getSceneFromAudioTime(newTime);
+                    setCurrentStep(targetScene);
+                  }}
+                >
+                  {/* Section markers */}
+                  {audioSections?.map((section, i) => (
+                    <div
+                      key={i}
+                      className="absolute top-0 bottom-0 border-l border-white/20"
+                      style={{
+                        left: `${(section.audioStart / audioDuration) * 100}%`,
+                      }}
+                      title={section.name}
+                    />
+                  ))}
+                  {/* Progress fill */}
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full"
+                    style={{
+                      width: `${(audioCurrentTime / audioDuration) * 100}%`,
+                    }}
+                  />
+                  {/* Hover indicator */}
+                  <div className="absolute inset-0 bg-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                {/* Time display */}
+                <div className="flex justify-between mt-1 text-[10px] text-gray-500 font-mono">
+                  <span>{formatTime(audioCurrentTime)}</span>
+                  <span>{formatTime(audioDuration)}</span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3">
+              {/* Audio Play/Pause Button */}
+              {hasAudio && (
+                <button
+                  onClick={() => {
+                    setIsPlaying(!isPlaying);
+                    if (!isPlaying && audioSyncMode) {
+                      // When starting playback in sync mode, sync to current scene first
+                      syncSceneToAudio(currentStep);
+                    }
+                  }}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                    isPlaying
+                      ? "bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.5)]"
+                      : "bg-[#1c1c1e] text-white hover:bg-white/10 border border-white/10"
+                  }`}
+                  title="Play/Pause Audio"
+                >
+                  {isPlaying ? (
+                    <FaPause size={14} />
+                  ) : (
+                    <FaPlay size={14} className="ml-0.5" />
+                  )}
+                </button>
+              )}
+
+              {/* Sync Mode Toggle */}
+              {hasAudio && (
+                <button
+                  onClick={() => setAudioSyncMode(!audioSyncMode)}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all border ${
+                    audioSyncMode
+                      ? "bg-green-500/20 text-green-400 border-green-500/50"
+                      : "text-gray-500 border-white/10 hover:text-white hover:bg-white/10"
+                  }`}
+                  title="Sync slides with audio"
+                >
+                  {audioSyncMode ? "🔗 SYNCED" : "🔗 SYNC"}
+                </button>
+              )}
+
+              {/* Prev Button */}
               <button
-                onClick={handlePrev}
+                onClick={() => {
+                  handlePrev();
+                  if (audioSyncMode && hasAudio) {
+                    syncSceneToAudio(currentStep - 1);
+                  }
+                }}
                 disabled={currentStep === 1}
                 className="text-white hover:text-blue-500 disabled:opacity-20 transition-colors"
               >
-                <FaChevronLeft size={20} />
+                <FaChevronLeft size={16} />
               </button>
 
-              <div className="flex-1 flex gap-1 h-1 bg-[#1c1c1e] rounded-full overflow-hidden">
+              {/* Scene Progress Tabs */}
+              <div className="flex-1 flex gap-0.5 h-1.5 bg-[#1c1c1e] rounded-full overflow-hidden">
                 {normalizedSteps.map((_, i) => {
                   const step = i + 1;
-                  const isPast = step <= currentStep;
+                  const isPast = step < currentStep;
+                  const isCurrent = step === currentStep;
                   return (
                     <button
                       key={i}
-                      onClick={() => goToStep(step)}
-                      className={`h-full transition-all duration-300 ${isPast ? "bg-white" : "bg-transparent"} hover:bg-blue-500/50`}
+                      onClick={() => {
+                        goToStep(step);
+                        if (audioSyncMode && hasAudio) {
+                          syncSceneToAudio(step);
+                        }
+                      }}
+                      className={`h-full transition-all duration-300 ${
+                        isPast
+                          ? "bg-white"
+                          : isCurrent
+                            ? "bg-blue-400"
+                            : "bg-transparent"
+                      } hover:bg-blue-400/50`}
                       style={{ flex: 1 }}
                     />
                   );
                 })}
               </div>
 
+              {/* Next Button */}
               <button
-                onClick={handleNext}
+                onClick={() => {
+                  handleNext();
+                  if (audioSyncMode && hasAudio) {
+                    syncSceneToAudio(currentStep + 1);
+                  }
+                }}
                 disabled={currentStep === totalSteps}
                 className="text-white hover:text-blue-500 disabled:opacity-20 transition-colors"
               >
-                <FaChevronRight size={20} />
+                <FaChevronRight size={16} />
               </button>
+
+              {/* Speed Control for Audio */}
+              {hasAudio && (
+                <div className="flex items-center gap-0.5 ml-1">
+                  {[0.5, 1, 1.5, 2].map((speed) => (
+                    <button
+                      key={speed}
+                      onClick={() => {
+                        setPlaybackSpeed(speed);
+                        if (audioRef.current) {
+                          audioRef.current.playbackRate = speed;
+                        }
+                      }}
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
+                        playbackSpeed === speed
+                          ? "bg-blue-500 text-white"
+                          : "text-gray-600 hover:text-white hover:bg-white/10"
+                      }`}
+                    >
+                      {speed}x
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+
+            {/* Info Row */}
             <div className="flex justify-between mt-2 text-[10px] font-bold tracking-widest text-gray-600 uppercase">
-              <span>
-                Step {currentStep} / {totalSteps}
+              <span className="flex items-center gap-2">
+                Scene {currentStep} / {totalSteps}
+                {isPlaying && audioSyncMode && (
+                  <span className="text-green-400 normal-case tracking-normal flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                    Audio Synced
+                  </span>
+                )}
               </span>
-              <span>{currentStepObj.title}</span>
+              <span className="truncate max-w-[200px]">
+                {currentStepObj.title}
+              </span>
             </div>
           </div>
         </main>
@@ -1714,13 +2091,54 @@ const MedhaAnimationViewer = ({
         )}
       </AnimatePresence>
 
-      {/* Voice Chatbot - AI Assistant */}
+      {/* Text Chatbot - AI Assistant with full context */}
+      <AnimationTextChatbot
+        animationTitle={title || animation?.metadata?.title || animationId}
+        currentStep={currentStep}
+        totalSteps={totalSteps}
+        slideNotes={
+          slideData.find((s) => s.stepNumber === currentStep)?.notes || ""
+        }
+        animationId={animationId}
+        isVisible={!showIntro}
+      />
+
+      {/* Voice Chatbot - kept for future use
       <VoiceChatbot
         animationTitle={title || animation?.metadata?.title || animationId}
         currentStep={currentStep}
         totalSteps={totalSteps}
         isVisible={!showIntro}
       />
+      */}
+
+      {/* Audio Sync Tool for Admins */}
+      {canEdit && (
+        <>
+          {/* Floating Audio Sync Button */}
+          <button
+            onClick={() => {
+              if (audioRef.current) audioRef.current.pause();
+              setIsPlaying(false);
+              setIsAutoPlaying(false); // Stop any auto-play loop
+              setShowAudioSyncTool(true);
+            }}
+            className="fixed bottom-[170px] right-6 w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-[9999]"
+            title="Audio Sync Tool"
+          >
+            <FaMusic size={18} />
+          </button>
+
+          <AudioSyncTool
+            isOpen={showAudioSyncTool}
+            onClose={() => setShowAudioSyncTool(false)}
+            animationId={animationId}
+            totalSlides={totalSteps}
+            currentStep={currentStep}
+            onStepChange={setCurrentStep}
+          />
+        </>
+      )}
     </motion.div>,
     document.body
   );
