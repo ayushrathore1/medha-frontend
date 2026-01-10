@@ -45,6 +45,11 @@ const AnimationTextChatbot = ({
   slideNotes,
   animationId,
   isVisible = true,
+  currentSlideTitle = "",
+  currentSlideContent = "",
+  animationSubject = "",
+  animationTopics = [],
+  sectionName = "",
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -59,7 +64,7 @@ const AnimationTextChatbot = ({
 
   // Context-aware suggestions based on animation
   const suggestions = [
-    `Explain step ${currentStep} in simple terms`,
+    `Explain "${currentSlideTitle || `step ${currentStep}`}" in simple terms`,
     `What's the key concept here?`,
     `Give me a real-world example`,
     `What should I remember for exams?`,
@@ -80,28 +85,59 @@ const AnimationTextChatbot = ({
   // Build context string for AI
   const buildContext = useCallback(() => {
     let context = `
-ANIMATION CONTEXT:
-- Topic: ${animationTitle || "Animation"}
+=== CURRENT ANIMATION CONTEXT (USE THIS AS PRIMARY REFERENCE) ===
+
+ANIMATION INFO:
+- Subject: ${animationSubject || "C++ / Object Oriented Programming"}
+- Main Topic: ${animationTitle || "Animation"}
 - Animation ID: ${animationId || "unknown"}
-- Current Step: ${currentStep} of ${totalSteps}
+- Topics Covered: ${animationTopics.length > 0 ? animationTopics.join(", ") : "General programming concepts"}
+
+CURRENT POSITION:
+- Step: ${currentStep} of ${totalSteps}
+- Current Section: ${sectionName || "General"}
+- Current Slide Title: "${currentSlideTitle || `Step ${currentStep}`}"
+
+CURRENT SLIDE CONTENT:
+${currentSlideContent || "No specific content available for this slide."}
 `;
 
-    if (slideNotes) {
+    if (slideNotes && typeof slideNotes === "object" && slideNotes.english) {
       context += `
-CURRENT SLIDE NOTES:
+INSTRUCTOR NOTES FOR THIS SLIDE:
+${slideNotes.english}
+`;
+    } else if (slideNotes && typeof slideNotes === "string") {
+      context += `
+INSTRUCTOR NOTES FOR THIS SLIDE:
 ${slideNotes}
 `;
     }
 
     context += `
-The user is viewing an educational animation about "${animationTitle}". 
-They are currently on step ${currentStep} out of ${totalSteps} total steps.
-Answer their questions in the context of this animation and the current step they're viewing.
-Be concise but thorough. Use examples when helpful.
+=== INSTRUCTIONS ===
+You are helping a student understand the content on THIS SPECIFIC SLIDE.
+- Focus ONLY on the current slide content shown above
+- Do NOT mix concepts from other topics or slides
+- Be specific to what's displayed on this slide (step ${currentStep})
+- If the slide is about "${currentSlideTitle}", only discuss that specific topic
+- Keep answers relevant to ${animationSubject || "C++"} and the current topic
+- Be concise but educational
 `;
 
     return context;
-  }, [animationTitle, animationId, currentStep, totalSteps, slideNotes]);
+  }, [
+    animationTitle,
+    animationId,
+    currentStep,
+    totalSteps,
+    slideNotes,
+    currentSlideTitle,
+    currentSlideContent,
+    animationSubject,
+    animationTopics,
+    sectionName,
+  ]);
 
   // Send message to AI
   const sendMessage = async (text) => {
@@ -484,7 +520,15 @@ Be concise but thorough. Use examples when helpful.
                       background:
                         msg.role === "user"
                           ? APPLE_THEME.accentGradient
-                          : "rgba(255, 255, 255, 0.08)",
+                          : "linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%)",
+                      backdropFilter: msg.role === "assistant" ? "blur(20px)" : "none",
+                      WebkitBackdropFilter: msg.role === "assistant" ? "blur(20px)" : "none",
+                      border: msg.role === "assistant" 
+                        ? "1px solid rgba(255, 255, 255, 0.15)"
+                        : "none",
+                      boxShadow: msg.role === "assistant"
+                        ? "0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+                        : "0 4px 12px rgba(10, 132, 255, 0.3)",
                       color: APPLE_THEME.text,
                       fontSize: "14px",
                       lineHeight: 1.5,

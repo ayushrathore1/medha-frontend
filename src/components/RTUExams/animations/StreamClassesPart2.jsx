@@ -149,8 +149,10 @@ const Scene67 = () => {
               key={state.name}
               animate={{
                 scale: activeState === i ? 1.1 : 1,
-                borderColor: activeState === i ? state.color : "rgba(255,255,255,0.1)",
-                boxShadow: activeState === i ? `0 0 20px ${state.color}50` : "none",
+                borderColor:
+                  activeState === i ? state.color : "rgba(255,255,255,0.1)",
+                boxShadow:
+                  activeState === i ? `0 0 20px ${state.color}50` : "none",
               }}
               style={{
                 padding: "16px 20px",
@@ -242,16 +244,18 @@ const Scene68 = () => {
           >
             <div>
               <span style={{ color: colors.primary }}>cin</span>
-              {" >> x;"} <span style={{ color: colors.textSec }}>// x is int</span>
+              {" >> x;"}{" "}
+              <span style={{ color: colors.textSec }}>// x is int</span>
             </div>
             <motion.div
               animate={{
-                backgroundColor: phase >= 2 ? "rgba(255, 69, 58, 0.15)" : "transparent",
+                backgroundColor:
+                  phase >= 2 ? "rgba(255, 69, 58, 0.15)" : "transparent",
               }}
               style={{ padding: "4px 8px", borderRadius: "4px" }}
             >
-              <span style={{ color: colors.keyword }}>if</span>
-              (<span style={{ color: colors.primary }}>cin</span>.
+              <span style={{ color: colors.keyword }}>if</span>(
+              <span style={{ color: colors.primary }}>cin</span>.
               <span style={{ color: colors.danger }}>fail</span>())
             </motion.div>
           </div>
@@ -281,7 +285,8 @@ const Scene68 = () => {
           <motion.div
             animate={{
               borderColor: phase >= 2 ? colors.danger : colors.typeInt,
-              backgroundColor: phase >= 2 ? "rgba(255, 69, 58, 0.2)" : `${colors.typeInt}20`,
+              backgroundColor:
+                phase >= 2 ? "rgba(255, 69, 58, 0.2)" : `${colors.typeInt}20`,
             }}
             style={{
               width: "80px",
@@ -371,7 +376,8 @@ const Scene69 = () => {
           >
             <motion.div
               animate={{
-                backgroundColor: phase >= 1 ? "rgba(48, 209, 88, 0.15)" : "transparent",
+                backgroundColor:
+                  phase >= 1 ? "rgba(48, 209, 88, 0.15)" : "transparent",
               }}
               style={{ padding: "4px 8px", borderRadius: "4px" }}
             >
@@ -380,7 +386,8 @@ const Scene69 = () => {
             </motion.div>
             <motion.div
               animate={{
-                backgroundColor: phase >= 2 ? "rgba(48, 209, 88, 0.15)" : "transparent",
+                backgroundColor:
+                  phase >= 2 ? "rgba(48, 209, 88, 0.15)" : "transparent",
               }}
               style={{ padding: "4px 8px", borderRadius: "4px" }}
             >
@@ -406,16 +413,19 @@ const Scene69 = () => {
               fontSize: "2rem",
               color: "white",
               fontWeight: 700,
-              boxShadow: phase >= 1 
-                ? `0 0 30px ${colors.success}50` 
-                : `0 0 30px ${colors.danger}50`,
+              boxShadow:
+                phase >= 1
+                  ? `0 0 30px ${colors.success}50`
+                  : `0 0 30px ${colors.danger}50`,
             }}
           >
             {phase >= 1 ? "✓" : "✗"}
           </motion.div>
-          
+
           <div style={{ color: colors.textSec, fontSize: "14px" }}>
-            {phase >= 1 ? "Stream reset! Ready for input again" : "Stream in error state"}
+            {phase >= 1
+              ? "Stream reset! Ready for input again"
+              : "Stream in error state"}
           </div>
         </div>
       </div>
@@ -481,9 +491,11 @@ const Scene70 = () => {
               <motion.div
                 animate={{
                   scale: phase === i + 1 ? 1.15 : 1,
-                  boxShadow: phase === i + 1 ? `0 0 20px ${colors.primary}50` : "none",
+                  boxShadow:
+                    phase === i + 1 ? `0 0 20px ${colors.primary}50` : "none",
                   borderColor: phase > i ? colors.success : colors.primary,
-                  backgroundColor: phase > i ? `${colors.success}20` : `${colors.primary}20`,
+                  backgroundColor:
+                    phase > i ? `${colors.success}20` : `${colors.primary}20`,
                 }}
                 style={{
                   width: "60px",
@@ -501,7 +513,7 @@ const Scene70 = () => {
               >
                 {phase > i ? (i + 1) * 10 : v}
               </motion.div>
-              
+
               {i < values.length - 1 && (
                 <motion.span
                   animate={{
@@ -582,7 +594,9 @@ const Scene71 = () => {
             }}
           >
             <GlassCard glow={colors.warning}>
-              <code style={{ fontFamily: "'SF Mono', monospace", fontSize: "14px" }}>
+              <code
+                style={{ fontFamily: "'SF Mono', monospace", fontSize: "14px" }}
+              >
                 <span style={{ color: colors.primary }}>cin</span> {">> name;"}
               </code>
             </GlassCard>
@@ -633,8 +647,11 @@ const Scene71 = () => {
             }}
           >
             <GlassCard glow={colors.success}>
-              <code style={{ fontFamily: "'SF Mono', monospace", fontSize: "14px" }}>
-                <span style={{ color: colors.success }}>getline</span>(cin, name);
+              <code
+                style={{ fontFamily: "'SF Mono', monospace", fontSize: "14px" }}
+              >
+                <span style={{ color: colors.success }}>getline</span>(cin,
+                name);
               </code>
             </GlassCard>
 
@@ -712,7 +729,9 @@ const Scene72 = () => {
           📁 STREAMS & FILES
         </motion.div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+        >
           {/* Keyboard stream */}
           <motion.div
             animate={{ opacity: phase >= 1 ? 0.5 : 1 }}
@@ -728,18 +747,27 @@ const Scene72 = () => {
           >
             <span style={{ fontSize: "2rem" }}>⌨️</span>
             <span style={{ color: colors.textSec }}>→</span>
-            <span style={{ color: colors.primary, fontFamily: "'SF Mono', monospace", fontWeight: 600 }}>
+            <span
+              style={{
+                color: colors.primary,
+                fontFamily: "'SF Mono', monospace",
+                fontWeight: 600,
+              }}
+            >
               cin
             </span>
             <span style={{ color: colors.textSec }}>→</span>
-            <span style={{ color: colors.accent, fontWeight: 600 }}>Program</span>
+            <span style={{ color: colors.accent, fontWeight: 600 }}>
+              Program
+            </span>
           </motion.div>
 
           {/* File stream */}
           <motion.div
-            animate={{ 
+            animate={{
               scale: phase >= 1 ? 1.05 : 1,
-              boxShadow: phase >= 1 ? `0 10px 30px ${colors.success}30` : "none",
+              boxShadow:
+                phase >= 1 ? `0 10px 30px ${colors.success}30` : "none",
             }}
             style={{
               display: "flex",
@@ -753,11 +781,19 @@ const Scene72 = () => {
           >
             <span style={{ fontSize: "2rem" }}>📄</span>
             <span style={{ color: colors.textSec }}>→</span>
-            <span style={{ color: colors.success, fontFamily: "'SF Mono', monospace", fontWeight: 600 }}>
+            <span
+              style={{
+                color: colors.success,
+                fontFamily: "'SF Mono', monospace",
+                fontWeight: 600,
+              }}
+            >
               ifstream
             </span>
             <span style={{ color: colors.textSec }}>→</span>
-            <span style={{ color: colors.accent, fontWeight: 600 }}>Program</span>
+            <span style={{ color: colors.accent, fontWeight: 600 }}>
+              Program
+            </span>
           </motion.div>
         </div>
 
@@ -823,7 +859,9 @@ const Scene73 = () => {
             animate={{ opacity: phase >= 1 ? 1 : 0, x: 0 }}
           >
             <GlassCard glow={colors.primary}>
-              <code style={{ fontFamily: "'SF Mono', monospace", fontSize: "16px" }}>
+              <code
+                style={{ fontFamily: "'SF Mono', monospace", fontSize: "16px" }}
+              >
                 <span style={{ color: colors.primary }}>cin</span>
                 {" >> "}
                 <span style={{ color: colors.accent }}>student</span>;
@@ -837,7 +875,9 @@ const Scene73 = () => {
             animate={{ opacity: phase >= 2 ? 1 : 0, x: 0 }}
           >
             <GlassCard glow={colors.success}>
-              <code style={{ fontFamily: "'SF Mono', monospace", fontSize: "16px" }}>
+              <code
+                style={{ fontFamily: "'SF Mono', monospace", fontSize: "16px" }}
+              >
                 <span style={{ color: colors.success }}>cout</span>
                 {" << "}
                 <span style={{ color: colors.accent }}>student</span>;
@@ -938,12 +978,14 @@ const Scene74 = () => {
               key={m.name}
               animate={{
                 scale: activeManip === i ? 1.1 : 1,
-                borderColor: activeManip === i ? colors.accent : "rgba(255,255,255,0.1)",
+                borderColor:
+                  activeManip === i ? colors.accent : "rgba(255,255,255,0.1)",
               }}
               style={{
                 padding: "16px 20px",
                 borderRadius: "16px",
-                background: activeManip === i ? `${colors.accent}20` : "#1c1c1e",
+                background:
+                  activeManip === i ? `${colors.accent}20` : "#1c1c1e",
                 border: "2px solid rgba(255,255,255,0.1)",
                 display: "flex",
                 flexDirection: "column",
@@ -1024,7 +1066,9 @@ const Scene75 = () => {
         </motion.div>
 
         <GlassCard glow={colors.primary}>
-          <code style={{ fontFamily: "'SF Mono', monospace", fontSize: "18px" }}>
+          <code
+            style={{ fontFamily: "'SF Mono', monospace", fontSize: "18px" }}
+          >
             <span style={{ color: colors.success }}>cout</span>
             {" << "}
             <span style={{ color: colors.primary }}>endl</span>;
@@ -1153,7 +1197,9 @@ const Scene76 = () => {
         </motion.div>
 
         <GlassCard glow={colors.warning}>
-          <code style={{ fontFamily: "'SF Mono', monospace", fontSize: "16px" }}>
+          <code
+            style={{ fontFamily: "'SF Mono', monospace", fontSize: "16px" }}
+          >
             <span style={{ color: colors.primary }}>cin</span>.
             <span style={{ color: colors.warning }}>exceptions</span>
             (ios::<span style={{ color: colors.danger }}>failbit</span>);
@@ -1193,9 +1239,9 @@ const Scene76 = () => {
             {phase >= 2 && (
               <motion.div
                 initial={{ opacity: 0, x: -20, scale: 0.8 }}
-                animate={{ 
-                  opacity: 1, 
-                  x: 0, 
+                animate={{
+                  opacity: 1,
+                  x: 0,
                   scale: 1,
                   y: [0, -10, 0],
                 }}
@@ -1285,7 +1331,14 @@ const Scene77 = () => {
         </motion.div>
 
         {/* All streams merging */}
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "1rem",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
           {[
             { name: "cin", icon: "⌨️" },
             { name: "cout", icon: "🖥️" },
@@ -1418,7 +1471,9 @@ const Scene78 = () => {
               >
                 📂
               </motion.div>
-              <span style={{ fontSize: "2rem", color: colors.textSec }}>↔</span>
+              <span style={{ fontSize: "2rem", color: colors.textSec }}>
+                ↔
+              </span>
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
@@ -1493,19 +1548,84 @@ const Scene78 = () => {
 // EXPORTS
 // ============================================
 export const AnimationStepsPart7 = [
-  { title: "iomanip Header", component: Scene66 },
-  { title: "Stream States", component: Scene67 },
-  { title: "Invalid Input Example", component: Scene68 },
-  { title: "Clearing Stream State", component: Scene69 },
-  { title: "Chaining Operators", component: Scene70 },
-  { title: "Reading Strings", component: Scene71 },
-  { title: "Streams and Files", component: Scene72 },
-  { title: "Custom Class I/O", component: Scene73 },
-  { title: "Stream Manipulators", component: Scene74 },
-  { title: "endl and Flush", component: Scene75 },
-  { title: "Streams + Exceptions", component: Scene76 },
-  { title: "Big Picture Summary", component: Scene77 },
-  { title: "Stream Classes Closing", component: Scene78 },
+  {
+    title: "iomanip Header",
+    component: Scene66,
+    contentText:
+      "<iomanip> Header: Provides I/O manipulators - setw(), setprecision(), setfill(), fixed, scientific, hex, oct, dec. #include <iomanip> for formatted output control.",
+  },
+  {
+    title: "Stream States",
+    component: Scene67,
+    contentText:
+      "Stream States: goodbit - all OK, eofbit - end of file reached, failbit - operation failed (recoverable), badbit - fatal error. Check with good(), eof(), fail(), bad() methods.",
+  },
+  {
+    title: "Invalid Input Example",
+    component: Scene68,
+    contentText:
+      "Handling Invalid Input: If cin >> int_var receives 'abc', failbit is set. Stream stops working until cleared. Always validate input: if(cin.fail()) { handle error }",
+  },
+  {
+    title: "Clearing Stream State",
+    component: Scene69,
+    contentText:
+      "Clearing Stream State: cin.clear() - resets state flags. cin.ignore(1000, '\\n') - discards bad input. Together they recover from input errors: cin.clear(); cin.ignore(1000, '\\n');",
+  },
+  {
+    title: "Chaining Operators",
+    component: Scene70,
+    contentText:
+      "Operator Chaining: cout << a << b << c; works because << returns ostream&. Each operation returns stream reference for next operation. Same with cin >> x >> y >> z;",
+  },
+  {
+    title: "Reading Strings",
+    component: Scene71,
+    contentText:
+      "Reading Strings: cin >> str reads until whitespace. getline(cin, str) reads entire line including spaces. Use getline for full lines: string line; getline(cin, line);",
+  },
+  {
+    title: "Streams and Files",
+    component: Scene72,
+    contentText:
+      'Streams and Files: Same operators work with files! ifstream fin("input.txt"); fin >> x; ofstream fout("output.txt"); fout << x; File streams inherit from istream/ostream.',
+  },
+  {
+    title: "Custom Class I/O",
+    component: Scene73,
+    contentText:
+      "Custom Class I/O: Overload << and >> for your classes. friend ostream& operator<<(ostream& os, const MyClass& obj) { os << obj.data; return os; } Enables cout << myObj;",
+  },
+  {
+    title: "Stream Manipulators",
+    component: Scene74,
+    contentText:
+      "Common Manipulators: hex/oct/dec - number base, boolalpha - true/false instead of 1/0, showpoint - show decimal point, uppercase - E instead of e. Apply with cout << hex << 255;",
+  },
+  {
+    title: "endl and Flush",
+    component: Scene75,
+    contentText:
+      "endl vs \\n: endl outputs newline AND flushes buffer. \\n only outputs newline. For performance, use \\n in loops. Use endl when you need immediate output. flush manipulator only flushes.",
+  },
+  {
+    title: "Streams + Exceptions",
+    component: Scene76,
+    contentText:
+      "Streams and Exceptions: cin.exceptions(ios::failbit) - throws on fail. Can catch stream errors: try { cin >> x; } catch(ios_base::failure& e) { } Modern way to handle I/O errors.",
+  },
+  {
+    title: "Big Picture Summary",
+    component: Scene77,
+    contentText:
+      "Stream Classes Summary: Unified I/O interface, operator overloading for << >>, stream states for error handling, manipulators for formatting, inheritance enables file/string streams.",
+  },
+  {
+    title: "Stream Classes Closing",
+    component: Scene78,
+    contentText:
+      "Key Takeaways: cin/cout are stream objects, << >> are overloaded operators, check stream states, use iomanip for formatting, getline for strings, same pattern works for files.",
+  },
 ];
 
 export default { AnimationStepsPart7 };

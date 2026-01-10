@@ -58,14 +58,22 @@ const Scene40 = () => {
           >
             <div>
               <span style={{ color: colors.keyword }}>class</span>
-              <span style={{ color: colors.accent, fontWeight: 700 }}> MyException</span>
+              <span style={{ color: colors.accent, fontWeight: 700 }}>
+                {" "}
+                MyException
+              </span>
               <span style={{ color: colors.textSec }}> {"{}"};</span>
             </div>
             <motion.div
               animate={{
-                backgroundColor: phase >= 1 ? "rgba(191, 90, 242, 0.15)" : "transparent",
+                backgroundColor:
+                  phase >= 1 ? "rgba(191, 90, 242, 0.15)" : "transparent",
               }}
-              style={{ padding: "4px 8px", borderRadius: "4px", marginTop: "8px" }}
+              style={{
+                padding: "4px 8px",
+                borderRadius: "4px",
+                marginTop: "8px",
+              }}
             >
               <span style={{ color: colors.warning }}>throw</span>
               <span style={{ color: colors.accent }}> MyException</span>
@@ -79,9 +87,9 @@ const Scene40 = () => {
           {phase >= 2 && (
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.8 }}
-              animate={{ 
-                opacity: 1, 
-                y: 0, 
+              animate={{
+                opacity: 1,
+                y: 0,
                 scale: 1,
                 x: [0, 20, 0],
               }}
@@ -150,7 +158,14 @@ const Scene41 = () => {
         </motion.div>
 
         {/* Tree diagram */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "1rem",
+          }}
+        >
           {/* Root */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -207,7 +222,13 @@ const Scene41 = () => {
                   }}
                 >
                   {exc.name}
-                  <div style={{ fontSize: "10px", color: colors.textSec, marginTop: "4px" }}>
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      color: colors.textSec,
+                      marginTop: "4px",
+                    }}
+                  >
                     {exc.desc}
                   </div>
                 </div>
@@ -272,8 +293,14 @@ const Scene42 = () => {
 
         {/* Code */}
         <GlassCard>
-          <code style={{ fontFamily: "'SF Mono', monospace", fontSize: "16px", color: colors.text }}>
-            <span style={{ color: colors.keyword }}>new</span> 
+          <code
+            style={{
+              fontFamily: "'SF Mono', monospace",
+              fontSize: "16px",
+              color: colors.text,
+            }}
+          >
+            <span style={{ color: colors.keyword }}>new</span>
             <span style={{ color: colors.typeInt }}> int</span>
             [100000000000];
           </code>
@@ -397,11 +424,18 @@ const Scene43 = () => {
             </div>
             <motion.div
               animate={{
-                backgroundColor: phase >= 1 ? "rgba(255, 159, 10, 0.2)" : "transparent",
+                backgroundColor:
+                  phase >= 1 ? "rgba(255, 159, 10, 0.2)" : "transparent",
               }}
-              style={{ paddingLeft: "1rem", padding: "4px", borderRadius: "4px" }}
+              style={{
+                paddingLeft: "1rem",
+                padding: "4px",
+                borderRadius: "4px",
+              }}
             >
-              <span style={{ color: colors.warning, fontWeight: 700 }}>throw;</span>
+              <span style={{ color: colors.warning, fontWeight: 700 }}>
+                throw;
+              </span>
               <span style={{ color: colors.textSec }}> // Rethrow!</span>
             </motion.div>
             <div style={{ color: colors.success }}>{"}"}</div>
@@ -443,8 +477,8 @@ const Scene43 = () => {
             {phase >= 3 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ 
-                  opacity: 1, 
+                animate={{
+                  opacity: 1,
                   y: [0, -10, 0],
                 }}
                 transition={{
@@ -515,7 +549,13 @@ const Scene44 = () => {
             }}
           >
             <GlassCard glow={colors.danger}>
-              <div style={{ color: colors.danger, fontWeight: 600, marginBottom: "0.5rem" }}>
+              <div
+                style={{
+                  color: colors.danger,
+                  fontWeight: 600,
+                  marginBottom: "0.5rem",
+                }}
+              >
                 ❌ WRONG
               </div>
               <div
@@ -546,7 +586,13 @@ const Scene44 = () => {
             }}
           >
             <GlassCard glow={colors.success}>
-              <div style={{ color: colors.success, fontWeight: 600, marginBottom: "0.5rem" }}>
+              <div
+                style={{
+                  color: colors.success,
+                  fontWeight: 600,
+                  marginBottom: "0.5rem",
+                }}
+              >
                 ✓ CORRECT
               </div>
               <div
@@ -1123,7 +1169,8 @@ const Scene49 = () => {
               position: "absolute",
               inset: 0,
               background: `linear-gradient(180deg, ${colors.success}20, transparent)`,
-              clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+              clipPath:
+                "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
             }}
           />
 
@@ -1219,7 +1266,8 @@ const Scene50 = () => {
               <motion.div
                 animate={{
                   scale: phase === i + 1 ? 1.15 : 1,
-                  boxShadow: phase === i + 1 ? `0 0 30px ${step.color}50` : "none",
+                  boxShadow:
+                    phase === i + 1 ? `0 0 30px ${step.color}50` : "none",
                 }}
                 style={{
                   padding: "16px 28px",
@@ -1457,7 +1505,8 @@ const Scene52 = () => {
             style={{
               padding: "12px 20px",
               borderRadius: "100px",
-              background: phase >= 1 ? `${colors.primary}20` : "rgba(255,255,255,0.05)",
+              background:
+                phase >= 1 ? `${colors.primary}20` : "rgba(255,255,255,0.05)",
               border: `2px solid ${phase >= 1 ? colors.primary : colors.textSec}`,
               color: phase >= 1 ? colors.primary : colors.textSec,
               fontWeight: 600,
@@ -1492,19 +1541,84 @@ const Scene52 = () => {
 // EXPORTS
 // ============================================
 export const AnimationStepsPart5 = [
-  { title: "User Defined Exception", component: Scene40 },
-  { title: "Standard Exception Classes", component: Scene41 },
-  { title: "Memory Allocation Failure", component: Scene42 },
-  { title: "Rethrow Exception", component: Scene43 },
-  { title: "Best Practices", component: Scene44 },
-  { title: "Input Validation Example", component: Scene45 },
-  { title: "Destructors & Safety", component: Scene46 },
-  { title: "Catch by Reference", component: Scene47 },
-  { title: "Unhandled Exception", component: Scene48 },
-  { title: "Benefits Summary", component: Scene49 },
-  { title: "Concept Summary Flow", component: Scene50 },
-  { title: "Exception Handling Closing", component: Scene51 },
-  { title: "Unit 5 Progress", component: Scene52 },
+  {
+    title: "User Defined Exception",
+    component: Scene40,
+    contentText:
+      "User Defined Exception: Create custom exception class - class MyException {}; Then throw MyException(); You can create your own exception types for specific error cases in your application.",
+  },
+  {
+    title: "Standard Exception Classes",
+    component: Scene41,
+    contentText:
+      "C++ Standard Exception Classes from <exception> header: std::exception (base class), std::runtime_error, std::logic_error, std::invalid_argument, std::out_of_range. Use these built-in classes for common errors.",
+  },
+  {
+    title: "Memory Allocation Failure",
+    component: Scene42,
+    contentText:
+      "Memory Allocation Failure - bad_alloc: When 'new' fails to allocate memory, it throws std::bad_alloc. Example: try { int* arr = new int[999999999999]; } catch(std::bad_alloc& e) { cout << e.what(); }",
+  },
+  {
+    title: "Rethrow Exception",
+    component: Scene43,
+    contentText:
+      "Rethrowing Exceptions: Use 'throw;' without arguments to rethrow the caught exception. catch(exception& e) { log(e); throw; } This passes the exception up the call stack after partial handling.",
+  },
+  {
+    title: "Best Practices",
+    component: Scene44,
+    contentText:
+      "Exception Handling Best Practices: 1) Catch by reference (catch(exception& e)), 2) Catch specific exceptions before general ones, 3) Don't use exceptions for normal flow control, 4) Always provide meaningful error messages.",
+  },
+  {
+    title: "Input Validation Example",
+    component: Scene45,
+    contentText:
+      'Input Validation with Exceptions: void setAge(int age) { if(age < 0 || age > 150) throw invalid_argument("Invalid age"); this->age = age; } Use exceptions to validate input parameters.',
+  },
+  {
+    title: "Destructors & Safety",
+    component: Scene46,
+    contentText:
+      "Destructors and Exception Safety: During stack unwinding, destructors are called automatically. Resource Acquisition Is Initialization (RAII) pattern ensures cleanup. Smart pointers (unique_ptr, shared_ptr) help manage resources safely.",
+  },
+  {
+    title: "Catch by Reference",
+    component: Scene47,
+    contentText:
+      "Catch by Reference vs Value: catch(exception e) - makes copy, loses polymorphism. catch(exception& e) - no copy, preserves polymorphism. Always catch by reference for efficiency and correctness.",
+  },
+  {
+    title: "Unhandled Exception",
+    component: Scene48,
+    contentText:
+      "Unhandled Exceptions: If no catch block matches the thrown exception, std::terminate() is called. The program crashes. Always provide catch(...) as a safety net for unexpected exceptions.",
+  },
+  {
+    title: "Benefits Summary",
+    component: Scene49,
+    contentText:
+      "Benefits of Exception Handling: 1) Separates error handling code from normal code, 2) Propagates errors up call stack, 3) Groups error types, 4) Enables graceful degradation, 5) Cleaner code structure.",
+  },
+  {
+    title: "Concept Summary Flow",
+    component: Scene50,
+    contentText:
+      "Exception Handling Flow Summary: try { risky code } -> if error: throw exception -> catch(type) { handle } -> continue program. Uncaught exceptions cause terminate(). Stack unwinding cleans up.",
+  },
+  {
+    title: "Exception Handling Closing",
+    component: Scene51,
+    contentText:
+      "Key Takeaways: try-catch-throw are the three pillars. Match exception types in catch. Use standard exceptions when possible. Catch by reference. RAII for resource safety. Exceptions make code robust and maintainable.",
+  },
+  {
+    title: "Unit 5 Progress",
+    component: Scene52,
+    contentText:
+      "Unit 5 Progress: Exception Handling section complete! You've learned try-catch blocks, throwing exceptions, standard exception classes, best practices, and RAII. Next up: More Unit 5 topics.",
+  },
 ];
 
 export default { AnimationStepsPart5 };

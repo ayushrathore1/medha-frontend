@@ -1,7 +1,7 @@
 /**
  * TemplatesOneShotPart3 - Scenes 19-26
  * OOPS Unit 5: Templates in C++ - One Shot Lecture
- * Covers: Static Assert, Headers Rule, Advantages, Disadvantages, 
+ * Covers: Static Assert, Headers Rule, Advantages, Disadvantages,
  *         Before vs After, Philosophy, Big Picture, Closing
  */
 import React, { useState, useEffect } from "react";
@@ -50,11 +50,13 @@ const Scene19 = () => {
         {/* Gate/Barrier visualization */}
         <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
           {/* Types trying to pass */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+          >
             {/* int passes */}
             <motion.div
               initial={{ x: 0 }}
-              animate={{ 
+              animate={{
                 x: phase >= 2 ? 180 : 0,
                 opacity: phase >= 2 ? [1, 1, 0] : 1,
               }}
@@ -76,7 +78,7 @@ const Scene19 = () => {
             {/* string blocked */}
             <motion.div
               initial={{ x: 0 }}
-              animate={{ 
+              animate={{
                 x: phase >= 3 ? 80 : 0,
               }}
               transition={{ duration: 0.5 }}
@@ -222,8 +224,8 @@ const Scene20 = () => {
           {/* .cpp file - BAD */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ 
-              opacity: phase >= 1 ? 0.4 : 1, 
+            animate={{
+              opacity: phase >= 1 ? 0.4 : 1,
               y: 0,
               scale: phase >= 1 ? 0.95 : 1,
             }}
@@ -275,7 +277,13 @@ const Scene20 = () => {
                 </motion.div>
               )}
             </div>
-            <span style={{ color: colors.danger, fontWeight: 600, fontSize: "14px" }}>
+            <span
+              style={{
+                color: colors.danger,
+                fontWeight: 600,
+                fontSize: "14px",
+              }}
+            >
               Not visible to compiler!
             </span>
           </motion.div>
@@ -283,8 +291,8 @@ const Scene20 = () => {
           {/* .h file - GOOD */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ 
-              opacity: 1, 
+            animate={{
+              opacity: 1,
               y: 0,
               scale: phase >= 2 ? 1.05 : 1,
             }}
@@ -302,9 +310,10 @@ const Scene20 = () => {
               style={{
                 width: "140px",
                 height: "180px",
-                background: phase >= 2
-                  ? `linear-gradient(180deg, ${colors.success}15 0%, ${colors.success}05 100%)`
-                  : "linear-gradient(180deg, #2c2c2e 0%, #1c1c1e 100%)",
+                background:
+                  phase >= 2
+                    ? `linear-gradient(180deg, ${colors.success}15 0%, ${colors.success}05 100%)`
+                    : "linear-gradient(180deg, #2c2c2e 0%, #1c1c1e 100%)",
                 border: `2px solid ${phase >= 2 ? colors.success : "rgba(255,255,255,0.15)"}`,
                 borderRadius: "16px",
                 display: "flex",
@@ -342,7 +351,13 @@ const Scene20 = () => {
                 </motion.div>
               )}
             </motion.div>
-            <span style={{ color: colors.success, fontWeight: 600, fontSize: "14px" }}>
+            <span
+              style={{
+                color: colors.success,
+                fontWeight: 600,
+                fontSize: "14px",
+              }}
+            >
               Visible to all!
             </span>
           </motion.div>
@@ -363,7 +378,10 @@ const Scene20 = () => {
                 fontSize: "15px",
               }}
             >
-              <span style={{ color: colors.secondary, fontWeight: 600 }}>Rule:</span> Templates must be in header files
+              <span style={{ color: colors.secondary, fontWeight: 600 }}>
+                Rule:
+              </span>{" "}
+              Templates must be in header files
             </motion.div>
           )}
         </AnimatePresence>
@@ -540,7 +558,7 @@ const Scene22 = () => {
         {/* Giant error message */}
         <motion.div
           initial={{ opacity: 0, height: 0 }}
-          animate={{ 
+          animate={{
             opacity: phase >= 1 ? 1 : 0,
             height: phase >= 2 ? "80px" : phase >= 1 ? "250px" : 0,
           }}
@@ -566,13 +584,15 @@ const Scene22 = () => {
           >
             {phase >= 1 && phase < 2 && (
               <>
-                error: no matching function for call to 'add(std::vector&lt;int&gt;, std::vector&lt;int&gt;)'
+                error: no matching function for call to
+                'add(std::vector&lt;int&gt;, std::vector&lt;int&gt;)'
                 <br />
                 note: candidate: 'template&lt;class T&gt; T add(T, T)'
                 <br />
                 note: template argument deduction/substitution failed:
                 <br />
-                note: deduced conflicting types for parameter 'T' ('std::vector&lt;int&gt;' and 'std::vector&lt;int&gt;')
+                note: deduced conflicting types for parameter 'T'
+                ('std::vector&lt;int&gt;' and 'std::vector&lt;int&gt;')
                 <br />
                 In file included from /usr/include/c++/11/vector:67,
                 <br />
@@ -665,10 +685,23 @@ const Scene23 = () => {
             transition={{ duration: 0.5 }}
           >
             <GlassCard glow={colors.danger}>
-              <div style={{ marginBottom: "0.5rem", color: colors.danger, fontWeight: 600, fontSize: "12px" }}>
+              <div
+                style={{
+                  marginBottom: "0.5rem",
+                  color: colors.danger,
+                  fontWeight: 600,
+                  fontSize: "12px",
+                }}
+              >
                 BEFORE
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5rem",
+                }}
+              >
                 {["int", "float", "double", "char"].map((type, i) => (
                   <motion.div
                     key={type}
@@ -710,7 +743,14 @@ const Scene23 = () => {
             }}
           >
             <GlassCard glow={colors.success}>
-              <div style={{ marginBottom: "0.5rem", color: colors.success, fontWeight: 600, fontSize: "12px" }}>
+              <div
+                style={{
+                  marginBottom: "0.5rem",
+                  color: colors.success,
+                  fontWeight: 600,
+                  fontSize: "12px",
+                }}
+              >
                 AFTER
               </div>
               <motion.div
@@ -725,7 +765,9 @@ const Scene23 = () => {
                   borderRadius: "8px",
                 }}
               >
-                <div style={{ color: colors.secondary }}>template&lt;typename T&gt;</div>
+                <div style={{ color: colors.secondary }}>
+                  template&lt;typename T&gt;
+                </div>
                 <div>
                   <span style={{ color: colors.primary }}>T</span> add(
                   <span style={{ color: colors.primary }}>T</span>,{" "}
@@ -944,7 +986,10 @@ const Scene25 = () => {
                   fontFamily: "'SF Mono', monospace",
                   fontSize: "20px",
                   fontWeight: 700,
-                  color: colors[`type${type.charAt(0).toUpperCase() + type.slice(1)}`] || colors.primary,
+                  color:
+                    colors[
+                      `type${type.charAt(0).toUpperCase() + type.slice(1)}`
+                    ] || colors.primary,
                 }}
               >
                 {type}
@@ -968,7 +1013,9 @@ const Scene25 = () => {
                   textAlign: "center",
                 }}
               >
-                <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚡</div>
+                <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>
+                  ⚡
+                </div>
                 Generated
                 <br />
                 Code
@@ -1134,14 +1181,54 @@ const Scene26 = () => {
 // EXPORTS
 // ============================================
 export const AnimationStepsPart3 = [
-  { title: "Static Assert Restriction", component: Scene19 },
-  { title: "Headers Rule", component: Scene20 },
-  { title: "Advantages Summary", component: Scene21 },
-  { title: "Disadvantage: Error Messages", component: Scene22 },
-  { title: "Before vs After", component: Scene23 },
-  { title: "Philosophy", component: Scene24 },
-  { title: "Big Picture", component: Scene25 },
-  { title: "Closing", component: Scene26 },
+  {
+    title: "Static Assert Restriction",
+    component: Scene19,
+    contentText:
+      'static_assert with Templates: static_assert(sizeof(T) > 4, "Type too small"); Compile-time assertions to restrict template parameters. Fails compilation with custom message if condition is false.',
+  },
+  {
+    title: "Headers Rule",
+    component: Scene20,
+    contentText:
+      "Template Definition in Headers: Templates must be defined in header files, not .cpp files. Compiler needs to see the full template definition at instantiation point. Put template code in .h or .hpp files.",
+  },
+  {
+    title: "Advantages Summary",
+    component: Scene21,
+    contentText:
+      "Template Advantages: 1) Code Reusability - write once, use for any type, 2) Type Safety - errors caught at compile time, 3) No Runtime Overhead - as fast as hand-written code, 4) Generic Programming - STL is built on templates.",
+  },
+  {
+    title: "Disadvantage: Error Messages",
+    component: Scene22,
+    contentText:
+      "Template Disadvantages: 1) Complex Error Messages - hard to read compiler errors, 2) Code Bloat - each instantiation generates new code, 3) Longer Compile Times - template instantiation takes time, 4) Steep Learning Curve.",
+  },
+  {
+    title: "Before vs After",
+    component: Scene23,
+    contentText:
+      "Before vs After Templates: BEFORE - write int max, double max, string max separately. AFTER - template<typename T> T max(T a, T b) works for all. Massive reduction in code duplication.",
+  },
+  {
+    title: "Philosophy",
+    component: Scene24,
+    contentText:
+      "Template Philosophy: 'Write code that writes code.' Templates are meta-programming - your template code tells the compiler how to generate actual functions/classes. Think in terms of patterns, not specific types.",
+  },
+  {
+    title: "Big Picture",
+    component: Scene25,
+    contentText:
+      "Big Picture: Templates are foundation of C++ STL (vector, map, algorithm). Generic programming paradigm. Used in modern C++ extensively. Master templates = master modern C++.",
+  },
+  {
+    title: "Closing",
+    component: Scene26,
+    contentText:
+      "Templates Summary Complete: Function templates, class templates, specialization (full and partial), non-type parameters, compile-time polymorphism. Next: Exception Handling in C++.",
+  },
 ];
 
 export default { AnimationStepsPart3 };

@@ -176,7 +176,8 @@ const Scene93 = () => {
           >
             <motion.div
               animate={{
-                backgroundColor: phase === 1 ? "rgba(10, 132, 255, 0.2)" : "transparent",
+                backgroundColor:
+                  phase === 1 ? "rgba(10, 132, 255, 0.2)" : "transparent",
               }}
               style={{ padding: "4px 8px", borderRadius: "4px" }}
             >
@@ -187,7 +188,8 @@ const Scene93 = () => {
             </motion.div>
             <motion.div
               animate={{
-                backgroundColor: phase === 2 ? "rgba(48, 209, 88, 0.2)" : "transparent",
+                backgroundColor:
+                  phase === 2 ? "rgba(48, 209, 88, 0.2)" : "transparent",
               }}
               style={{ padding: "4px 8px", borderRadius: "4px" }}
             >
@@ -195,7 +197,8 @@ const Scene93 = () => {
             </motion.div>
             <motion.div
               animate={{
-                backgroundColor: phase === 3 ? "rgba(255, 159, 10, 0.2)" : "transparent",
+                backgroundColor:
+                  phase === 3 ? "rgba(255, 159, 10, 0.2)" : "transparent",
               }}
               style={{ padding: "4px 8px", borderRadius: "4px" }}
             >
@@ -211,7 +214,8 @@ const Scene93 = () => {
               key={step}
               animate={{
                 scale: phase === i + 1 ? 1.1 : 1,
-                backgroundColor: phase > i ? colors.primary : "rgba(255,255,255,0.05)",
+                backgroundColor:
+                  phase > i ? colors.primary : "rgba(255,255,255,0.05)",
               }}
               style={{
                 padding: "8px 16px",
@@ -277,8 +281,11 @@ const Scene94 = () => {
               (!fin)
             </div>
             <div style={{ paddingLeft: "1rem" }}>
-              cout {"<<"} 
-              <span style={{ color: colors.typeString }}>"File not opened"</span>;
+              cout {"<<"}
+              <span style={{ color: colors.typeString }}>
+                "File not opened"
+              </span>
+              ;
             </div>
           </div>
         </GlassCard>
@@ -382,7 +389,9 @@ const Scene95 = () => {
         </motion.div>
 
         <GlassCard glow={colors.success}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
+          >
             {points.map((point, i) => (
               <motion.div
                 key={point}
@@ -469,7 +478,10 @@ const Scene96 = () => {
           {/* Program */}
           <motion.div
             animate={{
-              boxShadow: direction === 0 ? `0 0 30px ${colors.success}50` : `0 0 30px ${colors.primary}50`,
+              boxShadow:
+                direction === 0
+                  ? `0 0 30px ${colors.success}50`
+                  : `0 0 30px ${colors.primary}50`,
             }}
             style={{
               padding: "24px 32px",
@@ -483,13 +495,21 @@ const Scene96 = () => {
             }}
           >
             <span style={{ fontSize: "2.5rem" }}>💻</span>
-            <span style={{ color: colors.accent, fontWeight: 700, fontSize: "16px" }}>
+            <span
+              style={{
+                color: colors.accent,
+                fontWeight: 700,
+                fontSize: "16px",
+              }}
+            >
               Program
             </span>
           </motion.div>
 
           {/* Bidirectional arrows */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+          >
             <motion.div
               animate={{
                 x: direction === 0 ? [0, 20, 0] : 0,
@@ -521,7 +541,10 @@ const Scene96 = () => {
           {/* File */}
           <motion.div
             animate={{
-              boxShadow: direction === 1 ? `0 0 30px ${colors.primary}50` : `0 0 30px ${colors.success}50`,
+              boxShadow:
+                direction === 1
+                  ? `0 0 30px ${colors.primary}50`
+                  : `0 0 30px ${colors.success}50`,
             }}
             style={{
               padding: "24px 32px",
@@ -535,17 +558,27 @@ const Scene96 = () => {
             }}
           >
             <span style={{ fontSize: "2.5rem" }}>📁</span>
-            <span style={{ color: colors.secondary, fontWeight: 700, fontSize: "16px" }}>
+            <span
+              style={{
+                color: colors.secondary,
+                fontWeight: 700,
+                fontSize: "16px",
+              }}
+            >
               File
             </span>
           </motion.div>
         </div>
 
         <div style={{ display: "flex", gap: "2rem" }}>
-          <span style={{ color: direction === 0 ? colors.success : colors.textSec }}>
+          <span
+            style={{ color: direction === 0 ? colors.success : colors.textSec }}
+          >
             ✍️ Write (ofstream)
           </span>
-          <span style={{ color: direction === 1 ? colors.primary : colors.textSec }}>
+          <span
+            style={{ color: direction === 1 ? colors.primary : colors.textSec }}
+          >
             📖 Read (ifstream)
           </span>
         </div>
@@ -889,7 +922,9 @@ const Scene100 = () => {
 
         <div style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
           {/* Uses */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
+          >
             {uses.map((use, i) => (
               <motion.div
                 key={use.text}
@@ -909,7 +944,9 @@ const Scene100 = () => {
                 }}
               >
                 <span style={{ fontSize: "1.5rem" }}>{use.icon}</span>
-                <span style={{ color: colors.text, fontWeight: 600 }}>{use.text}</span>
+                <span style={{ color: colors.text, fontWeight: 600 }}>
+                  {use.text}
+                </span>
               </motion.div>
             ))}
           </div>
@@ -989,7 +1026,9 @@ const Scene101 = () => {
           >
             <GlassCard glow={colors.danger}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💨</div>
+                <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
+                  💨
+                </div>
                 <div style={{ color: colors.danger, fontWeight: 600 }}>
                   Without File
                 </div>
@@ -1024,7 +1063,9 @@ const Scene101 = () => {
           >
             <GlassCard glow={colors.success}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📁</div>
+                <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
+                  📁
+                </div>
                 <div style={{ color: colors.success, fontWeight: 600 }}>
                   With File
                 </div>
@@ -1032,7 +1073,11 @@ const Scene101 = () => {
             </GlassCard>
             <motion.div
               animate={{
-                boxShadow: [`0 0 0px ${colors.success}`, `0 0 20px ${colors.success}`, `0 0 0px ${colors.success}`],
+                boxShadow: [
+                  `0 0 0px ${colors.success}`,
+                  `0 0 20px ${colors.success}`,
+                  `0 0 0px ${colors.success}`,
+                ],
               }}
               transition={{ duration: 2, repeat: Infinity }}
               style={{
@@ -1096,7 +1141,8 @@ const Scene102 = () => {
             textAlign: "center",
           }}
         >
-          File = <span style={{ color: colors.secondary }}>Notebook</span> of Program
+          File = <span style={{ color: colors.secondary }}>Notebook</span> of
+          Program
         </motion.div>
 
         {/* Visualization */}
@@ -1110,7 +1156,9 @@ const Scene102 = () => {
             }}
           >
             <span style={{ fontSize: "3rem" }}>💻</span>
-            <span style={{ color: colors.textSec, fontSize: "12px" }}>Program</span>
+            <span style={{ color: colors.textSec, fontSize: "12px" }}>
+              Program
+            </span>
           </motion.div>
 
           {phase >= 1 && (
@@ -1146,7 +1194,13 @@ const Scene102 = () => {
             }}
           >
             <span style={{ fontSize: "3rem" }}>📓</span>
-            <span style={{ color: colors.secondary, fontSize: "12px", fontWeight: 600 }}>
+            <span
+              style={{
+                color: colors.secondary,
+                fontSize: "12px",
+                fontWeight: 600,
+              }}
+            >
               File (Notebook)
             </span>
           </motion.div>
@@ -1204,7 +1258,8 @@ const Scene103 = () => {
               <motion.div
                 animate={{
                   scale: phase === i + 1 ? 1.15 : 1,
-                  boxShadow: phase === i + 1 ? `0 10px 30px ${step.color}50` : "none",
+                  boxShadow:
+                    phase === i + 1 ? `0 10px 30px ${step.color}50` : "none",
                 }}
                 style={{
                   padding: "20px",
@@ -1382,25 +1437,27 @@ const Scene104 = () => {
                 marginTop: "1rem",
               }}
             >
-              {["✓ Templates", "✓ Exceptions", "✓ Streams", "✓ Files"].map((topic, i) => (
-                <motion.div
-                  key={topic}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.15 }}
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "100px",
-                    background: `${colors.success}20`,
-                    border: `1px solid ${colors.success}40`,
-                    color: colors.success,
-                    fontWeight: 600,
-                    fontSize: "13px",
-                  }}
-                >
-                  {topic}
-                </motion.div>
-              ))}
+              {["✓ Templates", "✓ Exceptions", "✓ Streams", "✓ Files"].map(
+                (topic, i) => (
+                  <motion.div
+                    key={topic}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.15 }}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "100px",
+                      background: `${colors.success}20`,
+                      border: `1px solid ${colors.success}40`,
+                      color: colors.success,
+                      fontWeight: 600,
+                      fontSize: "13px",
+                    }}
+                  >
+                    {topic}
+                  </motion.div>
+                )
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1413,19 +1470,84 @@ const Scene104 = () => {
 // EXPORTS
 // ============================================
 export const AnimationStepsPart9 = [
-  { title: "Read Full Line (getline)", component: Scene92 },
-  { title: "Full Read Program", component: Scene93 },
-  { title: "Check File Open", component: Scene94 },
-  { title: "Exam Answer Format", component: Scene95 },
-  { title: "Data Flow Diagram", component: Scene96 },
-  { title: "Common Mistake", component: Scene97 },
-  { title: "Keywords Summary", component: Scene98 },
-  { title: "Files Are Streams", component: Scene99 },
-  { title: "Practical Uses", component: Scene100 },
-  { title: "Before vs After", component: Scene101 },
-  { title: "Mental Model", component: Scene102 },
-  { title: "Final Summary", component: Scene103 },
-  { title: "File Handling Closing", component: Scene104 },
+  {
+    title: "Read Full Line (getline)",
+    component: Scene92,
+    contentText:
+      "Reading Full Lines: string line; while(getline(inFile, line)) { process line; } getline reads entire line including spaces, returns false at EOF. Correct way to read text files.",
+  },
+  {
+    title: "Full Read Program",
+    component: Scene93,
+    contentText:
+      'Complete Read Example: #include <fstream> #include <string> int main() { ifstream in("file.txt"); string line; while(getline(in, line)) cout << line << endl; in.close(); }',
+  },
+  {
+    title: "Check File Open",
+    component: Scene94,
+    contentText:
+      'Error Checking: Always verify file opened successfully! if(!inFile.is_open()) { cerr << "Cannot open file!"; return 1; } Or: if(inFile.fail()) or if(!inFile)',
+  },
+  {
+    title: "Exam Answer Format",
+    component: Scene95,
+    contentText:
+      "RTU Exam Answer Format: 1) Include header <fstream>, 2) Create appropriate stream object, 3) Open with error check, 4) Loop for read/write, 5) Close file. Show complete program.",
+  },
+  {
+    title: "Data Flow Diagram",
+    component: Scene96,
+    contentText:
+      "File I/O Data Flow: Program -> ofstream -> Buffer -> Disk File. Disk File -> Buffer -> ifstream -> Program. Stream acts as intermediary between program memory and file.",
+  },
+  {
+    title: "Common Mistake",
+    component: Scene97,
+    contentText:
+      "Common Mistakes: 1) Forgetting <fstream> include, 2) Not checking if file opened, 3) Using >> for full lines (use getline), 4) Not closing files, 5) Opening non-existent file for reading.",
+  },
+  {
+    title: "Keywords Summary",
+    component: Scene98,
+    contentText:
+      "File Handling Keywords: ifstream (input), ofstream (output), fstream (both), open(), close(), getline(), eof(), fail(), is_open(), ios::app, ios::binary, ios::in, ios::out",
+  },
+  {
+    title: "Files Are Streams",
+    component: Scene99,
+    contentText:
+      "Files ARE Streams: Same << >> operators work with files as with cin/cout. ifstream inherits from istream, ofstream from ostream. Polymorphism in action!",
+  },
+  {
+    title: "Practical Uses",
+    component: Scene100,
+    contentText:
+      "Real World Uses: Configuration files, log files, data persistence, saving game state, database exports, report generation, reading CSV/JSON files, backup systems.",
+  },
+  {
+    title: "Before vs After",
+    component: Scene101,
+    contentText:
+      "Before vs After Files: WITHOUT files - data lost when program ends. WITH files - data persists forever. Files enable data persistence across program executions.",
+  },
+  {
+    title: "Mental Model",
+    component: Scene102,
+    contentText:
+      "Mental Model: Think of file streams as pipes connecting your program to files on disk. ofstream = outgoing pipe (write), ifstream = incoming pipe (read). Open pipe, transfer data, close pipe.",
+  },
+  {
+    title: "Final Summary",
+    component: Scene103,
+    contentText:
+      "File Handling Summary: #include <fstream>, create stream object, open file, check success, read/write using <</>>/getline, close file. Same operators as console I/O!",
+  },
+  {
+    title: "File Handling Closing",
+    component: Scene104,
+    contentText:
+      "Unit 5 Complete! Covered: Templates (generic programming), Exception Handling (try-catch-throw), Stream Classes (cin/cout), File Handling (ifstream/ofstream). You're ready for RTU exams!",
+  },
 ];
 
 export default { AnimationStepsPart9 };

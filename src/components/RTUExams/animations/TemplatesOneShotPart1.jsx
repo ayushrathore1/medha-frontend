@@ -32,7 +32,12 @@ export const GlassCard = ({ children, style = {}, glow = null }) => (
   </motion.div>
 );
 
-export const CodeBlock = ({ code, highlight = [], typing = false, delay = 0 }) => {
+export const CodeBlock = ({
+  code,
+  highlight = [],
+  typing = false,
+  delay = 0,
+}) => {
   const [displayed, setDisplayed] = useState(typing ? "" : code);
 
   useEffect(() => {
@@ -85,7 +90,7 @@ export const CodeBlock = ({ code, highlight = [], typing = false, delay = 0 }) =
 // Floating type labels for background
 const FloatingTypes = () => {
   const types = ["int", "float", "double", "char", "string", "T"];
-  
+
   return (
     <>
       {types.map((type, i) => (
@@ -238,9 +243,9 @@ const Scene2 = () => {
         return c;
       });
     }, 700);
-    
+
     const warningTimer = setTimeout(() => setShowWarning(true), 2800);
-    
+
     return () => {
       clearInterval(interval);
       clearTimeout(warningTimer);
@@ -395,7 +400,9 @@ const Scene3 = () => {
         </motion.div>
 
         {/* Aligned functions */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+        >
           {functions.map((fn, i) => (
             <motion.div
               key={fn.type}
@@ -445,7 +452,8 @@ const Scene3 = () => {
               <motion.span
                 animate={{
                   color: phase >= 2 ? colors.success : colors.text,
-                  textShadow: phase >= 3 ? `0 0 15px ${colors.success}` : "none",
+                  textShadow:
+                    phase >= 3 ? `0 0 15px ${colors.success}` : "none",
                 }}
                 style={{ fontWeight: 600 }}
               >
@@ -578,7 +586,8 @@ const Scene4 = () => {
               <motion.span
                 animate={{
                   color: phase >= 1 ? colors.primary : colors.text,
-                  textShadow: phase >= 2 ? `0 0 15px ${colors.primary}` : "none",
+                  textShadow:
+                    phase >= 2 ? `0 0 15px ${colors.primary}` : "none",
                 }}
                 style={{ fontWeight: 700 }}
               >
@@ -630,7 +639,13 @@ const Scene4 = () => {
                 T
               </span>
               <span style={{ color: colors.textSec, fontSize: "20px" }}>=</span>
-              <span style={{ color: colors.text, fontWeight: 500, fontSize: "18px" }}>
+              <span
+                style={{
+                  color: colors.text,
+                  fontWeight: 500,
+                  fontSize: "18px",
+                }}
+              >
                 Some Type (Blank)
               </span>
             </motion.div>
@@ -652,7 +667,10 @@ const Scene5 = () => {
       setTimeout(() => setHighlights(["template"]), 600),
       setTimeout(() => setHighlights(["template", "typename"]), 1400),
       setTimeout(() => setHighlights(["template", "typename", "T"]), 2200),
-      setTimeout(() => setHighlights(["template", "typename", "T", "all"]), 3000),
+      setTimeout(
+        () => setHighlights(["template", "typename", "T", "all"]),
+        3000
+      ),
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
@@ -691,7 +709,9 @@ const Scene5 = () => {
             {/* First line: template<typename T> */}
             <motion.span
               animate={{
-                color: highlights.includes("template") ? colors.secondary : colors.text,
+                color: highlights.includes("template")
+                  ? colors.secondary
+                  : colors.text,
                 textShadow: highlights.includes("template")
                   ? `0 0 20px ${colors.secondary}`
                   : "none",
@@ -703,7 +723,9 @@ const Scene5 = () => {
             <span style={{ color: colors.textSec }}> {"<"}</span>
             <motion.span
               animate={{
-                color: highlights.includes("typename") ? colors.accent : colors.text,
+                color: highlights.includes("typename")
+                  ? colors.accent
+                  : colors.text,
                 scale: highlights.includes("typename") ? 1.05 : 1,
               }}
               style={{ fontWeight: 600 }}
@@ -724,7 +746,7 @@ const Scene5 = () => {
             </motion.span>
             <span style={{ color: colors.textSec }}>{">"}</span>
             <br />
-            
+
             {/* Second line: T add(T a, T b) */}
             <motion.span
               animate={{
@@ -851,15 +873,20 @@ const Scene6 = () => {
         {/* Blueprint-style code */}
         <motion.div
           animate={{
-            filter: phase >= 1 ? "drop-shadow(0 0 20px rgba(191, 90, 242, 0.3))" : "none",
+            filter:
+              phase >= 1
+                ? "drop-shadow(0 0 20px rgba(191, 90, 242, 0.3))"
+                : "none",
           }}
         >
           <GlassCard
             style={{
-              background: phase >= 1
-                ? "repeating-linear-gradient(0deg, rgba(191, 90, 242, 0.05), rgba(191, 90, 242, 0.05) 1px, transparent 1px, transparent 20px), repeating-linear-gradient(90deg, rgba(191, 90, 242, 0.05), rgba(191, 90, 242, 0.05) 1px, transparent 1px, transparent 20px), rgba(28, 28, 30, 0.65)"
-                : "rgba(28, 28, 30, 0.65)",
-              borderColor: phase >= 1 ? `${colors.accent}50` : "rgba(255,255,255,0.12)",
+              background:
+                phase >= 1
+                  ? "repeating-linear-gradient(0deg, rgba(191, 90, 242, 0.05), rgba(191, 90, 242, 0.05) 1px, transparent 1px, transparent 20px), repeating-linear-gradient(90deg, rgba(191, 90, 242, 0.05), rgba(191, 90, 242, 0.05) 1px, transparent 1px, transparent 20px), rgba(28, 28, 30, 0.65)"
+                  : "rgba(28, 28, 30, 0.65)",
+              borderColor:
+                phase >= 1 ? `${colors.accent}50` : "rgba(255,255,255,0.12)",
               borderStyle: phase >= 1 ? "dashed" : "solid",
               borderWidth: "2px",
             }}
@@ -1029,7 +1056,9 @@ const Scene7 = () => {
         </motion.div>
 
         {/* Generated Functions */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
+        >
           <div
             style={{
               color: colors.textSec,
@@ -1251,7 +1280,9 @@ const Scene9 = () => {
           📞 CALLING TEMPLATES
         </motion.div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+        >
           {/* Explicit Call */}
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
             <GlassCard style={{ minWidth: "280px" }}>
@@ -1263,7 +1294,9 @@ const Scene9 = () => {
               >
                 <span style={{ color: colors.text }}>add</span>
                 <span style={{ color: colors.primary }}>{"<"}</span>
-                <span style={{ color: colors.typeInt, fontWeight: 700 }}>int</span>
+                <span style={{ color: colors.typeInt, fontWeight: 700 }}>
+                  int
+                </span>
                 <span style={{ color: colors.primary }}>{">"}</span>
                 <span style={{ color: colors.text }}>(3, 4)</span>
               </div>
@@ -1357,15 +1390,60 @@ const Scene9 = () => {
 // EXPORTS
 // ============================================
 export const AnimationStepsPart1 = [
-  { title: "Title & Setup", component: Scene1 },
-  { title: "Code Duplication Problem", component: Scene2 },
-  { title: "Zoom Into Logic", component: Scene3 },
-  { title: "The Placeholder Idea", component: Scene4 },
-  { title: "Template Syntax", component: Scene5 },
-  { title: "Blueprint Concept", component: Scene6 },
-  { title: "Compiler Creates Functions", component: Scene7 },
-  { title: "Compile Time vs Run Time", component: Scene8 },
-  { title: "Explicit Template Call", component: Scene9 },
+  {
+    title: "Title & Setup",
+    component: Scene1,
+    contentText:
+      "C++ Templates - Unit 5 One Shot. Subject: Object Oriented Programming with C++. University: RTU (Rajasthan Technical University). Topic: Generic Programming with Templates - Write Once, Use for Any Type.",
+  },
+  {
+    title: "Code Duplication Problem",
+    component: Scene2,
+    contentText:
+      "The Problem: Code Duplication. Without templates, you write separate functions for each type - int add(int a, int b), double add(double a, double b), float add(float a, float b). Same logic repeated, wasting time and creating maintenance burden.",
+  },
+  {
+    title: "Zoom Into Logic",
+    component: Scene3,
+    contentText:
+      "All these functions have identical logic: return a + b. The ONLY difference is the data type. This violates DRY principle (Don't Repeat Yourself). Templates solve this by writing the logic once.",
+  },
+  {
+    title: "The Placeholder Idea",
+    component: Scene4,
+    contentText:
+      "The Placeholder Concept: Instead of hardcoding types, use a placeholder T. T add(T a, T b) { return a + b; } The compiler replaces T with actual types when needed - int, double, string, any type!",
+  },
+  {
+    title: "Template Syntax",
+    component: Scene5,
+    contentText:
+      "Template Syntax: template<typename T> or template<class T> followed by function/class definition. T is the type parameter. template<typename T> T add(T a, T b) { return a + b; }",
+  },
+  {
+    title: "Blueprint Concept",
+    component: Scene6,
+    contentText:
+      "Templates are Blueprints: A template is NOT actual code - it's a blueprint. The compiler uses this blueprint to generate real functions/classes for specific types when you use them in your code.",
+  },
+  {
+    title: "Compiler Creates Functions",
+    component: Scene7,
+    contentText:
+      "Template Instantiation: When you call add(5, 3), compiler creates int add(int, int). Call add(2.5, 1.5), compiler creates double add(double, double). Each unique type generates new code - called instantiation.",
+  },
+  {
+    title: "Compile Time vs Run Time",
+    component: Scene8,
+    contentText:
+      "Templates work at COMPILE TIME, not runtime. The compiler generates specific functions during compilation. No runtime overhead - templates are as fast as hand-written type-specific functions.",
+  },
+  {
+    title: "Explicit Template Call",
+    component: Scene9,
+    contentText:
+      "Explicit Template Arguments: You can specify the type explicitly - add<int>(5, 3) or add<double>(2.5, 1.5). Useful when compiler can't deduce the type or when you want a specific instantiation.",
+  },
 ];
 
 export default {

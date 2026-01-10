@@ -487,7 +487,8 @@ const Scene56 = () => {
                   color: colors.primary,
                 }}
               >
-                cin {">"}{">"}  x;
+                cin {">"}
+                {">"} x;
               </code>
             </GlassCard>
 
@@ -540,7 +541,8 @@ const Scene56 = () => {
                   color: colors.success,
                 }}
               >
-                cout {"<"}{"<"} x;
+                cout {"<"}
+                {"<"} x;
               </code>
             </GlassCard>
 
@@ -757,7 +759,14 @@ const Scene58 = () => {
           🌳 STREAM CLASS HIERARCHY
         </motion.div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "1rem",
+          }}
+        >
           {/* Root: ios_base -> ios -> iostream */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -785,8 +794,20 @@ const Scene58 = () => {
               gap: "60px",
             }}
           >
-            <div style={{ width: "2px", height: "30px", background: colors.textSec }} />
-            <div style={{ width: "2px", height: "30px", background: colors.textSec }} />
+            <div
+              style={{
+                width: "2px",
+                height: "30px",
+                background: colors.textSec,
+              }}
+            />
+            <div
+              style={{
+                width: "2px",
+                height: "30px",
+                background: colors.textSec,
+              }}
+            />
           </motion.div>
 
           {/* Children */}
@@ -1301,7 +1322,8 @@ const Scene62 = () => {
             <div style={{ color: colors.typeInt }}>int a, b;</div>
             <motion.div
               animate={{
-                backgroundColor: phase >= 1 ? "rgba(10, 132, 255, 0.15)" : "transparent",
+                backgroundColor:
+                  phase >= 1 ? "rgba(10, 132, 255, 0.15)" : "transparent",
               }}
               style={{ padding: "4px 8px", borderRadius: "4px" }}
             >
@@ -1309,7 +1331,8 @@ const Scene62 = () => {
             </motion.div>
             <motion.div
               animate={{
-                backgroundColor: phase >= 3 ? "rgba(48, 209, 88, 0.15)" : "transparent",
+                backgroundColor:
+                  phase >= 3 ? "rgba(48, 209, 88, 0.15)" : "transparent",
               }}
               style={{ padding: "4px 8px", borderRadius: "4px" }}
             >
@@ -1532,7 +1555,7 @@ const Scene64 = () => {
             >
               cout
             </div>
-            
+
             {/* Buffer queue */}
             <div
               style={{
@@ -1568,7 +1591,7 @@ const Scene64 = () => {
                   </motion.div>
                 ))}
             </div>
-            
+
             <span style={{ color: colors.textSec, fontSize: "12px" }}>
               Waits in queue (buffered)
             </span>
@@ -1593,7 +1616,7 @@ const Scene64 = () => {
             >
               cerr
             </div>
-            
+
             {/* Immediate output */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -1608,7 +1631,7 @@ const Scene64 = () => {
             >
               Error! ⚡
             </motion.div>
-            
+
             <span style={{ color: colors.textSec, fontSize: "12px" }}>
               Prints instantly (unbuffered)
             </span>
@@ -1679,7 +1702,7 @@ const Scene65 = () => {
                 setw(10)
               </code>
             </GlassCard>
-            
+
             {/* Wider box animation */}
             <motion.div
               animate={{
@@ -1726,7 +1749,7 @@ const Scene65 = () => {
                 setprecision(2)
               </code>
             </GlassCard>
-            
+
             {/* Decimal trimming */}
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
               <div
@@ -1770,19 +1793,84 @@ const Scene65 = () => {
 // EXPORTS
 // ============================================
 export const AnimationStepsPart6 = [
-  { title: "Stream Classes Intro", component: Scene53 },
-  { title: "What Is a Stream?", component: Scene54 },
-  { title: "Input vs Output Stream", component: Scene55 },
-  { title: "You Already Use Streams", component: Scene56 },
-  { title: "Streams Are Objects", component: Scene57 },
-  { title: "Stream Class Hierarchy", component: Scene58 },
-  { title: "Overloaded Operators", component: Scene59 },
-  { title: "How cin >> x Works", component: Scene60 },
-  { title: "How cout << x Works", component: Scene61 },
-  { title: "Complete Basic Program", component: Scene62 },
-  { title: "cerr Stream", component: Scene63 },
-  { title: "Buffering Concept", component: Scene64 },
-  { title: "Formatting Output", component: Scene65 },
+  {
+    title: "Stream Classes Intro",
+    component: Scene53,
+    contentText:
+      "Stream Classes in C++ - Unit 5. Topic: Input/Output Stream Classes. Streams provide a uniform interface for I/O operations. Part of <iostream> header. Foundation of C++ I/O system.",
+  },
+  {
+    title: "What Is a Stream?",
+    component: Scene54,
+    contentText:
+      "What is a Stream? A stream is a sequence of bytes flowing between program and I/O device. Like a water pipe - data flows through it. Abstraction that hides device-specific details.",
+  },
+  {
+    title: "Input vs Output Stream",
+    component: Scene55,
+    contentText:
+      "Input Stream vs Output Stream: INPUT (istream) - data flows INTO program from keyboard/file. OUTPUT (ostream) - data flows OUT of program to screen/file. Direction is relative to program.",
+  },
+  {
+    title: "You Already Use Streams",
+    component: Scene56,
+    contentText:
+      "You Already Use Streams! cin is istream object for keyboard input. cout is ostream object for console output. cerr is ostream for error messages. These are predefined stream objects.",
+  },
+  {
+    title: "Streams Are Objects",
+    component: Scene57,
+    contentText:
+      "Streams Are Objects: cin, cout, cerr are OBJECTS of stream classes, not functions. They have methods like cin.get(), cout.put(), cout.precision(). OOP in action!",
+  },
+  {
+    title: "Stream Class Hierarchy",
+    component: Scene58,
+    contentText:
+      "Stream Class Hierarchy: ios_base (base) -> ios -> istream/ostream -> iostream. ifstream/ofstream for files. stringstream for strings. All inherit from common base classes.",
+  },
+  {
+    title: "Overloaded Operators",
+    component: Scene59,
+    contentText:
+      "Overloaded << and >> Operators: << is insertion operator (put data into stream). >> is extraction operator (get data from stream). These are overloaded for all basic types.",
+  },
+  {
+    title: "How cin >> x Works",
+    component: Scene60,
+    contentText:
+      "How cin >> x Works: 1) Reads characters from keyboard buffer, 2) Skips whitespace, 3) Converts to appropriate type, 4) Stores in variable x. Returns reference to cin for chaining.",
+  },
+  {
+    title: "How cout << x Works",
+    component: Scene61,
+    contentText:
+      "How cout << x Works: 1) Takes value x, 2) Converts to character representation, 3) Writes to output buffer, 4) Buffer flushed to screen. Returns reference to cout for chaining.",
+  },
+  {
+    title: "Complete Basic Program",
+    component: Scene62,
+    contentText:
+      'Complete I/O Example: #include <iostream> using namespace std; int main() { int x; cin >> x; cout << "Value: " << x << endl; return 0; } Basic stream I/O pattern.',
+  },
+  {
+    title: "cerr Stream",
+    component: Scene63,
+    contentText:
+      'cerr - Error Stream: cerr is unbuffered output stream for errors. Always displays immediately (no buffering). Use for error messages: cerr << "Error: " << msg; Separate from cout.',
+  },
+  {
+    title: "Buffering Concept",
+    component: Scene64,
+    contentText:
+      "Stream Buffering: cout is buffered - data accumulates before output. cerr is unbuffered - immediate output. endl flushes buffer. flush() method also flushes. Buffering improves performance.",
+  },
+  {
+    title: "Formatting Output",
+    component: Scene65,
+    contentText:
+      "Output Formatting: setw(n) - field width. setprecision(n) - decimal places. fixed/scientific - notation. left/right - alignment. Include <iomanip> header. cout << setw(10) << setprecision(2) << value;",
+  },
 ];
 
 export default { AnimationStepsPart6 };

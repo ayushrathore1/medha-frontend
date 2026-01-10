@@ -1,8 +1,8 @@
 /**
  * TemplatesOneShotPart2 - Scenes 10-18
  * OOPS Unit 5: Templates in C++ - One Shot Lecture
- * Covers: Multiple Types, Mixed Type, Class Template, Box Specializations, 
- *         Compile-Time Polymorphism, General Printer, Specialization for char*, 
+ * Covers: Multiple Types, Mixed Type, Class Template, Box Specializations,
+ *         Compile-Time Polymorphism, General Printer, Specialization for char*,
  *         Partial Specialization, Non-Type Parameter
  */
 import React, { useState, useEffect } from "react";
@@ -52,8 +52,8 @@ const Scene10 = () => {
         <div style={{ display: "flex", gap: "2rem" }}>
           <motion.div
             initial={{ opacity: 0, scale: 0, rotate: -20 }}
-            animate={{ 
-              opacity: phase >= 1 ? 1 : 0, 
+            animate={{
+              opacity: phase >= 1 ? 1 : 0,
               scale: phase >= 1 ? 1 : 0,
               rotate: 0,
               x: phase >= 3 ? 50 : 0,
@@ -75,8 +75,8 @@ const Scene10 = () => {
 
           <motion.div
             initial={{ opacity: 0, scale: 0, rotate: 20 }}
-            animate={{ 
-              opacity: phase >= 2 ? 1 : 0, 
+            animate={{
+              opacity: phase >= 2 ? 1 : 0,
               scale: phase >= 2 ? 1 : 0,
               rotate: 0,
               x: phase >= 3 ? -50 : 0,
@@ -116,7 +116,9 @@ const Scene10 = () => {
                   <span style={{ color: colors.textSec }}>{"<"}</span>
                   <span style={{ color: colors.accent }}>typename </span>
                   <motion.span
-                    animate={{ color: [colors.primary, colors.typeInt, colors.primary] }}
+                    animate={{
+                      color: [colors.primary, colors.typeInt, colors.primary],
+                    }}
                     transition={{ duration: 2, repeat: Infinity }}
                     style={{ fontWeight: 700 }}
                   >
@@ -125,7 +127,9 @@ const Scene10 = () => {
                   <span style={{ color: colors.textSec }}>, </span>
                   <span style={{ color: colors.accent }}>typename </span>
                   <motion.span
-                    animate={{ color: [colors.typeU, colors.accent, colors.typeU] }}
+                    animate={{
+                      color: [colors.typeU, colors.accent, colors.typeU],
+                    }}
                     transition={{ duration: 2, repeat: Infinity }}
                     style={{ fontWeight: 700 }}
                   >
@@ -222,7 +226,8 @@ const Scene11 = () => {
             <motion.span
               animate={{
                 color: phase >= 1 ? colors.typeFloat : colors.text,
-                textShadow: phase >= 1 ? `0 0 15px ${colors.typeFloat}` : "none",
+                textShadow:
+                  phase >= 1 ? `0 0 15px ${colors.typeFloat}` : "none",
               }}
               style={{ fontWeight: 700 }}
             >
@@ -269,7 +274,13 @@ const Scene11 = () => {
                 >
                   5
                 </div>
-                <span style={{ color: colors.typeInt, fontWeight: 600, fontSize: "14px" }}>
+                <span
+                  style={{
+                    color: colors.typeInt,
+                    fontWeight: 600,
+                    fontSize: "14px",
+                  }}
+                >
                   int
                 </span>
               </div>
@@ -312,7 +323,13 @@ const Scene11 = () => {
                 >
                   2.5
                 </div>
-                <span style={{ color: colors.typeFloat, fontWeight: 600, fontSize: "14px" }}>
+                <span
+                  style={{
+                    color: colors.typeFloat,
+                    fontWeight: 600,
+                    fontSize: "14px",
+                  }}
+                >
                   float
                 </span>
               </div>
@@ -333,7 +350,9 @@ const Scene11 = () => {
                 gap: "0.5rem",
               }}
             >
-              <span style={{ color: colors.textSec, fontSize: "1.5rem" }}>↓</span>
+              <span style={{ color: colors.textSec, fontSize: "1.5rem" }}>
+                ↓
+              </span>
               <div
                 style={{
                   padding: "12px 24px",
@@ -395,8 +414,8 @@ const Scene12 = () => {
         {/* 3D Box visualization */}
         <motion.div
           initial={{ opacity: 0, rotateY: -30, scale: 0.8 }}
-          animate={{ 
-            opacity: 1, 
+          animate={{
+            opacity: 1,
             rotateY: phase >= 1 ? 0 : -30,
             scale: 1,
           }}
@@ -476,8 +495,14 @@ const Scene12 = () => {
                 fontSize: "15px",
               }}
             >
-              A <span style={{ color: colors.accent, fontWeight: 600 }}>container</span> that can hold{" "}
-              <span style={{ color: colors.primary, fontWeight: 600 }}>any type</span>
+              A{" "}
+              <span style={{ color: colors.accent, fontWeight: 600 }}>
+                container
+              </span>{" "}
+              that can hold{" "}
+              <span style={{ color: colors.primary, fontWeight: 600 }}>
+                any type
+              </span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -576,7 +601,9 @@ const Scene13 = () => {
                     fontWeight: 600,
                   }}
                 >
-                  Box{"<"}{box.type}{">"}
+                  Box{"<"}
+                  {box.type}
+                  {">"}
                 </div>
 
                 {/* Value inside */}
@@ -665,7 +692,9 @@ const Scene14 = () => {
         {/* Comparison table */}
         <div style={{ display: "flex", gap: "2rem" }}>
           {/* Runtime Polymorphism */}
-          <GlassCard style={{ minWidth: "280px", opacity: phase >= 2 ? 0.5 : 1 }}>
+          <GlassCard
+            style={{ minWidth: "280px", opacity: phase >= 2 ? 0.5 : 1 }}
+          >
             <div
               style={{
                 color: colors.textSec,
@@ -756,7 +785,13 @@ const Scene14 = () => {
                 <div style={{ color: colors.text, fontSize: "13px" }}>
                   Decided at compile time
                 </div>
-                <div style={{ color: colors.success, fontSize: "12px", fontWeight: 600 }}>
+                <div
+                  style={{
+                    color: colors.success,
+                    fontSize: "12px",
+                    fontWeight: 600,
+                  }}
+                >
                   (zero overhead) ⚡
                 </div>
               </div>
@@ -931,19 +966,21 @@ const Scene16 = () => {
         {/* Specialized Printer block */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ 
-            opacity: 1, 
+          animate={{
+            opacity: 1,
             scale: 1,
-            boxShadow: phase >= 1 
-              ? `0 20px 60px ${colors.secondary}40`
-              : "0 20px 50px rgba(0,0,0,0.3)",
+            boxShadow:
+              phase >= 1
+                ? `0 20px 60px ${colors.secondary}40`
+                : "0 20px 50px rgba(0,0,0,0.3)",
           }}
           style={{
             width: "320px",
             height: "180px",
-            background: phase >= 1
-              ? `linear-gradient(145deg, ${colors.secondary}20, ${colors.secondary}05)`
-              : "linear-gradient(145deg, #3a3a3c, #2c2c2e)",
+            background:
+              phase >= 1
+                ? `linear-gradient(145deg, ${colors.secondary}20, ${colors.secondary}05)`
+                : "linear-gradient(145deg, #3a3a3c, #2c2c2e)",
             border: `3px solid ${phase >= 1 ? colors.secondary : "rgba(255,255,255,0.15)"}`,
             borderRadius: "24px",
             display: "flex",
@@ -1055,7 +1092,14 @@ const Scene17 = () => {
               <span style={{ color: colors.typeU }}>U</span>
               <span style={{ color: colors.textSec }}>{">"}</span>
             </div>
-            <div style={{ color: colors.textSec, fontSize: "12px", marginTop: "8px", textAlign: "center" }}>
+            <div
+              style={{
+                color: colors.textSec,
+                fontSize: "12px",
+                marginTop: "8px",
+                textAlign: "center",
+              }}
+            >
               General template
             </div>
           </GlassCard>
@@ -1086,7 +1130,8 @@ const Scene17 = () => {
                 <motion.span
                   animate={{
                     color: phase >= 1 ? colors.typeInt : colors.typeU,
-                    textShadow: phase >= 1 ? `0 0 15px ${colors.typeInt}` : "none",
+                    textShadow:
+                      phase >= 1 ? `0 0 15px ${colors.typeInt}` : "none",
                   }}
                   style={{ fontWeight: 700 }}
                 >
@@ -1094,7 +1139,15 @@ const Scene17 = () => {
                 </motion.span>
                 <span style={{ color: colors.textSec }}>{">"}</span>
               </div>
-              <div style={{ color: colors.accent, fontSize: "12px", marginTop: "8px", textAlign: "center", fontWeight: 600 }}>
+              <div
+                style={{
+                  color: colors.accent,
+                  fontSize: "12px",
+                  marginTop: "8px",
+                  textAlign: "center",
+                  fontWeight: 600,
+                }}
+              >
                 Second type fixed!
               </div>
             </GlassCard>
@@ -1115,7 +1168,10 @@ const Scene17 = () => {
                 fontSize: "14px",
               }}
             >
-              <span style={{ color: colors.typeInt, fontWeight: 600 }}>int</span> snaps into second slot!
+              <span style={{ color: colors.typeInt, fontWeight: 600 }}>
+                int
+              </span>{" "}
+              snaps into second slot!
             </motion.div>
           )}
         </AnimatePresence>
@@ -1257,7 +1313,9 @@ const Scene18 = () => {
                   }}
                 />
               ))}
-              <span style={{ color: colors.textSec, fontSize: "12px" }}>...</span>
+              <span style={{ color: colors.textSec, fontSize: "12px" }}>
+                ...
+              </span>
               {[...Array(5)].map((_, i) => (
                 <motion.div
                   key={i + 5}
@@ -1302,15 +1360,60 @@ const Scene18 = () => {
 // EXPORTS
 // ============================================
 export const AnimationStepsPart2 = [
-  { title: "Multiple Type Templates", component: Scene10 },
-  { title: "Mixed Type Example", component: Scene11 },
-  { title: "Class Template Box<T>", component: Scene12 },
-  { title: "Box Specializations", component: Scene13 },
-  { title: "Compile-Time Polymorphism", component: Scene14 },
-  { title: "General Printer Template", component: Scene15 },
-  { title: "Specialization for char*", component: Scene16 },
-  { title: "Partial Specialization", component: Scene17 },
-  { title: "Non-Type Parameter", component: Scene18 },
+  {
+    title: "Multiple Type Templates",
+    component: Scene10,
+    contentText:
+      "Multiple Type Parameters: template<typename T, typename U> allows two different types. Example: template<typename T, typename U> T convert(U value) { return static_cast<T>(value); }",
+  },
+  {
+    title: "Mixed Type Example",
+    component: Scene11,
+    contentText:
+      "Mixed Type Template Example: template<typename T, typename U> auto add(T a, U b) -> decltype(a + b) { return a + b; } Can add int + double, returning appropriate type using auto and decltype.",
+  },
+  {
+    title: "Class Template Box<T>",
+    component: Scene12,
+    contentText:
+      "Class Templates: template<typename T> class Box { T value; public: void set(T v); T get(); }; Creates a generic container. Use as Box<int>, Box<string>, Box<double>.",
+  },
+  {
+    title: "Box Specializations",
+    component: Scene13,
+    contentText:
+      "Class Template Instantiation: Box<int> creates integer box, Box<string> creates string box, Box<double> creates double box. Each instantiation is a separate class with the type parameter replaced.",
+  },
+  {
+    title: "Compile-Time Polymorphism",
+    component: Scene14,
+    contentText:
+      "Compile-Time Polymorphism: Templates provide polymorphism resolved at compile time. Different from runtime polymorphism (virtual functions). No overhead, type-safe, catches errors at compile time.",
+  },
+  {
+    title: "General Printer Template",
+    component: Scene15,
+    contentText:
+      "Template Specialization - General Template: template<typename T> class Printer { void print(T val) { cout << val; } }; This is the primary/general template that works for most types.",
+  },
+  {
+    title: "Specialization for char*",
+    component: Scene16,
+    contentText:
+      'Full Specialization: template<> class Printer<char*> { void print(char* val) { cout << "String: " << val; } }; Provides special behavior for char* type. template<> with specific type.',
+  },
+  {
+    title: "Partial Specialization",
+    component: Scene17,
+    contentText:
+      "Partial Specialization: template<typename T> class Printer<T*> { }; Specializes for ALL pointer types. Still has template parameter but restricts to pointers. Works for int*, double*, etc.",
+  },
+  {
+    title: "Non-Type Parameter",
+    component: Scene18,
+    contentText:
+      "Non-Type Template Parameters: template<typename T, int SIZE> class Array { T data[SIZE]; }; SIZE is a compile-time constant, not a type. Use as Array<int, 10>, Array<double, 100>.",
+  },
 ];
 
 export default { AnimationStepsPart2 };

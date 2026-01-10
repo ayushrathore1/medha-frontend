@@ -134,7 +134,10 @@ const MedhaAnimationViewer = ({
             }
           }
           // Store manual timings
-          if (res.data.manualSlideTimings && Object.keys(res.data.manualSlideTimings).length > 0) {
+          if (
+            res.data.manualSlideTimings &&
+            Object.keys(res.data.manualSlideTimings).length > 0
+          ) {
             setManualTimings(res.data.manualSlideTimings);
           }
         }
@@ -151,6 +154,8 @@ const MedhaAnimationViewer = ({
   const [audioLang, setAudioLang] = useState("hindi");
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showAudioHint, setShowAudioHint] = useState(false);
+  const [showNavigationHint, setShowNavigationHint] = useState(false);
+  const [hasUsedArrowKeys, setHasUsedArrowKeys] = useState(false);
 
   // Auto-play state (Video-like experience)
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
@@ -186,15 +191,31 @@ const MedhaAnimationViewer = ({
       switch (e.key) {
         case "ArrowRight":
           e.preventDefault();
+          setHasUsedArrowKeys(true);
+          setShowNavigationHint(false);
           handleNext();
           break;
         case " ":
           e.preventDefault();
-          // Space toggles auto-play (video-like experience)
-          setIsAutoPlaying((prev) => !prev);
+          // Space toggles Global Audio (Play/Pause)
+          if (hasAudio) {
+            setIsPlaying((prev) => !prev);
+          }
+          break;
+        case "j":
+        case "J":
+          e.preventDefault();
+          if (audioRef.current) audioRef.current.currentTime -= 10;
+          break;
+        case "k":
+        case "K":
+          e.preventDefault();
+          if (audioRef.current) audioRef.current.currentTime += 10;
           break;
         case "ArrowLeft":
           e.preventDefault();
+          setHasUsedArrowKeys(true);
+          setShowNavigationHint(false);
           handlePrev();
           break;
         case "ArrowUp":
@@ -339,13 +360,15 @@ const MedhaAnimationViewer = ({
       // If in sync mode and audio is playing, update scene based on audio time
       if (audioSyncMode && isPlaying) {
         let targetScene = currentStep;
-        
+
         // PRIORITY 1: Manual Slide Timings (User Recorded)
         if (manualTimings && Object.keys(manualTimings).length > 0) {
           // Find the highest slide number whose start time is <= current time
           let bestSlide = 1;
-          const slides = Object.entries(manualTimings).sort((a,b) => Number(a[0]) - Number(b[0]));
-          
+          const slides = Object.entries(manualTimings).sort(
+            (a, b) => Number(a[0]) - Number(b[0])
+          );
+
           for (const [slideNum, startTime] of slides) {
             if (time >= startTime) {
               bestSlide = Number(slideNum);
@@ -372,7 +395,7 @@ const MedhaAnimationViewer = ({
           // Fallback to section-based timing function
           targetScene = getSceneFromAudioTime(time);
         }
-        
+
         if (targetScene !== currentStep) {
           setCurrentStep(targetScene);
         }
@@ -397,14 +420,21 @@ const MedhaAnimationViewer = ({
         );
       }
     };
-  }, [hasAudio, audioSyncMode, isPlaying, currentStep, audioTranscript, manualTimings]);
+  }, [
+    hasAudio,
+    audioSyncMode,
+    isPlaying,
+    currentStep,
+    audioTranscript,
+    manualTimings,
+  ]);
 
   // Sync current scene to audio when manually changing slides (seeks audio)
   const syncSceneToAudio = useCallback(
     (sceneNumber) => {
       if (audioRef.current && hasAudio) {
         let targetTime = 0;
-        
+
         // PRIORITY 1: Manual Slide Timings
         if (manualTimings && manualTimings[sceneNumber] !== undefined) {
           targetTime = manualTimings[sceneNumber];
@@ -412,7 +442,7 @@ const MedhaAnimationViewer = ({
         // PRIORITY 2: Saved Transcript Segments
         else if (audioTranscript?.segments?.length > 0) {
           const matchingSegment = audioTranscript.segments.find(
-            seg => seg.slideNumber === sceneNumber
+            (seg) => seg.slideNumber === sceneNumber
           );
           if (matchingSegment) {
             targetTime = matchingSegment.start;
@@ -423,7 +453,7 @@ const MedhaAnimationViewer = ({
         } else {
           targetTime = getSceneAudioTime(sceneNumber);
         }
-        
+
         audioRef.current.currentTime = targetTime;
         setAudioCurrentTime(targetTime);
       }
@@ -446,6 +476,24 @@ const MedhaAnimationViewer = ({
       return () => clearTimeout(timer);
     }
   }, [showIntro, hasAudio]);
+
+  // Show navigation hint if user hasn't used arrow keys
+  useEffect(() => {
+    if (!showIntro && !hasUsedArrowKeys) {
+      const timer = setTimeout(() => {
+        setShowNavigationHint(true);
+      }, 3000); // Show after 3 seconds of inactivity
+      return () => clearTimeout(timer);
+    }
+  }, [showIntro, hasUsedArrowKeys]);
+
+  // Auto-hide navigation hint after 10 seconds
+  useEffect(() => {
+    if (showNavigationHint) {
+      const timer = setTimeout(() => setShowNavigationHint(false), 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [showNavigationHint]);
 
   // Navigation - Define before auto-play logic that depends on it
   const goToStep = useCallback(
@@ -2101,6 +2149,21 @@ const MedhaAnimationViewer = ({
         }
         animationId={animationId}
         isVisible={!showIntro}
+        currentSlideTitle={
+          normalizedSteps[currentStep - 1]?.title || `Step ${currentStep}`
+        }
+        currentSlideContent={
+          normalizedSteps[currentStep - 1]?.contentText || ""
+        }
+        animationSubject={
+          animation?.metadata?.subject || "Object Oriented Programming"
+        }
+        animationTopics={animation?.metadata?.topics || []}
+        sectionName={
+          audioSections?.find(
+            (s) => currentStep >= s.startScene && currentStep <= s.endScene
+          )?.name || ""
+        }
       />
 
       {/* Voice Chatbot - kept for future use
