@@ -91,6 +91,8 @@ const MedhaAnimationViewer = ({
   const [showNotePanel, setShowNotePanel] = useState(true); // User can hide/show notes
   const [showFullscreenNote, setShowFullscreenNote] = useState(false); // Premium fullscreen view
   const [showAudioSyncTool, setShowAudioSyncTool] = useState(false); // Admin audio sync tool
+  const [cursorVisible, setCursorVisible] = useState(false); // Cursor auto-hide
+  const cursorTimeoutRef = useRef(null);
 
   const [slideData, setSlideData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1053,7 +1055,17 @@ const MedhaAnimationViewer = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[99999] flex flex-col font-sans"
-      style={{ background: APPLE_THEME.bg, color: APPLE_THEME.textSec }}
+      style={{ 
+        background: APPLE_THEME.bg, 
+        color: APPLE_THEME.textSec,
+        cursor: showIntro ? 'none' : (cursorVisible ? 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'8\' fill=\'%230A84FF\' fill-opacity=\'0.3\'/%3E%3Ccircle cx=\'12\' cy=\'12\' r=\'4\' fill=\'%230A84FF\'/%3E%3C/svg%3E") 12 12, crosshair' : 'none')
+      }}
+      onMouseMove={() => {
+        if (showIntro) return;
+        setCursorVisible(true);
+        if (cursorTimeoutRef.current) clearTimeout(cursorTimeoutRef.current);
+        cursorTimeoutRef.current = setTimeout(() => setCursorVisible(false), 3000);
+      }}
     >
       <audio ref={voiceNoteRef} className="hidden" />
 
