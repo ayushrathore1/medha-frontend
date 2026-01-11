@@ -43,13 +43,18 @@ const CinematicIntro = ({ title, onComplete }) => {
            initial={{ scale: 0.8, opacity: 0 }}
            animate={{ scale: stage >= 1 ? 1 : 0.8, opacity: stage >= 1 ? 1 : 0 }}
            transition={{ duration: 0.8, ease: "easeOut" }}
-           className="mb-4 relative overflow-hidden landscape:h-[120px]"
-           style={{ height: '180px' }}
+           className="mb-4 flex items-center justify-center overflow-hidden"
+           style={{ height: '100px' }}
         >
            <img 
              src="https://ik.imagekit.io/ayushrathore1/MEDHA%20Revision%20Logo%20(5)/4.svg?updatedAt=1767677218648"
              alt="Medha Logo"
-             className="w-[512px] h-[512px] drop-shadow-[0_0_60px_rgba(59,130,246,0.5)] landscape:w-[300px] landscape:h-[300px] -mt-[166px] landscape:-mt-[90px]"
+             className="drop-shadow-[0_0_60px_rgba(59,130,246,0.5)]"
+             style={{
+               height: '280px',
+               marginTop: '-90px',
+               marginBottom: '-90px',
+             }}
            />
         </motion.div>
 

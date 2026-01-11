@@ -8,6 +8,7 @@
 import * as HalfAdderAnimation from './HalfAdderAnimation';
 import * as CppTemplatesAnimation from './CppTemplatesAnimation';
 import * as Unit5OneShotAnimation from './Unit5OneShotAnimation';
+import * as Unit4OneShotAnimation from './Unit4OneShotAnimation';
 // import * as FullAdderAnimation from './FullAdderAnimation';
 // Add more imports as animations are created
 
@@ -17,6 +18,7 @@ const animationRegistry = {
   'half-adder': HalfAdderAnimation,
   'cpp-templates': CppTemplatesAnimation,
   'unit5-oneshot': Unit5OneShotAnimation,
+  'unit4-oneshot': Unit4OneShotAnimation,
   // 'full-adder': FullAdderAnimation,
   // Add more animations here
 };

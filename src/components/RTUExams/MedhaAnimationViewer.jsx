@@ -255,9 +255,9 @@ const MedhaAnimationViewer = ({
     audioLang === "hindi" ? audioHindiUrl : audioEnglishUrl;
 
   
-  // Get which part a step belongs to (uses partAudios or animationParts)
+  // Get which part a step belongs to (uses partAudios, animationParts, or animation.parts)
   const getCurrentPartFromStep = useCallback((step) => {
-    const parts = partAudios.length > 0 ? partAudios : animationParts;
+    const parts = partAudios.length > 0 ? partAudios : (animationParts.length > 0 ? animationParts : animation?.parts || []);
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
       if (step >= part.startScene && step <= part.endScene) {
@@ -265,7 +265,7 @@ const MedhaAnimationViewer = ({
       }
     }
     return 0;
-  }, [partAudios, animationParts]);
+  }, [partAudios, animationParts, animation?.parts]);
 
   // Get current part's audio URL based on currentPartIndex
   const currentPartAudioUrl = useMemo(() => {
@@ -274,6 +274,13 @@ const MedhaAnimationViewer = ({
     if (!part) return null;
     return audioLang === "hindi" ? part.audioHindiUrl : part.audioEnglishUrl;
   }, [hasMultiPartAudio, partAudios, currentPartIndex, audioLang]);
+
+  // Initialize animationParts from animation module
+  useEffect(() => {
+    if (animation?.parts && animation.parts.length > 0) {
+      setAnimationParts(animation.parts);
+    }
+  }, [animation?.parts]);
 
   // Initialize currentPartIndex when partAudios first loads
   useEffect(() => {
@@ -1751,15 +1758,13 @@ const MedhaAnimationViewer = ({
             <div className="border-t border-white/10 pt-4 mt-4">
               <h4 className="text-white text-xs font-bold mb-3 flex items-center gap-2">
                 <span className="text-purple-400">📚</span>
-                Multi-Part Audio (4 Parts)
+                Multi-Part Audio ({animation?.parts?.length || 2} Parts)
               </h4>
               <div className="space-y-2 max-h-48 overflow-y-auto">
-                {[
-                  { partNumber: 1, name: "Exception Handling", startScene: 1, endScene: 26, icon: "🛡️" },
-                  { partNumber: 2, name: "Templates", startScene: 27, endScene: 52, icon: "📐" },
-                  { partNumber: 3, name: "Stream Classes", startScene: 53, endScene: 78, icon: "🌊" },
-                  { partNumber: 4, name: "File Handling", startScene: 79, endScene: 104, icon: "📁" },
-                ].map((part) => {
+                {(animation?.parts || [
+                  { partNumber: 1, name: "Part 1", startScene: 1, endScene: Math.ceil(totalSteps / 2), icon: "📚" },
+                  { partNumber: 2, name: "Part 2", startScene: Math.ceil(totalSteps / 2) + 1, endScene: totalSteps, icon: "📖" },
+                ]).map((part) => {
                   const existingPart = partAudios.find(p => p.partNumber === part.partNumber);
                   const hasPartAudio = existingPart?.audioHindiUrl;
                   
@@ -1846,15 +1851,14 @@ const MedhaAnimationViewer = ({
               </div>
 
               <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                {/* Part-based grouping */}
-                {(hasMultiPartAudio ? partAudios : [
-                  { partNumber: 1, partName: "Exception Handling", startScene: 1, endScene: 26, icon: "🛡️" },
-                  { partNumber: 2, partName: "Templates", startScene: 27, endScene: 52, icon: "📐" },
-                  { partNumber: 3, partName: "Stream Classes", startScene: 53, endScene: 78, icon: "🌊" },
-                  { partNumber: 4, partName: "File Handling", startScene: 79, endScene: 104, icon: "📁" },
-                ]).map((part, partIdx) => {
+                {/* Part-based grouping - use animation's parts or partAudios */}
+                {(hasMultiPartAudio ? partAudios : (animation?.parts || [
+                  { partNumber: 1, name: "Part 1", startScene: 1, endScene: Math.ceil(totalSteps / 2), icon: "📚" },
+                  { partNumber: 2, name: "Part 2", startScene: Math.ceil(totalSteps / 2) + 1, endScene: totalSteps, icon: "📖" },
+                ])).map((part, partIdx) => {
                   const partName = part.partName || part.name;
-                  const isCurrentPart = currentPartIndex === partIdx;
+                  // Calculate if current step is within this part's range
+                  const isCurrentPart = currentStep >= part.startScene && currentStep <= part.endScene;
                   const partSteps = normalizedSteps.slice(part.startScene - 1, part.endScene);
                   const hasPartAudio = part.audioHindiUrl || part.audioEnglishUrl;
                   
