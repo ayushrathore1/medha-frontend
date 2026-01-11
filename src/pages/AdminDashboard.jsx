@@ -24,6 +24,11 @@ import {
   FaShieldHalved,
   FaUserMinus,
   FaPlus,
+  FaMicrophone,
+  FaCopy,
+  FaCheck,
+  FaUpload,
+  FaFileAudio,
 } from "react-icons/fa6";
 import Card from "../components/Common/Card";
 import Loader from "../components/Common/Loader";
@@ -38,7 +43,14 @@ const AdminDashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isFullAdmin, setIsFullAdmin] = useState(false); // True only for actual admins, not team members
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("messages"); // 'messages' or 'email'
+  const [activeTab, setActiveTab] = useState("messages"); // 'messages', 'email', 'history', 'team', 'transcribe'
+
+  // Transcription State
+  const [audioFile, setAudioFile] = useState(null);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [transcriptionResult, setTranscriptionResult] = useState(null);
+  const [transcriptionError, setTranscriptionError] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   // Messages State
   const [messages, setMessages] = useState([]);
@@ -531,6 +543,85 @@ const AdminDashboard = () => {
     }
   };
 
+  // ==================== TRANSCRIPTION LOGIC ====================
+  const handleAudioFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (25MB max)
+      if (file.size > 25 * 1024 * 1024) {
+        alert("File too large. Maximum size is 25MB.");
+        return;
+      }
+      setAudioFile(file);
+      setTranscriptionResult(null);
+      setTranscriptionError(null);
+    }
+  };
+
+  const handleTranscribe = async () => {
+    if (!audioFile) {
+      alert("Please select an audio file first.");
+      return;
+    }
+
+    setIsTranscribing(true);
+    setTranscriptionError(null);
+    setTranscriptionResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("audio", audioFile);
+
+      const res = await axios.post(
+        `${BACKEND_URL}/api/admin/transcribe`,
+        formData,
+        {
+          headers: {
+            ...headers,
+            "Content-Type": "multipart/form-data",
+          },
+          timeout: 120000, // 2 minutes timeout
+        }
+      );
+
+      if (res.data.success) {
+        setTranscriptionResult(res.data);
+      } else {
+        setTranscriptionError(res.data.message || "Transcription failed");
+      }
+    } catch (error) {
+      console.error("Transcription error:", error);
+      setTranscriptionError(
+        error.response?.data?.message ||
+          "Failed to transcribe audio. Please try again."
+      );
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
+  const handleCopyTranscription = async () => {
+    if (transcriptionResult?.transcription) {
+      try {
+        await navigator.clipboard.writeText(transcriptionResult.transcription);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error("Failed to copy:", err);
+        alert("Failed to copy to clipboard");
+      }
+    }
+  };
+
+  const clearTranscription = () => {
+    setAudioFile(null);
+    setTranscriptionResult(null);
+    setTranscriptionError(null);
+    // Reset file input
+    const fileInput = document.getElementById("audio-file-input");
+    if (fileInput) fileInput.value = "";
+  };
+
   // ==================== RENDER ====================
 
   if (loading) return <Loader fullScreen />;
@@ -577,6 +668,12 @@ const AdminDashboard = () => {
               className={`px-4 py-2 rounded-lg font-semibold transition-all border ${activeTab === "team" ? "bg-purple-600 text-white border-purple-600" : "bg-white text-gray-500 hover:bg-gray-50 border-gray-200"}`}
             >
               <FaUsers className="inline mr-2" /> Team
+            </button>
+            <button
+              onClick={() => setActiveTab("transcribe")}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all border ${activeTab === "transcribe" ? "bg-purple-600 text-white border-purple-600" : "bg-white text-gray-500 hover:bg-gray-50 border-gray-200"}`}
+            >
+              <FaMicrophone className="inline mr-2" /> Transcribe
             </button>
           </div>
         </header>
@@ -1582,6 +1679,201 @@ const AdminDashboard = () => {
                 <span className="text-xs mt-1">Send an invitation email</span>
               </div>
             )}
+          </div>
+        </Card>
+      )}
+
+      {/* ======================= TRANSCRIBE TAB ======================= */}
+      {activeTab === "transcribe" && (
+        <Card className="p-6 min-h-[60vh]">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2
+                className="text-2xl font-bold flex items-center gap-2"
+                style={{ color: "var(--text-primary)" }}
+              >
+                <FaMicrophone className="text-purple-600" /> Audio Transcription
+              </h2>
+              <p style={{ color: "var(--text-secondary)" }}>
+                Upload an audio file in any language to get the transcription.
+                Powered by Whisper AI.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Upload Section */}
+            <div className="space-y-4">
+              <div
+                className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+                  audioFile
+                    ? "border-purple-400 bg-purple-50"
+                    : "border-gray-300 hover:border-purple-400 hover:bg-purple-50/30"
+                }`}
+              >
+                <input
+                  type="file"
+                  id="audio-file-input"
+                  accept="audio/*,.mp3,.wav,.m4a,.mp4,.webm,.ogg,.flac"
+                  onChange={handleAudioFileChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+
+                {audioFile ? (
+                  <div className="space-y-3">
+                    <FaFileAudio className="mx-auto text-4xl text-purple-600" />
+                    <div>
+                      <p className="font-bold text-gray-900">
+                        {audioFile.name}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {(audioFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearTranscription();
+                      }}
+                      className="text-sm text-red-500 hover:text-red-700"
+                    >
+                      Remove file
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <FaUpload className="mx-auto text-4xl text-gray-400" />
+                    <div>
+                      <p className="font-bold text-gray-700">
+                        Drop audio file here or click to browse
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Supports: MP3, WAV, M4A, MP4, WebM, OGG, FLAC (max 25MB)
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <h4 className="font-bold text-blue-800 mb-2">
+                  🌍 Multi-language Support
+                </h4>
+                <p className="text-sm text-blue-700">
+                  Whisper AI automatically detects the language and transcribes
+                  in any language including Hindi, English, Spanish, French,
+                  German, Chinese, Japanese, Arabic, and many more.
+                </p>
+              </div>
+
+              <button
+                onClick={handleTranscribe}
+                disabled={!audioFile || isTranscribing}
+                className={`w-full py-3 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 ${
+                  !audioFile || isTranscribing
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-purple-600 hover:bg-purple-700"
+                }`}
+              >
+                {isTranscribing ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    Transcribing...
+                  </>
+                ) : (
+                  <>
+                    <FaMicrophone />
+                    Transcribe Audio
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Result Section */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-gray-700">
+                  Transcription Result
+                </h3>
+                {transcriptionResult && (
+                  <div className="flex items-center gap-2">
+                    {transcriptionResult.language && (
+                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold">
+                        {transcriptionResult.language.toUpperCase()}
+                      </span>
+                    )}
+                    {transcriptionResult.duration && (
+                      <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs">
+                        {transcriptionResult.duration}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div
+                className={`relative min-h-[300px] rounded-xl border-2 p-4 ${
+                  transcriptionError
+                    ? "border-red-300 bg-red-50"
+                    : transcriptionResult
+                      ? "border-green-300 bg-green-50/30"
+                      : "border-gray-200 bg-gray-50"
+                }`}
+              >
+                {isTranscribing ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+                    <FaSpinner className="text-4xl text-purple-600 animate-spin" />
+                    <p className="text-gray-600 font-medium">
+                      Processing audio...
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      This may take a minute for longer files
+                    </p>
+                  </div>
+                ) : transcriptionError ? (
+                  <div className="text-center py-8">
+                    <FaXmark className="mx-auto text-4xl text-red-500 mb-3" />
+                    <p className="text-red-700 font-medium">
+                      {transcriptionError}
+                    </p>
+                  </div>
+                ) : transcriptionResult ? (
+                  <div className="h-full">
+                    <pre className="whitespace-pre-wrap text-gray-800 font-sans text-sm leading-relaxed max-h-[400px] overflow-y-auto">
+                      {transcriptionResult.transcription}
+                    </pre>
+                  </div>
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                    <FaFileAudio className="text-4xl mb-3" />
+                    <p>Transcription will appear here</p>
+                  </div>
+                )}
+              </div>
+
+              {transcriptionResult && (
+                <button
+                  onClick={handleCopyTranscription}
+                  className={`w-full py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+                    copied
+                      ? "bg-green-600 text-white"
+                      : "bg-gray-800 text-white hover:bg-gray-900"
+                  }`}
+                >
+                  {copied ? (
+                    <>
+                      <FaCheck />
+                      Copied to Clipboard!
+                    </>
+                  ) : (
+                    <>
+                      <FaCopy />
+                      Copy Transcription
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </Card>
       )}
