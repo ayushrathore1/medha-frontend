@@ -393,16 +393,17 @@ const MedhaAnimationViewer = ({
     }
   }, [currentStep, slideData, isPlaying]);
 
-  // Global audio playback control
+  // Global audio playback control (supports both single audio and multi-part audio)
   useEffect(() => {
-    if (!audioRef.current || !currentAudioUrl) return;
+    const audioUrl = currentPartAudioUrl || currentAudioUrl;
+    if (!audioRef.current || !audioUrl) return;
 
     if (isPlaying) {
       audioRef.current.play().catch(console.error);
     } else {
       audioRef.current.pause();
     }
-  }, [isPlaying, currentAudioUrl]);
+  }, [isPlaying, currentAudioUrl, currentPartAudioUrl]);
 
   // Update playback speed when it changes
   useEffect(() => {
