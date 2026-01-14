@@ -45,7 +45,7 @@ export const TourProvider = ({ children }) => {
     {
       target: '[data-tour="quick-actions"]',
       title: 'Quick Actions',
-      content: 'Jump straight into learning! Create notes, start quizzes, or chat with your AI tutor.',
+      content: 'Jump straight into learning! Create notes and explore your study materials.',
       page: '/dashboard',
     },
     {
@@ -85,12 +85,7 @@ export const TourProvider = ({ children }) => {
       content: 'Drag and drop PDFs or images here. Medha will extract the text and make your notes searchable.',
       page: '/notes',
     },
-    {
-      target: '[data-tour="text-note"]',
-      title: 'Write Text Notes',
-      content: 'Prefer typing? Create rich text notes directly in the app. Perfect for quick summaries.',
-      page: '/notes',
-    },
+
     {
       target: '[data-tour="explore-tab"]',
       title: 'Explore Public Notes',

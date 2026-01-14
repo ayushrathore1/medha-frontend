@@ -75,7 +75,7 @@ const AuthPromptModal = ({ isOpen, onClose, featureName = "this feature" }) => {
                 {[
                   { icon: "🎯", text: "AI-powered solution explanations" },
                   { icon: "📚", text: "Upload and manage your notes" },
-                  { icon: "🤖", text: "Smart study assistant chatbot" },
+                  { icon: "📖", text: "RTU exam archives with analysis" },
                   { icon: "🎨", text: "Personalized dashboard" },
                 ].map((feature, idx) => (
                   <div 

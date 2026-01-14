@@ -4,13 +4,24 @@ import axios from "axios";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
-import CustomCursor from "../components/Common/CustomCursor";
-import CursorSettingsPanel from "../components/Common/CursorSettingsPanel";
-import AppearanceSettings from "../components/Profile/AppearanceSettings";
 import { AuthContext } from "../AuthContext";
-import { useCursor } from "../context/CursorContext";
 import { generateAvatarOptions, getAvatarByIndex } from "../utils/avatarUtils";
-import { FaMars, FaVenus, FaGenderless, FaTrash, FaCamera, FaXmark, FaWandMagicSparkles, FaCrop, FaUser } from "react-icons/fa6";
+import { 
+  FaMars, 
+  FaVenus, 
+  FaGenderless, 
+  FaTrash, 
+  FaCamera, 
+  FaXmark, 
+  FaWandMagicSparkles, 
+  FaCrop, 
+  FaUser,
+  FaAward,
+  FaBuildingColumns,
+  FaUsers,
+  FaFileLines,
+  FaPen
+} from "react-icons/fa6";
 
 const UNIVERSITIES = ["RTU", "GGSIPU", "DTU", "AKTU"];
 const BRANCHES = ["CSE", "IT", "ECE", "EE", "ME", "Civil", "AIDS"];
@@ -22,6 +33,29 @@ const GenderIcon = ({ gender }) => {
     case "Female": return <FaVenus />;
     default: return <FaGenderless />;
   }
+};
+
+// AURA Tier Calculator
+const getAuraTier = (notesCount) => {
+  // 🟣 ADVANCED TIER — RADIANCE
+  if (notesCount >= 701) return { tier: "RADIANCE", rank: "Beacon", emoji: "🟣" };
+  if (notesCount >= 401) return { tier: "RADIANCE", rank: "Luminary", emoji: "🟣" };
+  if (notesCount >= 251) return { tier: "RADIANCE", rank: "Scholar", emoji: "🟣" };
+  if (notesCount >= 151) return { tier: "RADIANCE", rank: "Mentor", emoji: "🟣" };
+  
+  // 🔵 INTERMEDIATE TIER — GLOW
+  if (notesCount >= 101) return { tier: "GLOW", rank: "Anchor", emoji: "🔵" };
+  if (notesCount >= 61) return { tier: "GLOW", rank: "Guide", emoji: "🔵" };
+  if (notesCount >= 36) return { tier: "GLOW", rank: "Solver", emoji: "🔵" };
+  if (notesCount >= 21) return { tier: "GLOW", rank: "Thinker", emoji: "🔵" };
+  
+  // 🌱 BEGINNER TIER — SPARK
+  if (notesCount >= 11) return { tier: "SPARK", rank: "Builder", emoji: "🌱" };
+  if (notesCount >= 6) return { tier: "SPARK", rank: "Initiate", emoji: "🌱" };
+  if (notesCount >= 3) return { tier: "SPARK", rank: "Seeker", emoji: "🌱" };
+  if (notesCount >= 1) return { tier: "SPARK", rank: "Flicker", emoji: "🌱" };
+  
+  return { tier: "SPARK", rank: "New", emoji: "✨" };
 };
 
 // Simple Image Cropper & Filter Component
@@ -199,8 +233,8 @@ const ImageCropper = ({ imageSrc, onCancel, onSave }) => {
 const Profile = () => {
   const navigate = useNavigate();
   const { setUser, logout } = useContext(AuthContext);
-  const { isEnabled, setIsEnabled, cursorSpeed, setCursorSpeed } = useCursor();
   const [userData, setUserData] = useState(null);
+  const [stats, setStats] = useState({ followers: 0, following: 0, notesShared: 0 });
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteStep, setDeleteStep] = useState(1); // 1 = reason, 2 = confirm
@@ -251,12 +285,24 @@ const Profile = () => {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
+      // First get basic info to get ID
+      const responseMe = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/users/me`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const user = response.data.user || response.data;
-      setUserData(user);
+      const user = responseMe.data.user || responseMe.data;
+      
+      // Then fetch full profile stats
+      const responseProfile = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/profile/${user._id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setUserData(responseProfile.data.user);
+      if (responseProfile.data.stats) {
+        setStats(responseProfile.data.stats);
+      }
+
       setFormData({ 
         name: user.name || "", 
         email: user.email || "",
@@ -264,7 +310,7 @@ const Profile = () => {
         branch: user.branch || "",
         gender: user.gender || "",
         selectedAvatar: user.avatarIndex || 0,
-        customAvatar: null // We don't load into formData until edit, but display uses userData
+        customAvatar: null
       });
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -377,12 +423,16 @@ const Profile = () => {
         return formData.customAvatar;
     }
     
-    // 2. Saved Custom Avatar (View Mode / Default Edit Mode if not changed)
+    // 2. Saved Custom Avatar
     if (userData?.avatar) {
         return userData.avatar;
     }
+    
+    // 3. Preset Avatar (View Mode)
+    if (!isEditing && userData?.avatarIndex !== undefined && userData?.avatarIndex !== -1) {
+        return getAvatarByIndex(userData.avatarIndex, userData?.gender || "Male").url;
+    }
 
-    // 3. Fallback is now handled by conditional rendering (FaUser icon)
     return null;
   };
 
@@ -397,516 +447,441 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen w-full p-6 bg-transparent">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl font-extrabold mb-8" style={{ color: "var(--text-primary)" }}>
-          Profile
-        </h1>
-
-        <Card className="shadow-lg" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-secondary)" }}>
-          {/* Avatar with Gender Badge */}
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              {!imgError && getAvatarUrl() ? (
-                <img
-                  src={getAvatarUrl()}
-                  alt={userData?.name || "User Avatar"}
-                  className="w-24 h-24 rounded-full shadow-xl border-4 border-white object-cover"
-                  onError={() => setImgError(true)}
-                />
-              ) : (
-                <div
-                  className="w-24 h-24 rounded-full flex items-center justify-center text-4xl text-white shadow-xl bg-gradient-to-br from-indigo-600 to-violet-600"
-                >
-                  <FaUser />
-                </div>
-              )}
-              {/* Gender Badge */}
-              {userData?.gender && (
-                <div className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center shadow-lg border-2 border-white ${
-                  userData.gender === "Male" ? "bg-blue-500" : 
-                  userData.gender === "Female" ? "bg-pink-500" : "bg-purple-500"
-                }`}>
-                  {userData.gender === "Male" ? <FaMars className="text-white text-sm" /> : 
-                   userData.gender === "Female" ? <FaVenus className="text-white text-sm" /> : 
-                   <FaGenderless className="text-white text-sm" />}
-                </div>
-              )}
+    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-transparent">
+      <div className="max-w-4xl mx-auto space-y-6">
+        
+        {isEditing ? (
+          /* ================= EDIT PROFILE FORM ================= */
+          <Card className="shadow-xl bg-[var(--bg-secondary)] border border-[var(--border-default)]">
+            <div className="flex items-center justify-between mb-6 border-b border-[var(--border-default)] pb-4">
+               <div>
+                  <h2 className="text-xl font-bold text-[var(--text-primary)]">Edit Profile</h2>
+                  <p className="text-sm text-[var(--text-secondary)]">Update your personal details</p>
+               </div>
+               <Button variant="ghost" onClick={() => setIsEditing(false)} size="sm">
+                   <FaXmark className="mr-2" /> Cancel
+               </Button>
             </div>
-          </div>
 
-          {isEditing ? (
             <form onSubmit={handleSave} className="space-y-6">
-              {/* Avatar Selection & Upload */}
-              <div>
-                <label className="block mb-3 text-sm font-bold" style={{ color: "var(--text-secondary)" }}>
-                  Profile Picture
-                </label>
+              {/* Avatar Selection */}
+              <div className="space-y-4">
+                <label className="block font-bold text-sm text-[var(--text-secondary)]">Profile Photo</label>
                 
-                {/* Upload Options */}
-                <div className="flex flex-col gap-3 mb-4">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageUpload}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                  <div className="flex gap-3">
-                      <Button 
-                        type="button" 
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex-1 border-2 shadow-sm"
-                        style={{ 
-                          backgroundColor: "var(--bg-primary)", 
-                          borderColor: "var(--border-default)", 
-                          color: "var(--text-primary)" 
-                        }}
-                      >
-                        <FaCamera className="mr-2" /> Upload Photo
-                      </Button>
-                    {(formData.customAvatar || (userData?.avatar && formData.selectedAvatar === -1)) && (
-                      <Button 
-                        type="button" 
-                        onClick={handleRemoveAvatar}
-                        className="px-4 bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 hover:border-red-200"
-                        title="Remove custom photo"
-                      >
-                        <FaTrash />
-                      </Button>
-                    )}
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  {/* Current Avatar Preview */}
+                  <div className="relative group">
+                    <div className="w-24 h-24 rounded-full border-4 border-[var(--bg-secondary)] shadow-lg overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                        {getAvatarUrl() ? (
+                            <img src={getAvatarUrl()} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            // Fallback if editing and cleared everything
+                             formData.selectedAvatar !== -1 ? (
+                                <img src={getAvatarByIndex(formData.selectedAvatar, formData.gender || "Male").url} alt="Avatar" className="w-full h-full object-cover" />
+                             ) : (
+                                <span className="text-2xl text-white font-bold">{formData.name?.charAt(0)}</span>
+                             )
+                        )}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-col gap-3">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                    <div className="flex gap-3">
+                         <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                           <FaCamera className="mr-2" /> Upload Custom
+                         </Button>
+                         {(formData.customAvatar || userData?.avatar) && (
+                           <Button 
+                             type="button" 
+                             variant="danger" 
+                             onClick={() => setFormData(prev => ({ ...prev, customAvatar: null }))}
+                           >
+                             <FaTrash />
+                           </Button>
+                         )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Avatar list temporarily disabled as requested */}
-                {/* 
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="h-px bg-slate-200 flex-1"></div>
-                  <span className="text-xs text-slate-400 font-bold uppercase">Or choose from list</span>
-                  <div className="h-px bg-slate-200 flex-1"></div>
-                </div>
-
-                <div className={`max-h-48 overflow-y-auto border-2 rounded-xl p-3 transition-all ${formData.customAvatar ? 'opacity-50 pointer-events-none grayscale' : ''}`}
-                     style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-tertiary)" }}>
-                  <div className="grid grid-cols-5 gap-2">
-                    {avatarOptions.map((avatar) => (
-                      <button
-                        key={avatar.id}
-                        type="button"
-                        onClick={() => handleSelect("selectedAvatar", avatar.id)}
-                        className={`p-1 rounded-full transition-all ${
-                          formData.selectedAvatar === avatar.id
-                            ? "ring-4 ring-indigo-500 ring-offset-2 bg-indigo-50"
-                            : "hover:ring-2 hover:ring-slate-300 hover:bg-white"
-                        }`}
-                      >
-                        <img
-                          src={avatar.url}
-                          alt={`Avatar option ${avatar.id + 1}`}
-                          className="w-10 h-10 rounded-full"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <p className="text-xs text-slate-400 mt-2">
-                  {formData.customAvatar 
-                    ? "Remove your custom photo to select from the list above" 
-                    : (formData.gender ? `Showing ${formData.gender.toLowerCase()} avatars` : "Select gender to see matching avatars")
-                  }
-                </p>
-                */}
-              </div>
-
-              {/* Name */}
-              <div>
-                <label className="block mb-2 font-bold text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border-2 font-medium focus:outline-none focus:ring-2"
-                  style={{
-                    backgroundColor: "var(--bg-tertiary)",
-                    borderColor: "var(--border-default)",
-                    color: "var(--text-primary)",
-                    // outlineColor handled by ring classes roughly or rely on focus ring color
-                  }}
-                />
-              </div>
-
-              {/* Email (read-only) */}
-              <div>
-                <label className="block mb-2 font-bold text-sm" style={{ color: "var(--text-secondary)" }}>
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  disabled
-                  className="w-full px-4 py-3 rounded-xl border-2 font-medium cursor-not-allowed"
-                  style={{
-                    backgroundColor: "var(--bg-tertiary)",
-                    borderColor: "var(--border-default)",
-                    color: "var(--text-tertiary)",
-                    opacity: 0.7
-                  }}
-                />
-              </div>
-
-              {/* University */}
-              <div>
-                <label className="block mb-3 text-sm font-bold text-slate-700">
-                  University
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {UNIVERSITIES.map((uni) => (
-                    <button
-                      key={uni}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, university: uni, customUniversity: "" })}
-                      className={`px-4 py-3 rounded-xl border-2 font-bold transition-all ${
-                        formData.university === uni && !formData.customUniversity
-                          ? "text-white shadow-lg"
-                          : "hover:bg-opacity-80"
-                      }`}
-                      style={formData.university === uni && !formData.customUniversity ? {
-                          backgroundColor: "var(--action-primary)", borderColor: "var(--action-primary)", color: "#fff"
-                      } : {
-                          backgroundColor: "var(--bg-primary)", borderColor: "var(--border-default)", color: "var(--text-secondary)"
-                      }}
-                    >
-                      {uni}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, university: "Other", customUniversity: formData.customUniversity || "" })}
-                    className={`px-4 py-3 rounded-xl border-2 font-bold transition-all ${
-                      formData.university === "Other" || (formData.customUniversity && !UNIVERSITIES.includes(formData.university))
-                        ? "bg-indigo-600 border-indigo-600 text-white shadow-lg"
-                        : "bg-slate-50 border-slate-300 text-slate-700 hover:border-indigo-400 hover:bg-indigo-50"
-                    }`}
-                  >
-                    Other
-                  </button>
-                </div>
-                {(formData.university === "Other" || (formData.customUniversity && !UNIVERSITIES.includes(formData.university))) && (
-                  <input
-                    type="text"
-                    placeholder="Enter your university name"
-                    value={formData.customUniversity || (UNIVERSITIES.includes(formData.university) ? "" : formData.university)}
-                    onChange={(e) => setFormData({ ...formData, university: e.target.value || "Other", customUniversity: e.target.value })}
-                    className="mt-3 w-full px-4 py-3 rounded-xl border-2 border-slate-300 bg-slate-50 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  />
+                {/* Preset Avatars */}
+                {!formData.customAvatar && (
+                    <div className="bg-[var(--bg-tertiary)] p-4 rounded-xl border border-[var(--border-default)]">
+                         <p className="text-xs font-bold uppercase text-[var(--text-tertiary)] mb-3">Choose from presets</p>
+                         <div className="flex flex-wrap gap-3">
+                            {avatarOptions.map((avatar) => (
+                                <button
+                                    key={avatar.id}
+                                    type="button"
+                                    onClick={() => handleSelect("selectedAvatar", avatar.id)}
+                                    className={`relative p-1 rounded-full transition-all ${
+                                        formData.selectedAvatar === avatar.id ? "ring-2 ring-[var(--action-primary)] scale-110" : "hover:scale-105 opacity-70 hover:opacity-100"
+                                    }`}
+                                >
+                                    <img src={avatar.url} alt="Preset" className="w-10 h-10 rounded-full bg-[var(--bg-secondary)]" />
+                                </button>
+                            ))}
+                         </div>
+                    </div>
                 )}
               </div>
 
-              {/* Branch */}
-              <div>
-                <label className="block mb-3 text-sm font-bold text-slate-700">
-                  Branch
-                </label>
-                <div className="grid grid-cols-4 gap-3">
-                  {BRANCHES.map((branch) => (
-                    <button
-                      key={branch}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, branch: branch, customBranch: "" })}
-                      className={`px-3 py-2.5 rounded-xl border-2 font-bold text-sm transition-all ${
-                        formData.branch === branch && !formData.customBranch
-                          ? "bg-indigo-600 border-indigo-600 text-white shadow-lg"
-                          : "hover:border-indigo-400" // Simplify hover or use vars but tricky with conditional.
-                      }`}
-                      style={formData.branch === branch && !formData.customBranch ? {
-                          background: "var(--action-primary)", borderColor: "var(--action-primary)", color: "#fff"
-                      } : {
-                          backgroundColor: "var(--bg-primary)", borderColor: "var(--border-default)", color: "var(--text-secondary)"
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div>
+                    <label className="block mb-2 font-bold text-sm text-[var(--text-secondary)]">Display Name</label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border font-medium focus:outline-none focus:ring-2"
+                      style={{
+                        backgroundColor: "var(--bg-tertiary)",
+                        borderColor: "var(--border-default)",
+                        color: "var(--text-primary)",
                       }}
-                    >
-                      {branch}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, branch: "Other", customBranch: formData.customBranch || "" })}
-                    className={`px-3 py-2.5 rounded-xl border-2 font-bold text-sm transition-all ${
-                      formData.branch === "Other" || (formData.customBranch && !BRANCHES.includes(formData.branch))
-                        ? "bg-indigo-600 border-indigo-600 text-white shadow-lg"
-                        : "bg-slate-50 border-slate-300 text-slate-700 hover:border-indigo-400 hover:bg-indigo-50"
-                    }`}
-                  >
-                    Other
-                  </button>
-                </div>
-                {(formData.branch === "Other" || (formData.customBranch && !BRANCHES.includes(formData.branch))) && (
-                  <input
-                    type="text"
-                    placeholder="Enter your branch name"
-                    value={formData.customBranch || (BRANCHES.includes(formData.branch) ? "" : formData.branch)}
-                    onChange={(e) => setFormData({ ...formData, branch: e.target.value || "Other", customBranch: e.target.value })}
-                    className="mt-3 w-full px-4 py-3 rounded-xl border-2 border-slate-300 bg-slate-50 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  />
-                )}
+                    />
+                 </div>
+                 <div>
+                    <label className="block mb-2 font-bold text-sm text-[var(--text-secondary)]">Email</label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      disabled
+                      className="w-full px-4 py-3 rounded-xl border font-medium cursor-not-allowed opacity-60"
+                      style={{
+                        backgroundColor: "var(--bg-tertiary)",
+                        borderColor: "var(--border-default)",
+                        color: "var(--text-primary)",
+                      }}
+                    />
+                 </div>
               </div>
 
-              {/* Gender */}
-              <div>
-                <label className="block mb-3 text-sm font-bold text-slate-700">
-                  Gender
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {GENDERS.map((gender) => (
-                    <button
-                      key={gender}
-                      type="button"
-                      onClick={() => handleSelect("gender", gender)}
-                      className={`px-4 py-2.5 rounded-xl border-2 font-bold text-sm transition-all flex items-center justify-center gap-2 ${
-                        formData.gender === gender
-                          ? "text-white shadow-lg"
-                          : "hover:bg-opacity-80"
-                      }`}
-                      style={formData.gender === gender ? {
-                          backgroundColor: "var(--action-primary)", borderColor: "var(--action-primary)", color: "#fff"
-                      } : {
-                          backgroundColor: "var(--bg-primary)", borderColor: "var(--border-default)", color: "var(--text-secondary)"
-                      }}
-                    >
-                      <GenderIcon gender={gender} />
-                      {gender}
-                    </button>
-                  ))}
-                </div>
+              {/* University & Branch */}
+              <div className="space-y-4">
+                 <div>
+                    <label className="block mb-2 font-bold text-sm text-[var(--text-secondary)]">University</label>
+                    <div className="flex flex-wrap gap-2">
+                        {UNIVERSITIES.map(uni => (
+                            <button
+                                key={uni}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, university: uni })}
+                                className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
+                                    formData.university === uni 
+                                        ? "bg-[var(--action-primary)] text-white border-[var(--action-primary)]" 
+                                        : "bg-[var(--bg-primary)] text-[var(--text-secondary)] border-[var(--border-default)] hover:border-[var(--action-primary)]"
+                                }`}
+                            >
+                                {uni}
+                            </button>
+                        ))}
+                    </div>
+                 </div>
+                 
+                 <div>
+                    <label className="block mb-2 font-bold text-sm text-[var(--text-secondary)]">Branch</label>
+                    <div className="flex flex-wrap gap-2">
+                        {BRANCHES.map(branch => (
+                            <button
+                                key={branch}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, branch: branch })}
+                                className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
+                                    formData.branch === branch 
+                                        ? "bg-[var(--action-primary)] text-white border-[var(--action-primary)]" 
+                                        : "bg-[var(--bg-primary)] text-[var(--text-secondary)] border-[var(--border-default)] hover:border-[var(--action-primary)]"
+                                }`}
+                            >
+                                {branch}
+                            </button>
+                        ))}
+                    </div>
+                 </div>
+
+                 <div>
+                    <label className="block mb-2 font-bold text-sm text-[var(--text-secondary)]">Gender</label>
+                    <div className="flex gap-4">
+                        {["Male", "Female", "Other"].map(g => (
+                            <button
+                                key={g}
+                                type="button"
+                                onClick={() => handleSelect("gender", g)}
+                                className={`px-4 py-2 rounded-xl text-sm font-bold border flex items-center gap-2 transition-all ${
+                                    formData.gender === g 
+                                        ? "bg-[var(--action-primary)] text-white border-[var(--action-primary)]" 
+                                        : "bg-[var(--bg-primary)] text-[var(--text-secondary)] border-[var(--border-default)] hover:border-[var(--action-primary)]"
+                                }`}
+                            >
+                                <GenderIcon gender={g} /> {g}
+                            </button>
+                        ))}
+                    </div>
+                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4">
-                <Button type="submit" loading={saving} disabled={saving} fullWidth>
+              {/* Submit Actions */}
+              <div className="flex gap-4 pt-6 border-t border-[var(--border-default)]">
+                <Button type="submit" loading={saving} fullWidth variant="primary">
                   Save Changes
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setFormData({ 
-                      name: userData.name, 
-                      email: userData.email,
-                      university: userData.university || "",
-                      branch: userData.branch || "",
-                      gender: userData.gender || "",
-                      selectedAvatar: userData.avatarIndex || 0
-                    });
-                  }}
-                  fullWidth
-                >
-                  Cancel
                 </Button>
               </div>
             </form>
-          ) : (
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
-                  {userData?.name || "User Name"}
+
+            {/* DANGER ZONE - Only visible in Edit Mode */}
+            <div className="mt-12 pt-8 border-t border-red-200/50">
+                <div className="flex items-center gap-3 mb-6 text-red-600">
+                    <FaTrash className="text-xl" />
+                    <h3 className="text-lg font-bold">Danger Zone</h3>
                 </div>
-                <div className="text-lg" style={{ color: "var(--text-secondary)" }}>
-                  {userData?.email || "email@example.com"}
-                </div>
-              </div>
-
-              {/* Profile Details - Only University and Branch */}
-              <div className="grid grid-cols-2 gap-4 py-4 border-t border-b" style={{ borderColor: "var(--border-default)" }}>
-                <div className="text-center">
-                  <div className="text-xs font-bold uppercase mb-1" style={{ color: "var(--text-tertiary)" }}>University</div>
-                  <div className="font-bold" style={{ color: "var(--text-primary)" }}>{userData?.university || "—"}</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-bold uppercase mb-1" style={{ color: "var(--text-tertiary)" }}>Branch</div>
-                  <div className="font-bold" style={{ color: "var(--text-primary)" }}>{userData?.branch || "—"}</div>
-                </div>
-              </div>
-
-              <div className="text-center text-sm" style={{ color: "var(--text-tertiary)" }}>
-                Member since {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString() : "N/A"}
-              </div>
-
-              <Button onClick={() => setIsEditing(true)} variant="primary" fullWidth>
-                Edit Profile
-              </Button>
-            </div>
-          )}
-        </Card>
-
-        {/* Interface Settings */}
-        {/* Interface & Appearance Settings */}
-        <Card className="mt-6 shadow-lg" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-secondary)" }}>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: "var(--action-primary)", color: "#fff", opacity: 0.9 }}>
-               <FaWandMagicSparkles className="text-xl" />
-            </div>
-            <h3 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Appearance & Interface</h3>
-          </div>
-
-          <div className="space-y-8">
-            <AppearanceSettings />
-            
-            <div className="pt-6 border-t" style={{ borderColor: "var(--border-default)" }}>
-              <h4 className="text-sm font-bold mb-4 uppercase tracking-wider" style={{ color: "var(--text-secondary)" }}>Cursor Settings</h4>
-              <CursorSettingsPanel />
-            </div>
-          </div>
-        </Card>
-
-        {/* Danger Zone - Account Deletion */}
-        <Card className="mt-6 shadow-lg" style={{ backgroundColor: "var(--color-danger-bg)", borderColor: "var(--color-danger-bg)", "--tw-bg-opacity": 0.05, "--tw-border-opacity": 0.2 }}>
-           {/* Note: easier to use inline styles for generic vars or just bg vars directly */}
-           <div style={{ backgroundColor: "rgba(var(--color-danger-bg-rgb), 0.05)", border: "1px solid rgba(var(--color-danger-bg-rgb), 0.2)", borderRadius: "1rem", padding: "1.5rem" }}>
-              <div className="flex items-center gap-3 mb-4">
-                <FaTrash style={{ color: "var(--color-danger-text)" }} />
-                <h3 className="text-lg font-bold" style={{ color: "var(--color-danger-text)" }}>Danger Zone</h3>
-              </div>
-              <p className="text-sm mb-4" style={{ color: "var(--color-danger-text)" }}>
-                Once you delete your account, there is no going back. This will permanently delete your account and all associated data.
-              </p>
-              <Button
-                variant="ghost"
-                onClick={() => setShowDeleteModal(true)}
-                className="border hover:bg-red-100" // Keep hover class for now or use vars if Button supports style prop well. Button logic handles variant ghost.
-                style={{ 
-                   borderColor: "rgba(var(--color-danger-bg-rgb), 0.3)", 
-                   color: "var(--color-danger-text)" 
-                }}
-              >
-                Delete Account
-              </Button>
-           </div>
-        </Card>
-
-        {/* Delete Confirmation Modal */}
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
-              
-              {/* Step 1: Select Reason */}
-              {deleteStep === 1 && (
-                <>
-                  <div className="text-center mb-6">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
-                      <span className="text-2xl">💔</span>
+                <div className="flex items-center justify-between p-4 border border-red-200/50 rounded-xl bg-red-500/5">
+                    <div>
+                        <h4 className="font-bold text-[var(--text-primary)]">Delete Account</h4>
+                        <p className="text-sm text-[var(--text-secondary)]">Permanently remove your account</p>
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900">We're sad to see you go!</h3>
-                    <p className="text-slate-500 mt-2">
-                      Before you leave, please tell us why. Your feedback helps us improve.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2 mb-6">
-                    {DELETE_REASONS.map((reason) => (
-                      <button
-                        key={reason}
-                        onClick={() => setDeleteReason(reason)}
-                        className={`w-full text-left px-4 py-3 rounded-xl border-2 font-medium transition-all ${
-                          deleteReason === reason
-                            ? "bg-red-50 border-red-400 text-red-700"
-                            : "bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300"
-                        }`}
-                      >
-                        {reason}
-                      </button>
-                    ))}
-                  </div>
-
-                  {deleteReason === "Other" && (
-                    <div className="mb-6">
-                      <textarea
-                        value={otherReason}
-                        onChange={(e) => setOtherReason(e.target.value)}
-                        placeholder="Please tell us more..."
-                        className="w-full px-4 py-3 rounded-xl border-2 border-slate-300 bg-slate-50 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 resize-none"
-                        rows={3}
-                      />
-                    </div>
-                  )}
-
-                  <div className="flex gap-4">
-                    <Button
-                      variant="ghost"
-                      onClick={resetDeleteModal}
-                      fullWidth
-                    >
-                      Never mind
+                    <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
+                        Delete
                     </Button>
-                    <Button
-                      onClick={() => setDeleteStep(2)}
-                      disabled={!deleteReason || (deleteReason === "Other" && !otherReason.trim())}
-                      fullWidth
-                      className="bg-red-600 hover:bg-red-700 border-red-600 text-white"
-                    >
-                      Continue
-                    </Button>
-                  </div>
-                </>
-              )}
+                </div>
+            </div>
+          </Card>
+        ) : (
+          /* ================= READ MODE (Public Profile Layout) ================= */
+          <>
+             {/* Header Card */}
+             <Card className="shadow-xl border-t-4 border-[var(--action-primary)] bg-[var(--bg-secondary)] overflow-hidden">
+                 <div className="relative pt-6 px-6 pb-8 text-center sm:text-left sm:flex sm:items-end sm:justify-between">
+                     
+                     <div className="flex flex-col sm:flex-row items-center gap-6">
+                         {/* Avatar */}
+                         <div className="relative">
+                             <div className="w-32 h-32 rounded-full border-4 border-[var(--bg-secondary)] shadow-lg overflow-hidden bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                 {getAvatarUrl() ? (
+                                     <img src={getAvatarUrl()} alt={userData?.name} className="w-full h-full object-cover" />
+                                 ) : (
+                                     <span className="text-4xl text-white font-bold">{userData?.name?.charAt(0)}</span>
+                                 )}
+                             </div>
+                             {userData?.gender && (
+                                 <div className={`absolute bottom-1 right-1 w-8 h-8 rounded-full flex items-center justify-center shadow border-2 border-white ${
+                                     userData.gender === "Male" ? "bg-blue-500" : 
+                                     userData.gender === "Female" ? "bg-pink-500" : "bg-purple-500"
+                                 }`}>
+                                     <div className="text-white text-xs">
+                                         <GenderIcon gender={userData.gender} />
+                                     </div>
+                                 </div>
+                             )}
+                         </div>
 
-              {/* Step 2: Confirm Deletion */}
-              {deleteStep === 2 && (
-                <>
-                  <div className="text-center mb-6">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-                      <FaTrash className="text-2xl text-red-500" />
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-900">Final Confirmation</h3>
-                    <p className="text-slate-500 mt-2">
-                      This action cannot be undone. All your data will be permanently removed.
-                    </p>
-                  </div>
+                         {/* Name & Info */}
+                         <div className="space-y-1 text-center sm:text-left">
+                             <h1 className="text-3xl font-black text-[var(--text-primary)] flex items-center gap-2 justify-center sm:justify-start">
+                                 {userData?.name}
+                                 {userData?.role === 'admin' && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full border border-red-200 uppercase tracking-wide">Admin</span>}
+                             </h1>
+                             <p className="text-[var(--text-secondary)] font-medium text-lg flex items-center gap-2 justify-center sm:justify-start">
+                                 {userData?.university || "University Student"} 
+                                 {userData?.branch && <span className="text-[var(--text-tertiary)]">• {userData.branch}</span>}
+                             </p>
+                             
+                             {/* Stats Row */}
+                             <div className="flex items-center gap-8 mt-4 justify-center sm:justify-start">
+                                 <div className="text-center sm:text-left">
+                                     <div className="text-2xl font-bold text-[var(--text-primary)]">{stats.followers || 0}</div>
+                                     <div className="text-xs font-bold uppercase text-[var(--text-tertiary)] tracking-wide">Followers</div>
+                                 </div>
+                                 <div className="text-center sm:text-left">
+                                     <div className="text-2xl font-bold text-[var(--text-primary)]">{stats.following || 0}</div>
+                                     <div className="text-xs font-bold uppercase text-[var(--text-tertiary)] tracking-wide">Following</div>
+                                 </div>
+                                 <div className="text-center sm:text-left">
+                                     <div className="text-2xl font-bold text-[var(--text-primary)]">{stats.notesShared || 0}</div>
+                                     <div className="text-xs font-bold uppercase text-[var(--text-tertiary)] tracking-wide">Notes Shared</div>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
 
-                  <div className="bg-slate-50 rounded-xl p-4 mb-6">
-                    <p className="text-sm text-slate-600">
-                      <strong>Reason:</strong> {deleteReason === "Other" ? otherReason : deleteReason}
-                    </p>
-                  </div>
+                     {/* Edit Action */}
+                     <div className="mt-6 sm:mt-0">
+                          <Button variant="primary" onClick={() => setIsEditing(true)}>
+                              <FaPen className="mr-2" /> Edit Profile
+                          </Button>
+                     </div>
+                 </div>
+             </Card>
 
-                  <div className="mb-6">
-                    <label className="block mb-2 text-sm font-bold text-slate-700">
-                      Type <span className="text-red-600">DELETE</span> to confirm
-                    </label>
-                    <input
-                      type="text"
-                      value={deleteConfirmText}
-                      onChange={(e) => setDeleteConfirmText(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-slate-300 bg-slate-50 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
-                      placeholder="DELETE"
-                    />
-                  </div>
+             {/* Bio/Info Grid */}
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* AURA Card */}
+                  <Card className="bg-[var(--bg-secondary)] border border-[var(--border-default)] relative overflow-hidden">
+                      <div className="absolute inset-0 opacity-20" style={{
+                          background: getAuraTier(stats.notesShared).tier === "RADIANCE" 
+                              ? "radial-gradient(circle at 30% 30%, #a855f7 0%, transparent 50%)"
+                              : getAuraTier(stats.notesShared).tier === "GLOW"
+                              ? "radial-gradient(circle at 30% 30%, #3b82f6 0%, transparent 50%)"
+                              : "radial-gradient(circle at 30% 30%, #22c55e 0%, transparent 50%)"
+                      }} />
+                      
+                      <div className="relative z-10">
+                          <div className="flex items-center gap-4 mb-4">
+                              <div className={`p-3 rounded-xl ${
+                                  getAuraTier(stats.notesShared).tier === "RADIANCE" 
+                                      ? "bg-purple-100 text-purple-600"
+                                      : getAuraTier(stats.notesShared).tier === "GLOW"
+                                      ? "bg-blue-100 text-blue-600"
+                                      : "bg-green-100 text-green-600"
+                              }`}>
+                                  <FaAward size={24} />
+                              </div>
+                              <div>
+                                  <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+                                      AURA
+                                      <span className={`text-xs px-2 py-0.5 rounded-full uppercase tracking-wide ${
+                                          getAuraTier(stats.notesShared).tier === "RADIANCE" 
+                                              ? "bg-purple-100 text-purple-700 border border-purple-200"
+                                              : getAuraTier(stats.notesShared).tier === "GLOW"
+                                              ? "bg-blue-100 text-blue-700 border border-blue-200"
+                                              : "bg-green-100 text-green-700 border border-green-200"
+                                      }`}>
+                                          {getAuraTier(stats.notesShared).tier}
+                                      </span>
+                                  </h3>
+                                  <p className="text-sm text-[var(--text-secondary)]">Contribution Level</p>
+                              </div>
+                          </div>
+                          <div className="flex items-end gap-2">
+                              <span className={`text-4xl font-black ${
+                                  getAuraTier(stats.notesShared).tier === "RADIANCE" 
+                                      ? "text-purple-600"
+                                      : getAuraTier(stats.notesShared).tier === "GLOW"
+                                      ? "text-blue-600"
+                                      : "text-green-600"
+                              }`}>{stats.notesShared}</span>
+                              <span className="text-sm font-bold text-[var(--text-tertiary)] mb-2">Notes Shared</span>
+                          </div>
+                          <div className={`mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold ${
+                              getAuraTier(stats.notesShared).tier === "RADIANCE" 
+                                  ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-700 border border-purple-200"
+                                  : getAuraTier(stats.notesShared).tier === "GLOW"
+                                  ? "bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-blue-700 border border-blue-200"
+                                  : "bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-700 border border-green-200"
+                          }`}>
+                              <span>{getAuraTier(stats.notesShared).emoji}</span>
+                              <span>{getAuraTier(stats.notesShared).rank}</span>
+                          </div>
+                      </div>
+                  </Card>
 
-                  <div className="flex gap-4">
-                    <Button
-                      variant="ghost"
-                      onClick={() => setDeleteStep(1)}
-                      fullWidth
-                    >
-                      ← Back
-                    </Button>
-                    <Button
-                      onClick={handleDeleteAccount}
-                      disabled={deleteConfirmText !== "DELETE" || deleting}
-                      loading={deleting}
-                      fullWidth
-                      className="bg-red-600 hover:bg-red-700 border-red-600 text-white"
-                    >
-                      Delete Forever
-                    </Button>
-                  </div>
-                </>
-              )}
-            </Card>
-          </div>
+                  {/* Academic Card */}
+                  <Card className="bg-[var(--bg-secondary)] border border-[var(--border-default)]">
+                      <div className="flex items-center gap-4 mb-4">
+                          <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
+                              <FaBuildingColumns size={24} />
+                          </div>
+                          <div>
+                              <h3 className="text-lg font-bold text-[var(--text-primary)]">Academic Info</h3>
+                              <p className="text-sm text-[var(--text-secondary)]">University Details</p>
+                          </div>
+                      </div>
+                      <div className="space-y-2">
+                          <div className="flex justify-between border-b border-[var(--border-default)] pb-2">
+                              <span className="text-sm text-[var(--text-secondary)]">University</span>
+                              <span className="text-sm font-bold text-[var(--text-primary)]">{userData?.university || "Not set"}</span>
+                          </div>
+                          <div className="flex justify-between border-b border-[var(--border-default)] pb-2">
+                              <span className="text-sm text-[var(--text-secondary)]">Branch</span>
+                              <span className="text-sm font-bold text-[var(--text-primary)]">{userData?.branch || "Not set"}</span>
+                          </div>
+                          <div className="flex justify-between">
+                              <span className="text-sm text-[var(--text-secondary)]">Member Since</span>
+                              <span className="text-sm font-bold text-[var(--text-primary)]">{new Date(userData?.createdAt || Date.now()).toLocaleDateString()}</span>
+                          </div>
+                      </div>
+                  </Card>
+             </div>
+          </>
         )}
 
-        {/* Image Cropper Modal */}
+        {/* Modals */}
+        {showDeleteModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+              <Card className="max-w-md w-full shadow-2xl bg-white">
+                <h3 className="text-xl font-bold mb-4 text-red-600 flex items-center gap-2">
+                   <FaTrash /> Delete Account
+                </h3>
+                {deleteStep === 1 ? (
+                   <div className="space-y-4">
+                        <p className="font-medium text-slate-700">We're sorry to see you go. Please tell us why you are leaving:</p>
+                        <div className="space-y-2">
+                            {DELETE_REASONS.map(reason => (
+                                <button
+                                    key={reason}
+                                    onClick={() => setDeleteReason(reason)}
+                                    className={`w-full text-left px-4 py-3 rounded-xl border transition-all ${
+                                        deleteReason === reason ? "border-red-500 bg-red-50 text-red-700 font-bold" : "border-slate-200 hover:bg-slate-50"
+                                    }`}
+                                >
+                                    {reason}
+                                </button>
+                            ))}
+                        </div>
+                        {deleteReason === "Other" && (
+                            <textarea
+                                placeholder="Please let us know..."
+                                value={otherReason}
+                                onChange={(e) => setOtherReason(e.target.value)}
+                                className="w-full p-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-red-200"
+                                rows={3}
+                            />
+                        )}
+                        <div className="flex gap-3 pt-4">
+                            <Button variant="ghost" onClick={resetDeleteModal} fullWidth>Cancel</Button>
+                            <Button variant="danger" disabled={!deleteReason} onClick={() => setDeleteStep(2)} fullWidth>Continue</Button>
+                        </div>
+                   </div>
+                ) : (
+                   <div className="space-y-4">
+                        <div className="p-4 bg-red-50 text-red-800 rounded-xl text-sm border border-red-100">
+                             <strong>Warning:</strong> This action is permanent and cannot be undone. All your notes, stats, and data will be erased.
+                        </div>
+                        <div>
+                             <label className="block text-sm font-bold text-slate-700 mb-2">Type "delete" to confirm</label>
+                             <input 
+                                type="text" 
+                                value={deleteConfirmText}
+                                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                placeholder="delete"
+                                className="w-full p-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-red-200"
+                             />
+                        </div>
+                        <div className="flex gap-3 pt-2">
+                            <Button variant="ghost" onClick={() => setDeleteStep(1)} fullWidth>Back</Button>
+                            <Button 
+                                variant="danger" 
+                                disabled={deleteConfirmText !== "delete" || deleting} 
+                                loading={deleting}
+                                onClick={handleDeleteAccount} 
+                                fullWidth
+                            >
+                                Confirm Delete
+                            </Button>
+                        </div>
+                   </div>
+                )}
+              </Card>
+            </div>
+        )}
+
         {showCropModal && tempImage && (
           <ImageCropper
             imageSrc={tempImage}

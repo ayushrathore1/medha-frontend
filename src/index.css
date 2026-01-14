@@ -5,77 +5,69 @@
 @theme {
   --font-sans: "Manrope", "Inter", sans-serif;
   
-  /* Modern Professional Palette 2025 */
-  --color-primary-50: #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-500: #6366f1; /* Indigo */
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
-
-  --color-secondary-500: #8b5cf6; /* Violet */
-  --color-accent-500: #d946ef; /* Fuchsia */
-  
-  --color-slate-50: #f8fafc;
-  --color-slate-100: #f1f5f9;
-  --color-slate-200: #e2e8f0;
-  --color-slate-300: #cbd5e1;
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #64748b;
-  --color-slate-600: #475569;
-  --color-slate-700: #334155;
-  --color-slate-800: #1e293b;
-  --color-slate-900: #0f172a;
+  /* Sun-Jupiter Cosmic Palette */
+  --color-sun-gold: #fbbf24;
+  --color-sun-amber: #f59e0b;
+  --color-jupiter-orange: #d97706;
+  --color-jupiter-deep: #0a0a12;
+  --color-space-black: #12121a;
+  --color-dark-slate: #1a1a25;
 }
 
-/* Customization Variables */
+/* =========================================
+   UNIFIED THEME: SUN-JUPITER COSMIC
+   Inspired by Sun's golden glow and Jupiter's bands
+   ========================================= */
 :root {
-  --bg-image: none;
-  --bg-overlay: 0;
-  --bg-size: cover;
-  --bg-position: center;
   --custom-font: var(--font-sans);
-  --overlay-color: 248, 250, 252; /* Default Light Slate RGB */
-
   font-family: var(--custom-font);
   line-height: 1.5;
   font-weight: 400;
 
-  /* Global Tokens for Components */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc; /* Slate 50 */
-  --bg-tertiary: #f1f5f9; /* Slate 100 */
+  /* Backgrounds - Deep Space */
+  --bg-primary: #0a0a12;       /* Jupiter Deep */
+  --bg-secondary: #08080e;     /* Space Void */
+  --bg-tertiary: #14141f;      /* Elevated Cards */
   
-  --text-primary: #0f172a; /* Slate 900 */
-  --text-secondary: #64748b; /* Slate 500 */
-  --text-tertiary: #94a3b8; /* Slate 400 */
+  /* Text - Warm Cosmic */
+  --text-primary: #f5f5f0;     /* Warm White */
+  --text-secondary: #a1a1aa;   /* Soft Gray */
+  --text-tertiary: #71717a;    /* Muted Gray */
   
-  --action-primary: #4f46e5; /* Indigo 600 */
-  --action-hover: #4338ca;
-  --accent-secondary: #8b5cf6;
+  /* Actions - Solar Gold */
+  --action-primary: #fbbf24;   /* Sun Gold */
+  --action-hover: #f59e0b;     /* Amber */
+  --accent-secondary: #d97706; /* Jupiter Orange */
+
+  /* Borders - Subtle Gold */
+  --border-default: rgba(251, 191, 36, 0.12);
+  --border-glow: rgba(251, 191, 36, 0.25);
+  
+  /* Shadows */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(251, 191, 36, 0.08);
+  --shadow-glow: 0 0 30px rgba(251, 191, 36, 0.15);
 
   /* Semantic Status Colors */
-  --color-success-bg: #dcfce7;
-  --color-success-text: #15803d;
-  --color-warning-bg: #fef3c7;
-  --color-warning-text: #b45309;
-  --color-danger-bg: #fee2e2;
-  --color-danger-text: #b91c1c;
+  --color-success-bg: rgba(74, 222, 128, 0.12);
+  --color-success-text: #4ade80;
+  --color-warning-bg: rgba(251, 191, 36, 0.12);
+  --color-warning-text: #fbbf24;
+  --color-danger-bg: rgba(248, 113, 113, 0.12);
+  --color-danger-text: #f87171;
   
-  --gradient-start: #4f46e5;
-  --gradient-end: #7c3aed;
+  /* Gradients */
+  --gradient-start: #fbbf24;
+  --gradient-end: #d97706;
+  --gradient-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+
+  /* Glass Effect */
+  --glass-bg: rgba(20, 20, 31, 0.85);
+  --glass-border: rgba(251, 191, 36, 0.15);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 
   color: var(--text-primary);
   background-color: var(--bg-secondary);
-  
-  /* Apply Custom Background */
-  background-image: 
-    linear-gradient(rgba(var(--overlay-color), var(--bg-overlay)), rgba(var(--overlay-color), var(--bg-overlay))),
-    var(--bg-image);
-
-  background-size: var(--bg-size);
-  background-position: var(--bg-position);
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+  color-scheme: dark;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -87,8 +79,115 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  /* Background properties handled in :root now for global coverage */
-  background-color: transparent;
+  background: #06060a;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ===== PREMIUM COSMIC BACKGROUND ===== */
+/* Layer 1: Base gradient with prominent sun glows + corner/edge lighting */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -3;
+  background: 
+    /* CORNER GLOW - Top Right */
+    radial-gradient(ellipse 50% 40% at 100% 0%, rgba(251, 191, 36, 0.4) 0%, rgba(245, 158, 11, 0.1) 50%, transparent 70%),
+    /* CORNER GLOW - Top Left */
+    radial-gradient(ellipse 40% 35% at 0% 0%, rgba(252, 211, 77, 0.25) 0%, rgba(251, 191, 36, 0.05) 50%, transparent 70%),
+    /* CORNER GLOW - Bottom Right */
+    radial-gradient(ellipse 45% 40% at 100% 100%, rgba(217, 119, 6, 0.3) 0%, rgba(245, 158, 11, 0.08) 50%, transparent 70%),
+    /* CORNER GLOW - Bottom Left */
+    radial-gradient(ellipse 35% 30% at 0% 100%, rgba(245, 158, 11, 0.2) 0%, rgba(251, 191, 36, 0.05) 50%, transparent 70%),
+    /* EDGE GLOW - Right side */
+    radial-gradient(ellipse 20% 60% at 100% 50%, rgba(251, 191, 36, 0.15) 0%, transparent 70%),
+    /* EDGE GLOW - Left side */
+    radial-gradient(ellipse 15% 50% at 0% 50%, rgba(217, 119, 6, 0.12) 0%, transparent 70%),
+    /* MAIN SUN - Top right - very prominent */
+    radial-gradient(ellipse 80% 60% at 95% 0%, rgba(251, 191, 36, 0.35) 0%, rgba(245, 158, 11, 0.15) 30%, transparent 60%),
+    /* SECONDARY SUN - Left side */
+    radial-gradient(ellipse 60% 70% at 0% 40%, rgba(217, 119, 6, 0.25) 0%, rgba(251, 191, 36, 0.08) 40%, transparent 70%),
+    /* JUPITER GLOW - Bottom */
+    radial-gradient(ellipse 90% 50% at 50% 100%, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.08) 50%, transparent 80%),
+    /* MID AMBIENT - Center area warmth */
+    radial-gradient(ellipse 100% 80% at 50% 50%, rgba(251, 191, 36, 0.06) 0%, transparent 70%),
+    /* Deep base */
+    linear-gradient(180deg, #050508 0%, #06060a 40%, #08080c 70%, #0a0a0e 100%);
+  pointer-events: none;
+}
+
+/* Layer 2: Floating orbs and curved bands */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -2;
+  background:
+    /* Large floating orb - left center */
+    radial-gradient(circle 300px at 15% 45%, rgba(251, 191, 36, 0.12) 0%, rgba(245, 158, 11, 0.04) 50%, transparent 70%),
+    /* Large floating orb - right */
+    radial-gradient(circle 250px at 85% 60%, rgba(217, 119, 6, 0.1) 0%, rgba(251, 191, 36, 0.03) 50%, transparent 70%),
+    /* Medium orb - top left */
+    radial-gradient(circle 180px at 25% 15%, rgba(252, 211, 77, 0.15) 0%, transparent 60%),
+    /* Medium orb - bottom right */
+    radial-gradient(circle 200px at 75% 85%, rgba(245, 158, 11, 0.12) 0%, transparent 60%),
+    /* Small accent orb 1 */
+    radial-gradient(circle 100px at 40% 70%, rgba(251, 191, 36, 0.1) 0%, transparent 70%),
+    /* Small accent orb 2 */
+    radial-gradient(circle 120px at 60% 25%, rgba(217, 119, 6, 0.08) 0%, transparent 70%),
+    /* Curved horizon band - top */
+    radial-gradient(ellipse 200% 15% at 50% 5%, rgba(251, 191, 36, 0.1) 0%, transparent 80%),
+    /* Curved horizon band - bottom */
+    radial-gradient(ellipse 180% 12% at 50% 95%, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Layer 3: Light particles and subtle texture */
+#root::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  background:
+    /* Star particle cluster - scattered */
+    radial-gradient(circle 3px at 10% 20%, rgba(252, 211, 77, 0.8) 0%, transparent 100%),
+    radial-gradient(circle 2px at 25% 10%, rgba(251, 191, 36, 0.7) 0%, transparent 100%),
+    radial-gradient(circle 4px at 45% 8%, rgba(245, 158, 11, 0.6) 0%, transparent 100%),
+    radial-gradient(circle 2px at 70% 15%, rgba(252, 211, 77, 0.7) 0%, transparent 100%),
+    radial-gradient(circle 3px at 90% 5%, rgba(251, 191, 36, 0.8) 0%, transparent 100%),
+    radial-gradient(circle 2px at 5% 60%, rgba(245, 158, 11, 0.6) 0%, transparent 100%),
+    radial-gradient(circle 3px at 95% 55%, rgba(251, 191, 36, 0.7) 0%, transparent 100%),
+    radial-gradient(circle 2px at 15% 85%, rgba(252, 211, 77, 0.6) 0%, transparent 100%),
+    radial-gradient(circle 4px at 50% 90%, rgba(245, 158, 11, 0.7) 0%, transparent 100%),
+    radial-gradient(circle 2px at 80% 80%, rgba(251, 191, 36, 0.6) 0%, transparent 100%),
+    radial-gradient(circle 3px at 35% 50%, rgba(252, 211, 77, 0.5) 0%, transparent 100%),
+    radial-gradient(circle 2px at 65% 45%, rgba(245, 158, 11, 0.5) 0%, transparent 100%),
+    /* Subtle grid texture */
+    linear-gradient(rgba(251, 191, 36, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251, 191, 36, 0.02) 1px, transparent 1px);
+  background-size: 
+    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+    100% 100%, 100% 100%,
+    60px 60px, 60px 60px;
+  pointer-events: none;
+  animation: twinkle 8s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
 }
 
 /* Base Elements */
@@ -110,162 +209,99 @@ a {
 }
 
 a:hover {
+  color: var(--action-hover);
   filter: brightness(110%);
 }
 
-/* Utilities */
+/* Glass Panels */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 .glass-card {
-  background: white;
-  border: 1px solid var(--color-slate-200);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  background: rgba(20, 20, 31, 0.7);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-card);
+  border-radius: 16px;
 }
 
-/* Custom Scrollbar */
+.glass-card:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--shadow-card), var(--shadow-glow);
+}
+
+/* Custom Scrollbar - Golden */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(20, 20, 31, 0.5);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-slate-300);
+  background: rgba(251, 191, 36, 0.3);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-slate-400);
+  background: rgba(251, 191, 36, 0.5);
 }
 
-/* Premium Dark Theme Overrides */
-.premium-dark {
-  /* Dynamic Backgrounds */
-  --bg-primary: #0f172a; /* Slate 900 */
-  --bg-secondary: #020617; /* Slate 950 - Main App Bg */
-  --bg-tertiary: #1e293b; /* Slate 800 - Cards */
-  
-  /* High Contrast Text */
-  --text-primary: #f8fafc; /* Slate 50 */
-  --text-secondary: #cbd5e1; /* Slate 300 */
-  --text-tertiary: #94a3b8; /* Slate 400 */
-  
-  /* Electric Accents */
-  --action-primary: #3b82f6; /* Blue 500 */
-  --action-hover: #60a5fa; /* Blue 400 */
-  --accent-secondary: #8b5cf6; /* Violet 500 */
-
-  /* Glassmorphism Tokens */
-  --glass-bg: rgba(15, 23, 42, 0.7);
-  --glass-border: rgba(59, 130, 246, 0.2);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  
-  color-scheme: dark;
+/* Selection */
+::selection {
+  background: rgba(251, 191, 36, 0.3);
+  color: var(--text-primary);
 }
 
-.premium-dark body {
-  /* Ensure transparent body so :root background shows through, or apply logic here */
-  background-color: transparent;
+/* Focus rings - golden */
+:focus-visible {
+  outline: 2px solid var(--action-primary);
+  outline-offset: 2px;
 }
 
-.premium-dark {
-  /* Dark mode overrides */
-  --bg-overlay: 0.85; /* Default higher overlay opacity for dark mode readability if image is unset, but we override dynamically */
-  --overlay-color: 2, 6, 23; /* Dark Slate RGB */
-  
-  /* Apply Custom Background for Dark Mode - utilizing same vars but with dark overlay default */
-  /* background-image rule removed, now uses :root's background-image with updated --overlay-color */
+/* Button Base Styling */
+button, .btn {
+  transition: all 0.2s ease;
 }
 
-.premium-dark .glass-card {
-  background: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+button:hover:not(:disabled), .btn:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
-.premium-dark .glass-panel {
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(16px);
+/* Input Fields - Dark cosmic style */
+input, textarea, select {
+  background: rgba(20, 20, 31, 0.8);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
 }
 
-/* Aurora Background Animation */
-@keyframes aurora {
-  0% {
-    background-position: 50% 50%, 50% 50%;
-  }
-  66% {
-    background-position: 100% 0%, 0% 100%;
-  }
-  100% {
-    background-position: 50% 50%, 50% 50%;
-  }
+input:focus, textarea:focus, select:focus {
+  border-color: var(--action-primary);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15);
 }
 
-.aurora-bg {
-  position: relative;
-  overflow: hidden;
+input::placeholder, textarea::placeholder {
+  color: var(--text-tertiary);
 }
 
-.aurora-bg::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  width: 100%;
-  z-index: -1;
-  background-image: 
-    radial-gradient(at 100% 0%, hsla(250,100%,70%,0.2) 0px, transparent 50%),
-    radial-gradient(at 0% 0%, hsla(210,100%,60%,0.2) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, hsla(280,100%,70%,0.2) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, hsla(200,100%,60%,0.2) 0px, transparent 50%);
-  background-size: 140% 140%;
-  animation: aurora 15s ease infinite alternate;
-  filter: blur(20px); /* Reduced from 80px for better performance */
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-
-/* Ensure mix-blend-mode doesn't break text in light mode */
-:root[class~="dark"] .aurora-bg::before,
-.premium-dark .aurora-bg::before {
-  opacity: 0.6;
-}
-
-/* MOBILE PERFORMANCE: Disable heavy effects */
+/* MOBILE PERFORMANCE */
 @media (max-width: 768px) {
-  .aurora-bg::before {
-    animation: none;
-    filter: none;
-    opacity: 0.4;
-    background-size: 100% 100%;
+  body::before,
+  body::after {
+    opacity: 0.7;
   }
   
-  /* Reduce backdrop blur on mobile for better performance */
   .glass-panel,
   .glass-card {
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-  
-  .premium-dark .glass-panel {
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }
 
 /* Respect user preference for reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .aurora-bg::before {
-    animation: none !important;
-    filter: none !important;
-  }
-  
   * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
@@ -274,183 +310,174 @@ a:hover {
   }
 }
 
-/* =========================================
-   PREMIUM THEME 1: COGNITIVE CLARITY (Light)
-   Style: Neubrutalism Light / Swiss Design
-   ========================================= */
-   .theme-cognitive-clarity {
-    /* Paper Surface */
-    --bg-primary: #FFFFFF;        /* Cards */
-    --bg-secondary: #FBFBFD;      /* Main background (tinted white) */
-    --bg-tertiary: #F8FAFC;       /* Elevated areas */
-    
-    /* Typography */
-    --text-primary: #0F172A;      /* Slate-900 */
-    --text-secondary: #64748B;    /* Slate-500 */
-    --text-tertiary: #94A3B8;     /* Slate-400 */
-    
-    /* Actions */
-    --action-primary: #3B82F6;    /* Soft Blue */
-    --action-hover: #2563EB;
-    --accent-secondary: #6366F1;
-    
-    /* Borders & Shadows */
-    --border-default: #E2E8F0;
-    --shadow-card: 0px 4px 20px rgba(0, 0, 0, 0.03);
-    
-    /* Layout */
-    --radius-card: 16px;
-    --radius-button: 9999px;      /* Pill */
-    --spacing-multiplier: 1.5;
-  
-    --bg-overlay: 0;
-    
-    --custom-font: "Inter", "Space Grotesk", sans-serif;
-    color-scheme: light;
-  }
-  
-  /* =========================================
-     PREMIUM THEME 2: NETRUNNER (Cyberpunk)
-     Style: FUI / Terminal / High-Tech
-     ========================================= */
-  .theme-netrunner {
-    /* Mainframe Surface */
-    --bg-primary: #0A0A0A;
-    --bg-secondary: #050505;      /* Deepest void */
-    --bg-tertiary: #111111;
-    
-    /* Typography */
-    --text-primary: #00E5FF;      /* Neon Cyan */
-    --text-secondary: #7DD3FC;
-    --text-tertiary: #38BDF8;
-    
-    /* Actions */
-    --action-primary: #00E5FF;
-    --action-hover: #FF003C;      /* Hot Pink Hover */
-    --accent-secondary: #FF003C;
-    
-    /* Borders & Glow */
-    --border-default: #1F2937;
-    --border-glow: 0 0 8px #00E5FF;
-    --shadow-card: 0 0 12px rgba(0, 229, 255, 0.15);
-    
-    /* Layout */
-    --radius-card: 0px;           /* Sharp corners */
-    --radius-button: 0px;
-    
-    /* Glass / Terminal Effect */
-    --glass-bg: rgba(5, 5, 5, 0.9);
-    --glass-border: #00E5FF;
-    --glass-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
-    
-    --scanline-opacity: 0.05;
-    --overlay-color: 0, 0, 0;
+/* Golden Shimmer Effect */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
 
-    /* Cyberpunk Semantics */
-    --color-success-bg: rgba(0, 255, 127, 0.1); 
-    --color-success-text: #00FF7F;
-    --color-warning-bg: rgba(255, 215, 0, 0.1);
-    --color-warning-text: #FFD700;
-    --color-danger-bg: rgba(255, 0, 60, 0.1);
-    --color-danger-text: #FF003C;
-    
-    --gradient-start: #00E5FF;
-    --gradient-end: #FF003C;
+.gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--action-primary) 0%,
+    #fcd34d 25%,
+    var(--action-primary) 50%,
+    #fcd34d 75%,
+    var(--action-primary) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
 
-    --custom-font: "JetBrains Mono", "Fira Code", monospace;
-    color-scheme: dark;
-  }
+/* Glow pulse animation */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.4); }
+}
+
+.glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* ===== LIGHT THEME ===== */
+.light-theme {
+  /* Warm cream backgrounds */
+  --bg-primary: #fffbf5;
+  --bg-secondary: #faf6f0;
+  --bg-tertiary: #f5f0e8;
   
-  /* Netrunner Specific Overrides */
-  .theme-netrunner .glass-card, 
-  .theme-netrunner .glass-panel {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    border-radius: 0;
-  }
+  /* Rich dark text */
+  --text-primary: #1a1612;
+  --text-secondary: #5c5347;
+  --text-tertiary: #8a7f72;
   
-  /* Scanline Overlay for Netrunner */
-  .theme-netrunner body::before {
-    content: "";
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 229, 255, var(--scanline-opacity)) 2px,
-      rgba(0, 229, 255, var(--scanline-opacity)) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
-  }
+  /* Golden amber accents */
+  --action-primary: #d97706;
+  --action-hover: #b45309;
+  --accent-secondary: #f59e0b;
+
+  /* Warm borders */
+  --border-default: rgba(217, 119, 6, 0.15);
+  --border-glow: rgba(217, 119, 6, 0.3);
   
-  /* Glitch Text on Hover */
-  .theme-netrunner a:hover,
-  .theme-netrunner button:hover {
-    text-shadow: 2px 0 #FF003C, -2px 0 #00E5FF;
-    transition: text-shadow 0.1s steps(2);
-  }
+  /* Shadows */
+  --shadow-card: 0 4px 20px rgba(139, 90, 43, 0.08), 0 0 0 1px rgba(217, 119, 6, 0.08);
+  --shadow-glow: 0 0 25px rgba(217, 119, 6, 0.12);
+
+  /* Semantic colors for light */
+  --color-success-bg: rgba(34, 197, 94, 0.12);
+  --color-success-text: #15803d;
+  --color-warning-bg: rgba(245, 158, 11, 0.15);
+  --color-warning-text: #b45309;
+  --color-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-danger-text: #dc2626;
   
-  /* =========================================
-     PREMIUM THEME 3: DEEP COSMOS (Space)
-     Style: Glassmorphism / Spatial Design
-     ========================================= */
-  .theme-deep-cosmos {
-    /* Nebula Surface */
-    --bg-primary: #0F172A;
-    --bg-secondary: #020617;      /* Dark Navy */
-    --bg-tertiary: rgba(30, 41, 59, 0.4); 
-    
-    /* Typography */
-    --text-primary: #FFFFFF;
-    --text-secondary: #94A3B8;    /* Blue-ish Grey */
-    --text-tertiary: #CBD5E1;
-    
-    /* Actions */
-    --action-primary: #6366F1;    /* Indigo */
-    --action-hover: #818CF8;
-    --accent-secondary: #8B5CF6;  /* Purple */
-    
-    /* Glass Effect */
-    --glass-bg: rgba(15, 23, 42, 0.4); /* More translucent */
-    --glass-border: rgba(99, 102, 241, 0.3); /* Indigo tint */
-    --glass-shadow: 0px 0px 20px rgba(99, 102, 241, 0.25);
-    
-    /* Layout */
-    --radius-card: 20px;
-    --radius-button: 12px;
-  
-    --bg-overlay: 0.3; /* Let the cosmos shine through */
-    --overlay-color: 2, 6, 23;
-    
-    /* Space Semantics */
-    --color-success-bg: rgba(45, 212, 191, 0.15); 
-    --color-success-text: #2DD4BF;
-    --color-warning-bg: rgba(251, 191, 36, 0.15);
-    --color-warning-text: #FBBF24;
-    --color-danger-bg: rgba(244, 63, 94, 0.15);
-    --color-danger-text: #F43F5E;
-    
-    --gradient-start: #6366F1;
-    --gradient-end: #D946EF;
-    
-    --custom-font: "Sora", "Outfit", sans-serif;
-    color-scheme: dark;
-    
-    /* Deep Cosmos Background Defaults (Overwritten by JS wallpaper) */
-    --bg-image: 
-      radial-gradient(ellipse at 50% 0%, #1E1B4B 0%, transparent 70%),
-      radial-gradient(circle at 80% 80%, #312e81 0%, transparent 50%),
-      linear-gradient(to bottom, #020617, #0f172a);
-  }
-  
-  .theme-deep-cosmos .glass-card,
-  .theme-deep-cosmos .glass-panel {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    backdrop-filter: blur(16px) saturate(140%);
-    border-radius: var(--radius-card);
-  }
+  /* Glass effects for light */
+  --glass-bg: rgba(255, 251, 245, 0.9);
+  --glass-border: rgba(217, 119, 6, 0.12);
+  --glass-shadow: 0 8px 32px rgba(139, 90, 43, 0.1);
+
+  color-scheme: light;
+}
+
+/* Light theme body background - warm textured */
+.light-theme body {
+  background: #faf6f0;
+}
+
+.light-theme body::before {
+  background: 
+    /* Warm corner glow - top right */
+    radial-gradient(ellipse 50% 40% at 100% 0%, rgba(251, 191, 36, 0.15) 0%, transparent 60%),
+    /* Warm corner glow - top left */
+    radial-gradient(ellipse 40% 35% at 0% 0%, rgba(245, 158, 11, 0.1) 0%, transparent 60%),
+    /* Warm corner glow - bottom */
+    radial-gradient(ellipse 80% 40% at 50% 100%, rgba(217, 119, 6, 0.08) 0%, transparent 60%),
+    /* Ambient warmth */
+    radial-gradient(ellipse 100% 80% at 50% 50%, rgba(251, 191, 36, 0.04) 0%, transparent 70%),
+    /* Cream base with subtle variations */
+    linear-gradient(180deg, #fffbf5 0%, #faf6f0 40%, #f7f2ea 70%, #f5f0e8 100%);
+}
+
+.light-theme body::after {
+  background:
+    /* Floating warm orbs */
+    radial-gradient(circle 200px at 20% 30%, rgba(251, 191, 36, 0.06) 0%, transparent 60%),
+    radial-gradient(circle 180px at 80% 60%, rgba(217, 119, 6, 0.05) 0%, transparent 60%),
+    radial-gradient(circle 150px at 60% 20%, rgba(245, 158, 11, 0.04) 0%, transparent 60%),
+    /* Subtle paper texture */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 150px 150px;
+  opacity: 1;
+}
+
+.light-theme #root::before {
+  background:
+    /* Subtle golden dots */
+    radial-gradient(circle 2px at 15% 25%, rgba(217, 119, 6, 0.3) 0%, transparent 100%),
+    radial-gradient(circle 2px at 85% 15%, rgba(245, 158, 11, 0.25) 0%, transparent 100%),
+    radial-gradient(circle 2px at 45% 85%, rgba(251, 191, 36, 0.2) 0%, transparent 100%),
+    radial-gradient(circle 2px at 75% 75%, rgba(217, 119, 6, 0.25) 0%, transparent 100%),
+    /* Subtle grid */
+    linear-gradient(rgba(217, 119, 6, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(217, 119, 6, 0.025) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 50px 50px, 50px 50px;
+  animation: none;
+  opacity: 1;
+}
+
+/* Light theme component overrides */
+.light-theme .glass-panel {
+  background: rgba(255, 251, 245, 0.95);
+  border: 1px solid rgba(217, 119, 6, 0.1);
+}
+
+.light-theme .glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(217, 119, 6, 0.1);
+  box-shadow: 0 4px 20px rgba(139, 90, 43, 0.06);
+}
+
+.light-theme .glass-card:hover {
+  border-color: rgba(217, 119, 6, 0.2);
+  box-shadow: 0 8px 30px rgba(139, 90, 43, 0.1);
+}
+
+/* Light scrollbar */
+.light-theme ::-webkit-scrollbar-track {
+  background: rgba(217, 119, 6, 0.05);
+}
+
+.light-theme ::-webkit-scrollbar-thumb {
+  background: rgba(217, 119, 6, 0.25);
+}
+
+.light-theme ::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 119, 6, 0.4);
+}
+
+/* Light selection */
+.light-theme ::selection {
+  background: rgba(217, 119, 6, 0.2);
+  color: var(--text-primary);
+}
+
+/* Light inputs */
+.light-theme input,
+.light-theme textarea,
+.light-theme select {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(217, 119, 6, 0.15);
+  color: var(--text-primary);
+}
+
+.light-theme input:focus,
+.light-theme textarea:focus,
+.light-theme select:focus {
+  border-color: var(--action-primary);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+}
+

@@ -36,45 +36,6 @@ export const fetchNotes = async (subjectId) => {
   return res.data.notes;
 };
 
-// Flashcards for a note
-export const fetchFlashcards = async (noteId) => {
-  const res = await api.get("/flashcards", { params: { noteId } });
-  return res.data.flashcards;
-};
-
-// Manual flashcard creation
-export const createFlashcard = async ({
-  noteId,
-  question,
-  answer,
-  subject,
-}) => {
-  const res = await api.post("/flashcards", {
-    noteId,
-    question,
-    answer,
-    subject,
-  });
-  return res.data.flashcard;
-};
-
-// AI flashcard generation
-export const generateAIFlashcards = async (noteId) => {
-  const res = await api.post("/flashcards/generate-ai", { noteId });
-  return res.data.flashcards;
-};
-
-// Update flashcard
-export const updateFlashcard = async (id, { question, answer, subject }) => {
-  const res = await api.put(`/flashcards/${id}`, { question, answer, subject });
-  return res.data.flashcard;
-};
-
-// Delete flashcard
-export const deleteFlashcard = async (id) => {
-  await api.delete(`/flashcards/${id}`);
-};
-
 // Create new subject
 export const createSubject = async ({ name, description }) => {
   const res = await api.post("/subjects", { name, description });

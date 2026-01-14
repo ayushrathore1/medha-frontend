@@ -37,8 +37,7 @@ const Footer = () => (
             </span>
           </div>
           <p className="text-[var(--text-secondary)] mb-4 max-w-md font-normal">
-            Boost your learning with AI-powered note upload, instant flashcards,
-            smart quizzes, and a personalized chatbot.
+            Boost your learning with AI-powered notes, exam archives, and personalized study tools.
             <br />
             Organized. Efficient. Fun.
           </p>
@@ -118,10 +117,8 @@ const Footer = () => (
             section: "Quick Links",
             links: [
               { to: "/dashboard", label: "Dashboard" },
-              { to: "/flashcards", label: "Flashcards" },
-              { to: "/quiz", label: "Quiz" },
-              { to: "/upload", label: "Upload Notes" },
-              { to: "/chatbot", label: "Chatbot" },
+              { to: "/notes", label: "Notes Community" },
+              { to: "/exams", label: "Exams" },
             ],
           },
           {

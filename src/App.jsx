@@ -10,9 +10,8 @@ import Loader from "./components/Common/Loader";
 
 // Lazy Load Pages
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
-const Chatbot = React.lazy(() => import("./pages/Chatbot"));
-const Flashcards = React.lazy(() => import("./pages/Flashcards"));
-const Quiz = React.lazy(() => import("./pages/Quiz"));
+
+
 const Notifications = React.lazy(() => import("./pages/Notifications"));
 const Profile = React.lazy(() => import("./pages/Profile"));
 const Login = React.lazy(() => import("./pages/Login"));
@@ -26,12 +25,14 @@ const Notes = React.lazy(() => import("./pages/Notes"));
 const ForgotPassword = React.lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = React.lazy(() => import("./pages/ResetPassword"));
 const RTUExams = React.lazy(() => import("./pages/RTUExams"));
+const VisualizeConcepts = React.lazy(() => import("./components/RTUExams/VisualizeConcepts"));
 const ExamsPage = React.lazy(() => import("./pages/ExamsPage"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const TeamDashboard = React.lazy(() => import("./pages/TeamDashboard"));
 const JoinTeam = React.lazy(() => import("./pages/JoinTeam"));
 const PersonalizationSetup = React.lazy(() => import("./pages/PersonalizationSetup"));
 const VisualizationPage = React.lazy(() => import("./pages/VisualizationPage"));
+const PublicProfile = React.lazy(() => import("./pages/PublicProfile"));
 
 // Feature flag for Charcha (discussion forum)
 const CHARCHA_ENABLED = import.meta.env.VITE_ENABLE_CHARCHA === 'true';
@@ -47,9 +48,7 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import { TourProvider } from "./context/TourContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
-import { CursorProvider } from "./context/CursorContext";
 import { AuthModalProvider } from "./context/AuthModalContext";
-import CustomCursor from "./components/Common/CustomCursor";
 
 const AppContent = () => {
   const location = useLocation();
@@ -63,8 +62,6 @@ const AppContent = () => {
       <AuthModalProvider>
       <Analytics />
       <TourProvider>
-        <CursorProvider>
-          <CustomCursor />
           <MainLayout>
         <AnimatePresence mode="wait">
           <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader /></div>}>
@@ -98,6 +95,12 @@ const AppContent = () => {
                     <PageTransition><RTUExams /></PageTransition>
                   }
                 />
+                <Route
+                  path="/visualizations"
+                  element={
+                    <PageTransition><VisualizeConcepts /></PageTransition>
+                  }
+                />
                 {/* Shareable visualization URLs */}
                 <Route
                   path="/visualize/:animationId"
@@ -115,30 +118,8 @@ const AppContent = () => {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/chatbot"
-                  element={
-                    <ProtectedRoute>
-                      <PageTransition><Chatbot /></PageTransition>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/flashcards"
-                  element={
-                    <ProtectedRoute>
-                      <PageTransition><Flashcards /></PageTransition>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/quiz"
-                  element={
-                    <ProtectedRoute>
-                      <PageTransition><Quiz /></PageTransition>
-                    </ProtectedRoute>
-                  }
-                />
+
+
                 <Route
                   path="/notifications"
                   element={
@@ -152,6 +133,14 @@ const AppContent = () => {
                   element={
                     <ProtectedRoute>
                       <PageTransition><AdminDashboard /></PageTransition>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile/:userId"
+                  element={
+                    <ProtectedRoute>
+                      <PageTransition><PublicProfile /></PageTransition>
                     </ProtectedRoute>
                   }
                 />
@@ -216,7 +205,6 @@ const AppContent = () => {
           </Suspense>
         </AnimatePresence>
       </MainLayout>
-        </CursorProvider>
       </TourProvider>
       </AuthModalProvider>
     </AuthProvider>

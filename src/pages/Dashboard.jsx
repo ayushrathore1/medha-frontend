@@ -32,7 +32,6 @@ const Dashboard = () => {
       { _id: '1', name: 'Photosynthesis', difficulty: 'medium' },
       { _id: '2', name: 'Quantum Mechanics', difficulty: 'hard' }
     ] : [],
-    quizzesTaken: isGuestMode ? 15 : 0,
     notesCreated: isGuestMode ? 8 : 0,
   });
   const [loading, setLoading] = useState(!isGuestMode);
@@ -91,27 +90,13 @@ const Dashboard = () => {
     }
   };
 
-  const handleDeleteTopic = async (topicName) => {
-    if (!window.confirm(`Are you sure you want to delete all flashcards for topic "${topicName}"?`)) return;
-    try {
-      const token = localStorage.getItem("token");
-      await axios.delete(
-        `${import.meta.env.VITE_BACKEND_URL}/api/flashcards/topic/${encodeURIComponent(topicName)}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchDashboardData();
-    } catch (error) {
-      console.error("Error deleting topic:", error);
-    }
-  };
+
 
   if (loading) return <Loader fullScreen />;
 
   const quickActions = [
     { label: "New Note", icon: <FaPlus />, to: "/notes", color: "text-[var(--action-primary)]", bg: "bg-[var(--action-primary)]/10" },
-    { label: "Start Quiz", icon: <FaBrain />, to: "/quiz", color: "text-[var(--gradient-end)]", bg: "bg-[var(--gradient-end)]/10" },
     { label: "Archive", icon: <FaFolderOpen />, to: "/rtu-exams", color: "text-[var(--color-success-text)]", bg: "bg-[var(--color-success-bg)]" },
-    { label: "AI Tutor", icon: <FaLightbulb />, to: "/chatbot", color: "text-[var(--color-warning-text)]", bg: "bg-[var(--color-warning-bg)]" },
   ];
 
   return (

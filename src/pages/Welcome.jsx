@@ -29,13 +29,13 @@ const Welcome = () => {
     {
       icon: <Zap size={28} />,
       title: "AI Note Intelligence",
-      desc: "Turn messy handwritten notes into structured summaries, flashcards, and quizzes in seconds.",
+      desc: "Turn messy handwritten notes into structured summaries and study materials in seconds.",
       gradient: "from-amber-400 to-orange-500",
     },
     {
       icon: <Brain size={28} />,
       title: "Smart Exam Prep",
-      desc: "Custom quizzes and AI-generated exam strategies based on your specific university syllabus.",
+      desc: "AI-generated exam strategies and insights based on your specific university syllabus.",
       gradient: "from-purple-400 to-indigo-500",
     },
     {
@@ -123,7 +123,7 @@ const Welcome = () => {
 
               <p className="text-xl md:text-2xl text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
                 Stop drowning in notes. MEDHA turns your scattered study materials into <span className="text-[var(--action-primary)] font-bold">interactive intelligence</span>. 
-                Flashcards, quizzes, and exam strategies—generated instantly by AI.
+                Study materials and exam strategies—powered by AI.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start mb-12">
@@ -316,14 +316,6 @@ const Welcome = () => {
             align="left"
           />
 
-          <FeatureShowcase 
-            title="Conversations with Your Notes."
-            subtitle="AI CHATBOT"
-            desc="Upload your handwritten notes and just ask: 'Explain the second law of thermodynamics from page 4.' Receive instant, context-aware answers. It's like your professor is on speed dial."
-            image="https://ik.imagekit.io/ayushrathore1/Medha/chatbot_ss.png"
-            tags={["Context Aware", "OCR Technology", "Instant Answers"]}
-            align="right"
-          />
 
         </div>
       </section>

@@ -15,14 +15,8 @@ import {
   FaEnvelope,
   FaBuildingColumns,
   FaBook,
-  FaPlay,
-  FaGraduationCap,
-  FaWandMagicSparkles,
-  FaCode,
 } from "react-icons/fa6";
-import LearnConcepts from "../components/RTUExams/LearnConcepts";
-import VisualizeConcepts from "../components/RTUExams/VisualizeConcepts";
-import PracticeCoding from "../components/RTUExams/PracticeCoding";
+
 
 import { useTour } from "../context/TourContext";
 import useAuthGuard from "../hooks/useAuthGuard";
@@ -32,10 +26,7 @@ const RTUExams = () => {
   const { requireAuth } = useAuthGuard();
   const navigate = useNavigate();
   
-  // Check if Practice section is enabled via env variable
-  const isPracticeEnabled = import.meta.env.VITE_PRACTICE_ENABLED !== 'false';
   
-  const [activeTab, setActiveTab] = useState("archives"); // 'archives', 'learn', 'visualize', or 'practice'
   const [viewState, setViewState] = useState("semesters");
   const [subjects, setSubjects] = useState(
     isGuestMode
@@ -280,9 +271,6 @@ const RTUExams = () => {
   };
 
   const getHeaderTitle = () => {
-    if (activeTab === "learn") return "Learn the Concepts";
-    if (activeTab === "visualize") return "Visualize the Concepts";
-    if (activeTab === "practice") return "Practice Coding";
     switch (viewState) {
       case "semesters":
         return "The Archives";
@@ -293,17 +281,11 @@ const RTUExams = () => {
       case "unitWeightage":
         return `${selectedSubject?.name} (${selectedYear})`;
       default:
-        return "RTU Exams";
+        return "PYQ Analysis";
     }
   };
 
   const getHeaderSubtitle = () => {
-    if (activeTab === "learn")
-      return "Watch video lectures and download study materials.";
-    if (activeTab === "visualize")
-      return "Experience immersive step-by-step animated explanations.";
-    if (activeTab === "practice")
-      return "Practice C/C++ OOPs questions with real-time code execution.";
     switch (viewState) {
       case "semesters":
         return "Access previous year papers and smart analysis.";
@@ -325,7 +307,7 @@ const RTUExams = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex flex-col items-center text-center relative mb-12">
-          {activeTab === "archives" && viewState !== "semesters" && (
+          {viewState !== "semesters" && (
             <div className="absolute left-0 top-0">
               <Button
                 onClick={handleBack}
@@ -338,9 +320,10 @@ const RTUExams = () => {
           )}
 
           <motion.div
-            key={`${activeTab}-${viewState}`}
-            initial={{ opacity: 0, y: -10 }}
+            key={viewState}
+            initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.15 }}
             className="max-w-2xl"
             data-tour="rtu-exams"
           >
@@ -352,100 +335,30 @@ const RTUExams = () => {
             </p>
           </motion.div>
 
-          {/* Tab Navigation */}
-          {(activeTab === "learn" ||
-            activeTab === "visualize" ||
-            activeTab === "practice" ||
-            (activeTab === "archives" && viewState === "semesters")) && (
-            <div className="flex items-center gap-2 mt-8 bg-[var(--bg-secondary)] rounded-2xl p-2 shadow-sm border border-[var(--border-default)] flex-wrap justify-center">
-              <button
-                onClick={() => {
-                  setActiveTab("archives");
-                  setViewState("semesters");
-                }}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
-                  activeTab === "archives"
-                    ? "bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-hover)] text-white shadow-md"
-                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
-                }`}
-              >
-                <FaBuildingColumns size={14} />
-                Archives
-              </button>
-              <button
-                onClick={() => setActiveTab("learn")}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
-                  activeTab === "learn"
-                    ? "bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-hover)] text-white shadow-md"
-                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
-                }`}
-              >
-                <FaGraduationCap size={14} />
-                Learn
-              </button>
-              <button
-                onClick={() => setActiveTab("visualize")}
-                className={`relative flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
-                  activeTab === "visualize"
-                    ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-950 shadow-lg"
-                    : "bg-gradient-to-r from-amber-500/10 to-yellow-500/10 text-amber-400 border border-amber-500/30 hover:border-amber-500/50 hover:from-amber-500/20 hover:to-yellow-500/20"
-                }`}
-              >
-                <FaWandMagicSparkles size={14} />
-                <span>Visualize</span>
-              </button>
-              {isPracticeEnabled && (
-                <button
-                  onClick={() => setActiveTab("practice")}
-                  className={`relative flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all ${
-                    activeTab === "practice"
-                      ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
-                      : "bg-gradient-to-r from-cyan-500/10 to-blue-500/10 text-cyan-400 border border-cyan-500/30 hover:border-cyan-500/50 hover:from-cyan-500/20 hover:to-blue-500/20"
-                  }`}
-                >
-                  <FaCode size={14} />
-                  <span>Practice</span>
-                  {activeTab !== "practice" && (
-                    <span className="ml-1 text-[10px] font-black text-cyan-300 tracking-wider">
-                      ✦ NEW
-                    </span>
-                  )}
-                </button>
-              )}
-            </div>
-          )}
         </div>
 
-        {/* Learn the Concepts Tab */}
-        {activeTab === "learn" && <LearnConcepts />}
 
-        {/* Visualize the Concepts Tab */}
-        {activeTab === "visualize" && <VisualizeConcepts />}
 
-        {/* Practice Coding Tab */}
-        {isPracticeEnabled && activeTab === "practice" && <PracticeCoding />}
-
-        {/* Archives Tab */}
-        {activeTab === "archives" && (
-          <>
-            <AnimatePresence mode="wait">
-              {/* Semesters View */}
-              {viewState === "semesters" && (
-                <motion.div
-                  key="semesters"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-                >
+        <>
+          <AnimatePresence mode="wait">
+            {/* Semesters View */}
+            {viewState === "semesters" && (
+              <motion.div
+                key="semesters"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.15 }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+              >
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => {
                     const isActive = sem === 3;
                     return (
-                      <motion.div
-                        key={sem}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: sem * 0.05 }}
+                    <motion.div
+                      key={sem}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: sem * 0.02, duration: 0.15 }}
                         data-tour={sem === 3 ? "rtu-semester" : undefined}
                         onClick={
                           isActive ? () => setViewState("subjects") : undefined
@@ -504,17 +417,18 @@ const RTUExams = () => {
                 <motion.div
                   data-tour="rtu-subjects"
                   key="subjects"
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.15 }}
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
                   {subjects.map((subject, idx) => (
                     <motion.div
                       key={subject._id || subject.name}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
+                      transition={{ delay: idx * 0.02, duration: 0.15 }}
                     >
                       <Card
                         onClick={() => handleSubjectClick(subject)}
@@ -594,6 +508,7 @@ const RTUExams = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
                 >
                   <YearSelector
                     years={availableYears}
@@ -696,7 +611,6 @@ const RTUExams = () => {
               </button>
             </div>
           </>
-        )}
       </div>
     </div>
   );

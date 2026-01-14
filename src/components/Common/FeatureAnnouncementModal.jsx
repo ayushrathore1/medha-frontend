@@ -6,11 +6,6 @@ import Button from './Button';
 
 const slides = [
   {
-    title: "Supercharged AI Chatbot",
-    description: "Medha AI now has Real-time Web Access. It knows your syllabus and can fetch the latest info!",
-    image: "https://ik.imagekit.io/ayushrathore1/Medha/updatedchatbot_ss",
-  },
-  {
     title: "Messaging Live",
     description: "Connect directly with admins. Have questions or feedback? Messaging is now fully operational!",
     image: "https://ik.imagekit.io/ayushrathore1/Medha/messages_ss",

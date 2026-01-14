@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import Navbar from "./Navigation/Navbar";
 import { AuthContext } from "../AuthContext";
 import TourOverlay from "./Common/TourOverlay";
-import QuickSettingsFab from "./Common/QuickSettingsFab";
+
 import ThemeSetupPrompt from "./Common/ThemeSetupPrompt";
 
 const MainLayout = ({ children }) => {
@@ -13,7 +13,7 @@ const MainLayout = ({ children }) => {
       {/* Tour Overlay */}
       <TourOverlay />
       <ThemeSetupPrompt />
-      <QuickSettingsFab />
+
 
       {/* Navbar */}
       <Navbar user={user} onLogout={logout} />
