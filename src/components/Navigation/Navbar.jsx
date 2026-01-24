@@ -3,11 +3,12 @@ import ReactDOM from "react-dom";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
-import { FaCrown, FaMoon, FaSun, FaLock, FaUser, FaBell } from "react-icons/fa6";
+import { FaCrown, FaMoon, FaSun, FaLock, FaUser, FaBell, FaComments } from "react-icons/fa6";
 import { PlayCircle, Sparkles } from "lucide-react";
 import { useTour } from "../../context/TourContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useAuthModal } from "../../context/AuthModalContext";
+import { useChatbot } from "../../context/ChatbotContext";
 import { getAvatarByIndex } from "../../utils/avatarUtils";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -68,6 +69,7 @@ const Navbar = ({ user, onLogout }) => {
   const { theme, toggleTheme, isDarkThemeEnabled } = useTheme();
   const { isGuestMode, startTour, isTourEnabled } = useTour();
   const { showAuthModal } = useAuthModal();
+  const { openChatbot } = useChatbot();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -347,6 +349,15 @@ const Navbar = ({ user, onLogout }) => {
           {/* Right side elements for logged-in users */}
           {user && (
             <>
+              {/* AI Chat Button */}
+              <button
+                onClick={() => openChatbot()}
+                className="relative ml-2 p-2 rounded-full hover:bg-[var(--bg-tertiary)] transition-colors"
+                title="Ask Medha AI"
+              >
+                <FaComments className="text-xl text-[var(--text-secondary)] hover:text-[var(--action-primary)]" />
+              </button>
+
               {/* Notification Bell */}
               <NavLink
                 to="/notifications"

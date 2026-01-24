@@ -49,6 +49,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import { TourProvider } from "./context/TourContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { AuthModalProvider } from "./context/AuthModalContext";
+import { ChatbotProvider } from "./context/ChatbotContext";
 
 const AppContent = () => {
   const location = useLocation();
@@ -62,6 +63,7 @@ const AppContent = () => {
       <AuthModalProvider>
       <Analytics />
       <TourProvider>
+        <ChatbotProvider>
           <MainLayout>
         <AnimatePresence mode="wait">
           <Suspense fallback={<div className="flex h-screen items-center justify-center"><Loader /></div>}>
@@ -205,6 +207,7 @@ const AppContent = () => {
           </Suspense>
         </AnimatePresence>
       </MainLayout>
+        </ChatbotProvider>
       </TourProvider>
       </AuthModalProvider>
     </AuthProvider>
