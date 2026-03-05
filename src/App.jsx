@@ -21,6 +21,7 @@ const Subjects = React.lazy(() => import("./pages/Subjects"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Welcome = React.lazy(() => import("./pages/Welcome"));
 const WelcomeDark = React.lazy(() => import("./pages/WelcomeDark"));
+const LandingPage = React.lazy(() => import("./pages/LandingPage"));
 const Notes = React.lazy(() => import("./pages/Notes"));
 const ForgotPassword = React.lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = React.lazy(() => import("./pages/ResetPassword"));
@@ -33,6 +34,7 @@ const JoinTeam = React.lazy(() => import("./pages/JoinTeam"));
 const PersonalizationSetup = React.lazy(() => import("./pages/PersonalizationSetup"));
 const VisualizationPage = React.lazy(() => import("./pages/VisualizationPage"));
 const PublicProfile = React.lazy(() => import("./pages/PublicProfile"));
+const MedhaRecommendations = React.lazy(() => import("./pages/MedhaRecommendations"));
 
 // Feature flag for Charcha (discussion forum)
 const CHARCHA_ENABLED = import.meta.env.VITE_ENABLE_CHARCHA === 'true';
@@ -55,8 +57,8 @@ const AppContent = () => {
   const location = useLocation();
   const { theme } = useTheme();
 
-  // Choose Welcome page based on theme
-  const WelcomePage = Welcome;
+  // Use new Skillex-inspired landing page
+  const WelcomePage = LandingPage;
 
   return (
     <AuthProvider>
@@ -179,6 +181,14 @@ const AppContent = () => {
                   element={
                     <ProtectedRoute>
                       <PageTransition><Subjects /></PageTransition>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/recommendations"
+                  element={
+                    <ProtectedRoute>
+                      <PageTransition><MedhaRecommendations /></PageTransition>
                     </ProtectedRoute>
                   }
                 />

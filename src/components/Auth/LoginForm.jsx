@@ -1,5 +1,9 @@
 import React from "react";
-import Button from "../Common/Button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const LoginForm = ({ onSubmit, loading, error }) => {
   const [email, setEmail] = React.useState("");
@@ -15,37 +19,41 @@ const LoginForm = ({ onSubmit, loading, error }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="p-4 rounded-xl text-sm font-bold text-red-600 bg-red-50 border border-red-200 flex items-center justify-center">
-          {error}
-        </div>
+        <Alert variant="destructive" className="border-destructive/30 bg-destructive/10">
+          <AlertDescription className="text-sm font-bold text-center">
+            {error}
+          </AlertDescription>
+        </Alert>
       )}
 
-      <div>
-        <label className="block mb-2 text-sm font-bold text-slate-700">
+      <div className="space-y-2">
+        <Label htmlFor="login-email" className="text-sm font-bold text-foreground/70">
           Email Address
-        </label>
-        <input
+        </Label>
+        <Input
+          id="login-email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 placeholder-slate-400 font-medium transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-slate-400"
           placeholder="you@university.edu"
           required
+          className="h-12 rounded-xl bg-muted/50 border-border text-foreground placeholder:text-muted-foreground font-medium focus-visible:ring-primary/20 focus-visible:border-primary hover:border-primary/50 transition-all"
         />
       </div>
 
-      <div>
-        <label className="block mb-2 text-sm font-bold text-slate-700">
+      <div className="space-y-2">
+        <Label htmlFor="login-password" className="text-sm font-bold text-foreground/70">
           Password
-        </label>
-        <input
+        </Label>
+        <Input
+          id="login-password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 placeholder-slate-400 font-medium transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 hover:border-slate-400"
           placeholder="••••••••"
           required
           minLength={6}
+          className="h-12 rounded-xl bg-muted/50 border-border text-foreground placeholder:text-muted-foreground font-medium focus-visible:ring-primary/20 focus-visible:border-primary hover:border-primary/50 transition-all"
         />
       </div>
 
@@ -53,13 +61,25 @@ const LoginForm = ({ onSubmit, loading, error }) => {
         <Button
           type="submit"
           disabled={loading}
-          loading={loading}
-          variant="primary"
           size="lg"
-          fullWidth
-          className="shadow-xl shadow-indigo-500/20"
+          className="w-full h-12 font-bold text-base shadow-xl shadow-primary/20 cursor-pointer"
         >
-          Sign In
+          {loading ? (
+            <>
+              <svg
+                className="animate-spin h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              Signing in...
+            </>
+          ) : (
+            "Sign In"
+          )}
         </Button>
       </div>
     </form>

@@ -1,12 +1,12 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { Card as ShadcnCard, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
-function cn(...inputs) {
-  return twMerge(clsx(inputs));
-}
-
+/**
+ * Backward-compatible Card wrapper around shadcn Card.
+ * Keeps framer-motion animations and glass-card styling.
+ */
 const Card = ({ children, className = "", hoverEffect = true, noPadding = false, ...props }) => {
   return (
     <motion.div
@@ -21,17 +21,21 @@ const Card = ({ children, className = "", hoverEffect = true, noPadding = false,
             }
           : {}
       }
-      style={{ borderRadius: "var(--radius-card, 16px)" }}
-      className={cn(
-        "glass-card overflow-hidden text-[var(--text-primary)]",
-        noPadding ? "p-0" : "p-6",
-        className
-      )}
-      {...props}
     >
-      {children}
+      <ShadcnCard
+        className={cn(
+          "glass-card overflow-hidden text-[var(--text-primary)] border-[var(--border-default)]",
+          noPadding ? "py-0" : "",
+          className
+        )}
+        {...props}
+      >
+        {noPadding ? children : <CardContent className="p-6">{children}</CardContent>}
+      </ShadcnCard>
     </motion.div>
   );
 };
 
 export default Card;
+// Re-export shadcn Card parts for new code
+export { ShadcnCard, CardHeader, CardContent, CardFooter, CardTitle, CardDescription };

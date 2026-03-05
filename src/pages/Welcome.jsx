@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle, Zap, MessageSquare, Brain, Rocket, Layers, Star } from "lucide-react";
 import { useTour } from "../context/TourContext";
 import SpotlightCard from "../components/UI/SpotlightCard";
 import axios from "axios";
+
+const Spline = React.lazy(() => import("@splinetool/react-spline"));
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -161,56 +163,40 @@ const Welcome = () => {
               </div>
             </motion.div>
 
-            {/* Right: Visual */}
+            {/* Right: 3D Visual */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, delay: 0.2 }}
-              className="flex-1 relative w-full"
+              className="flex-1 relative w-full min-h-[400px] lg:min-h-[550px]"
             >
-              <div className="relative z-10 perspective-1000">
-                <motion.div
-                  animate={{ y: [0, -15, 0], rotateX: [0, 5, 0] }}
-                  transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-                  className="bg-[var(--bg-tertiary)] rounded-[2rem] shadow-2xl border border-[var(--glass-border)] p-2 overflow-hidden ring-1 ring-white/10"
-                >
-                  <img
-                    src="https://ik.imagekit.io/ayushrathore1/Medha/Dashboard_ss" 
-                    alt="MEDHA Interface"
-                    className="w-full h-auto rounded-[1.5rem] opacity-90 hover:opacity-100 transition-opacity"
-                  />
-                  
-                  {/* Floating UI Elements */}
-                  <motion.div
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ repeat: Infinity, duration: 4, delay: 1 }}
-                    className="absolute -right-8 top-1/4 glass-panel p-4 rounded-2xl shadow-xl border border-white/20 max-w-[200px]"
+              <div className="relative z-10 w-full h-full">
+                {/* Spline 3D Scene */}
+                <div className="w-full h-[400px] lg:h-[550px] rounded-[2rem] overflow-hidden relative">
+                  <Suspense
+                    fallback={
+                      <div className="w-full h-full flex items-center justify-center bg-[var(--bg-tertiary)]/50 rounded-[2rem] border border-[var(--glass-border)]">
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="w-16 h-16 rounded-full border-4 border-[var(--action-primary)]/30 border-t-[var(--action-primary)] animate-spin" />
+                          <span className="text-sm font-semibold text-[var(--text-tertiary)] tracking-wide">Loading 3D Experience...</span>
+                        </div>
+                      </div>
+                    }
                   >
-                    <div className="flex items-center gap-3 mb-2">
-                       <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-500"><CheckCircle size={16}/></div>
-                       <div className="text-xs font-bold text-[var(--text-primary)]">Exam Ready!</div>
-                    </div>
-                    <div className="h-1.5 w-full bg-[var(--bg-primary)]/50 rounded-full overflow-hidden">
-                      <div className="h-full bg-green-500 w-[95%]"></div>
-                    </div>
-                  </motion.div>
+                    <Spline
+                      scene="https://prod.spline.design/SfQlIlYycuq8an74/scene.splinecode"
+                      style={{ width: "100%", height: "100%" }}
+                    />
+                  </Suspense>
+                </div>
 
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ repeat: Infinity, duration: 5 }}
-                    className="absolute -left-6 bottom-1/4 glass-panel p-4 rounded-2xl shadow-xl border border-white/20 flex items-center gap-3"
-                  >
-                     <div className="w-10 h-10 rounded-full bg-[var(--action-primary)]/20 flex items-center justify-center text-[var(--action-primary)]"><Brain size={20}/></div>
-                     <div>
-                       <div className="text-xs text-[var(--text-tertiary)]">AI Tutor</div>
-                       <div className="text-sm font-bold text-[var(--text-primary)]">Concept Cleared</div>
-                     </div>
-                  </motion.div>
-
-                </motion.div>
-                
-                {/* Glow behind */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[var(--action-primary)]/20 blur-[100px] -z-10 rounded-full"></div>
+                {/* Cosmic gold glow behind the 3D scene */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[130%] h-[130%] -z-10 rounded-full"
+                  style={{
+                    background: "radial-gradient(ellipse at center, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.1) 40%, transparent 70%)",
+                    filter: "blur(60px)",
+                  }}
+                />
               </div>
             </motion.div>
           </div>

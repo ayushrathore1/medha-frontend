@@ -1,182 +1,1036 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import NoteModal from "./NoteModal";
-import Card from "../components/Common/Card";
-import Button from "../components/Common/Button";
-import Loader from "../components/Common/Loader";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaGlobe, FaMagnifyingGlass, FaCloudArrowUp, FaBookOpen, FaCircleInfo, FaHeart, FaRegHeart, FaUser, FaLock, FaUnlock, FaPlus, FaTag, FaFilter, FaChevronDown, FaChevronUp } from "react-icons/fa6";
 import useAuthGuard from "../hooks/useAuthGuard";
+import { useTour } from "../context/TourContext";
 
 const API_BASE = `${import.meta.env.VITE_BACKEND_URL}`;
 
-import { useTour } from "../context/TourContext";
-
-// Subject tag colors - generates consistent color based on subject name
-const SUBJECT_COLORS = [
-  { bg: "bg-blue-100", text: "text-blue-700", border: "border-blue-200", icon: "text-blue-500" },
-  { bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200", icon: "text-purple-500" },
-  { bg: "bg-green-100", text: "text-green-700", border: "border-green-200", icon: "text-green-500" },
-  { bg: "bg-orange-100", text: "text-orange-700", border: "border-orange-200", icon: "text-orange-500" },
-  { bg: "bg-pink-100", text: "text-pink-700", border: "border-pink-200", icon: "text-pink-500" },
-  { bg: "bg-cyan-100", text: "text-cyan-700", border: "border-cyan-200", icon: "text-cyan-500" },
-  { bg: "bg-amber-100", text: "text-amber-700", border: "border-amber-200", icon: "text-amber-500" },
-  { bg: "bg-indigo-100", text: "text-indigo-700", border: "border-indigo-200", icon: "text-indigo-500" },
-  { bg: "bg-rose-100", text: "text-rose-700", border: "border-rose-200", icon: "text-rose-500" },
-  { bg: "bg-teal-100", text: "text-teal-700", border: "border-teal-200", icon: "text-teal-500" },
-];
-
-const getSubjectColor = (subjectName) => {
-  if (!subjectName) return SUBJECT_COLORS[0];
-  // Generate consistent color index based on subject name
-  let hash = 0;
-  for (let i = 0; i < subjectName.length; i++) {
-    hash = subjectName.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return SUBJECT_COLORS[Math.abs(hash) % SUBJECT_COLORS.length];
+/* ── Subject Color Map ──────────────────────────────────────── */
+const SUBJECT_MAP = {
+  OOPs:  { bg:"#E8D2BF", tagBg:"#FFF3E8", tagColor:"#C04A00", tagBorder:"rgba(192,74,0,0.2)" },
+  DBMS:  { bg:"#C8DDB8", tagBg:"#F0FAF0", tagColor:"#4A9E47", tagBorder:"rgba(74,158,71,0.2)" },
+  DSA:   { bg:"#D2D8D8", tagBg:"#F0F4F4", tagColor:"#3D7A8A", tagBorder:"rgba(61,122,138,0.2)" },
+  CN:    { bg:"#E2D4ED", tagBg:"#F5F0FF", tagColor:"#6D28D9", tagBorder:"rgba(109,40,217,0.2)" },
+  OS:    { bg:"#FDE68A", tagBg:"#FFFBEB", tagColor:"#B45309", tagBorder:"rgba(180,83,9,0.2)" },
+  Math:  { bg:"#BFDBFE", tagBg:"#EFF6FF", tagColor:"#1D4ED8", tagBorder:"rgba(29,78,216,0.2)" },
+  COA:   { bg:"#FECDD3", tagBg:"#FFF1F2", tagColor:"#BE123C", tagBorder:"rgba(190,18,60,0.2)" },
+  EVS:   { bg:"#BBF7D0", tagBg:"#F0FDF4", tagColor:"#166534", tagBorder:"rgba(22,101,52,0.2)" },
 };
 
+const getSubjectColor = (name) => {
+  if (!name) return SUBJECT_MAP.OOPs;
+  const key = Object.keys(SUBJECT_MAP).find(k => name.toLowerCase().includes(k.toLowerCase()));
+  if (key) return SUBJECT_MAP[key];
+  // Generate from hash
+  const colors = Object.values(SUBJECT_MAP);
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+};
+
+const SEMESTERS = ["All","1st","2nd","3rd","4th","5th","6th","7th","8th"];
+const NOTE_TYPES = [
+  { key:"all", label:"All Notes", icon:"📚" },
+  { key:"pyq", label:"PYQ Papers", icon:"📄" },
+  { key:"handwritten", label:"Handwritten", icon:"📝" },
+  { key:"typed", label:"Typed", icon:"💻" },
+  { key:"diagrams", label:"Diagrams", icon:"📊" },
+];
+const UPLOAD_TYPES = ["📄 PYQ Paper","📝 Handwritten Notes","💻 Typed Notes","📊 Diagrams"];
+
+/* ── helpers ── */
+const formatDate = (d) => {
+  if (!d) return "";
+  const date = new Date(d);
+  const now = new Date();
+  const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  if (diff < 7) return `${diff}d ago`;
+  return date.toLocaleDateString("en-IN", { day:"numeric", month:"short" });
+};
+
+/* ── shared styles ── */
+const chipStyle = (active) => ({
+  padding: "8px 16px",
+  borderRadius: 10,
+  fontSize: 13,
+  fontWeight: 600,
+  background: active ? "#1A1A2E" : "white",
+  color: active ? "white" : "#6B6B6B",
+  border: `1.5px solid ${active ? "#1A1A2E" : "#E8E4DC"}`,
+  cursor: "pointer",
+  transition: "all 150ms",
+  fontFamily: "inherit",
+});
+
+const labelStyle = {
+  fontSize: 11,
+  fontWeight: 700,
+  color: "#7DC67A",
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+  marginBottom: 8,
+  display: "block",
+};
+
+const inputStyle = {
+  width: "100%",
+  padding: "14px 16px",
+  border: "1.5px solid #E8E4DC",
+  borderRadius: 12,
+  fontSize: 15,
+  color: "#1A1A2E",
+  background: "#F9F6F1",
+  outline: "none",
+  transition: "border-color 200ms, box-shadow 200ms",
+  fontFamily: "'DM Sans', sans-serif",
+};
+
+const inputFocus = (e) => {
+  e.target.style.borderColor = "#7DC67A";
+  e.target.style.boxShadow = "0 0 0 3px rgba(125,198,122,0.1)";
+  e.target.style.background = "white";
+};
+const inputBlur = (e) => {
+  e.target.style.borderColor = "#E8E4DC";
+  e.target.style.boxShadow = "none";
+  e.target.style.background = "#F9F6F1";
+};
+
+/* ── NoteCard component ──────────────────────────────────────── */
+const NoteCard = ({ note, onClick, getOwnerName, getSubjectName }) => {
+  const subjectName = getSubjectName(note);
+  const sc = getSubjectColor(subjectName);
+  const fileType = note.fileUrl?.endsWith(".pdf") ? "PDF" : note.type || "PDF";
+
+  return (
+    <motion.div
+      whileHover={{ y: -3, boxShadow: "0 8px 24px rgba(0,0,0,0.1)" }}
+      style={{
+        background: "white",
+        borderRadius: 16,
+        border: "1.5px solid #E8E4DC",
+        overflow: "hidden",
+        cursor: "pointer",
+        transition: "all 200ms",
+      }}
+      onClick={onClick}
+    >
+      {/* Colored thumbnail */}
+      <div
+        style={{
+          height: 120,
+          position: "relative",
+          background: sc.bg,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {/* Big letter watermark */}
+        <div
+          style={{
+            fontSize: 64,
+            fontWeight: 900,
+            color: "rgba(26,26,46,0.08)",
+            lineHeight: 1,
+            userSelect: "none",
+          }}
+        >
+          {subjectName.slice(0, 2).toUpperCase()}
+        </div>
+
+        {/* File type badge */}
+        <div
+          style={{
+            position: "absolute",
+            top: 10,
+            left: 10,
+            background: fileType === "PDF" ? "#EF4444" : "#1A1A2E",
+            color: "white",
+            fontSize: 10,
+            fontWeight: 700,
+            padding: "3px 8px",
+            borderRadius: 6,
+            letterSpacing: "0.04em",
+          }}
+        >
+          {fileType}
+        </div>
+
+        {/* Semester badge if present */}
+        {note.semester && (
+          <div
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              background: "rgba(26,26,46,0.6)",
+              backdropFilter: "blur(8px)",
+              color: "white",
+              fontSize: 10,
+              fontWeight: 600,
+              padding: "3px 8px",
+              borderRadius: 6,
+            }}
+          >
+            Sem {note.semester}
+          </div>
+        )}
+
+        {/* Document icon */}
+        <div
+          style={{
+            position: "absolute",
+            width: 44,
+            height: 54,
+            background: "white",
+            borderRadius: "0 8px 4px 4px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 18,
+          }}
+        >
+          {fileType === "PDF" ? "📄" : "📝"}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: "14px 16px" }}>
+        {/* Subject tag pill */}
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            background: sc.tagBg,
+            border: `1px solid ${sc.tagBorder}`,
+            borderRadius: 999,
+            padding: "2px 8px",
+            fontSize: 11,
+            fontWeight: 600,
+            color: sc.tagColor,
+            marginBottom: 8,
+          }}
+        >
+          {subjectName}
+        </div>
+
+        {/* Title */}
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#1A1A2E",
+            lineHeight: 1.4,
+            marginBottom: 8,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {note.title}
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            fontSize: 12,
+            color: "#9A9A9A",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <div
+              style={{
+                width: 18,
+                height: 18,
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #7DC67A, #4A9E47)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 9,
+                fontWeight: 700,
+                color: "white",
+              }}
+            >
+              {(getOwnerName(note) || "U").slice(0, 1).toUpperCase()}
+            </div>
+            <span>{getOwnerName(note)}</span>
+          </div>
+          <span>{formatDate(note.createdAt || note.uploadedAt)}</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+/* ── NoteModal component ─────────────────────────────────────── */
+const NoteDetailModal = ({ note, onClose, getOwnerName, getSubjectName }) => {
+  if (!note) return null;
+  const subjectName = getSubjectName(note);
+  const sc = getSubjectColor(subjectName);
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(26,26,46,0.6)",
+          backdropFilter: "blur(4px)",
+          zIndex: 9999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24,
+        }}
+      >
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            maxWidth: 900,
+            width: "90vw",
+            background: "white",
+            borderRadius: 20,
+            overflow: "hidden",
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              padding: "20px 24px",
+              borderBottom: "1px solid #E8E4DC",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  background: sc.tagBg,
+                  border: `1px solid ${sc.tagBorder}`,
+                  borderRadius: 999,
+                  padding: "2px 8px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: sc.tagColor,
+                }}
+              >
+                {subjectName}
+              </div>
+              <div
+                style={{
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: "#1A1A2E",
+                  marginTop: 6,
+                }}
+              >
+                {note.title}
+              </div>
+              <div
+                style={{
+                  fontSize: 13,
+                  color: "#9A9A9A",
+                  marginTop: 4,
+                }}
+              >
+                by {getOwnerName(note)} · {formatDate(note.createdAt || note.uploadedAt)}
+                {note.semester && ` · Sem ${note.semester}`} · {subjectName}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {note.fileUrl && (
+                <a
+                  href={note.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    background: "#7DC67A",
+                    color: "white",
+                    borderRadius: 8,
+                    padding: "8px 16px",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    transition: "background 200ms",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#4A9E47")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "#7DC67A")}
+                >
+                  ⬇ Download
+                </a>
+              )}
+              <button
+                onClick={onClose}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  fontSize: 18,
+                  color: "#9A9A9A",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "background 150ms",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#F9F6F1")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          {/* Body — PDF viewer + sidebar */}
+          <div
+            style={{
+              flex: 1,
+              overflow: "hidden",
+              display: "grid",
+              gridTemplateColumns: "1fr 280px",
+              minHeight: 400,
+            }}
+          >
+            {/* PDF viewer */}
+            <div style={{ overflow: "auto" }}>
+              {note.fileUrl ? (
+                <iframe
+                  src={note.fileUrl + "#toolbar=0"}
+                  style={{ width: "100%", height: "100%", border: "none", minHeight: 500 }}
+                  title="Note PDF"
+                />
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "100%",
+                    fontSize: 15,
+                    color: "#9A9A9A",
+                  }}
+                >
+                  {note.content || "No preview available"}
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <div
+              style={{
+                padding: 20,
+                borderLeft: "1px solid #E8E4DC",
+                overflowY: "auto",
+              }}
+            >
+              {/* About */}
+              <div
+                style={{
+                  background: "#F9F6F1",
+                  borderRadius: 12,
+                  padding: 16,
+                  marginBottom: 16,
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#9A9A9A", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 10 }}>
+                  About this note
+                </div>
+                <div style={{ fontSize: 13, color: "#6B6B6B", lineHeight: 2 }}>
+                  📄 {note.pages || "—"} pages<br />
+                  📁 {note.fileSize || "—"}<br />
+                  👁 {note.views || 0} views
+                </div>
+              </div>
+
+              {/* AI Summary placeholder (premium) */}
+              <div
+                style={{
+                  background: "#1A1A2E",
+                  borderRadius: 12,
+                  padding: 16,
+                  marginBottom: 16,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "#7DC67A",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    marginBottom: 10,
+                  }}
+                >
+                  ✦ AI Summary
+                </div>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "rgba(255,255,255,0.7)",
+                    lineHeight: 1.6,
+                    marginBottom: 12,
+                  }}
+                >
+                  Unlock AI summaries of any note
+                </p>
+                <Link
+                  to="/premium"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    background: "#F59E0B",
+                    color: "#1A1A2E",
+                    borderRadius: 8,
+                    padding: "8px 16px",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    textDecoration: "none",
+                  }}
+                >
+                  Join Premium →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
+/* ── Upload Wizard Modal ─────────────────────────────────────── */
+const UploadWizard = ({ isOpen, onClose, onUpload, uploading }) => {
+  const [step, setStep] = useState(1);
+  const [title, setTitle] = useState("");
+  const [semester, setSemester] = useState("");
+  const [subject, setSubject] = useState("");
+  const [noteType, setNoteType] = useState("");
+  const [file, setFile] = useState(null);
+  const [description, setDescription] = useState("");
+  const [rights, setRights] = useState(false);
+  const [edu, setEdu] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileRef = useRef(null);
+
+  if (!isOpen) return null;
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+  };
+
+  const handleSubmit = () => {
+    if (!title || !file) return;
+    onUpload({ title, semester, subject: subject || noteType, file, description, noteType });
+    // Reset
+    setStep(1);
+    setTitle("");
+    setSemester("");
+    setSubject("");
+    setNoteType("");
+    setFile(null);
+    setDescription("");
+    setRights(false);
+    setEdu(false);
+  };
+
+  const stepLabels = ["What", "Upload", "Finish"];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(26,26,46,0.6)",
+        backdropFilter: "blur(4px)",
+        zIndex: 9999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+      }}
+    >
+      <motion.div
+        initial={{ scale: 0.95, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          maxWidth: 560,
+          width: "100%",
+          background: "white",
+          borderRadius: 20,
+          padding: 32,
+          maxHeight: "90vh",
+          overflowY: "auto",
+        }}
+      >
+        {/* Step indicator */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 32 }}>
+          {stepLabels.map((l, i) => {
+            const num = i + 1;
+            const done = step > num;
+            const active = step === num;
+            return (
+              <React.Fragment key={num}>
+                {i > 0 && (
+                  <div style={{ width: 40, height: 2, background: done ? "#7DC67A" : "#E8E4DC", margin: "0 4px" }} />
+                )}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background: done ? "#7DC67A" : active ? "#1A1A2E" : "white",
+                      border: `2px solid ${done ? "#7DC67A" : active ? "#1A1A2E" : "#E8E4DC"}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: done || active ? "white" : "#9A9A9A",
+                    }}
+                  >
+                    {done ? "✓" : num}
+                  </div>
+                  <span style={{ fontSize: 10, color: active ? "#1A1A2E" : "#9A9A9A", fontWeight: 600 }}>{l}</span>
+                </div>
+              </React.Fragment>
+            );
+          })}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {step === 1 && (
+            <motion.div key="s1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <h3 style={{ fontSize: 22, fontWeight: 800, color: "#1A1A2E", marginBottom: 4 }}>What are you sharing?</h3>
+              <p style={{ fontSize: 14, color: "#6B6B6B", marginBottom: 24 }}>This helps students find your note faster.</p>
+
+              {/* Title */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={labelStyle}>NOTE TITLE</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. OOPs Unit 3 — Inheritance Notes"
+                  style={inputStyle}
+                  onFocus={inputFocus}
+                  onBlur={inputBlur}
+                />
+                <span style={{ fontSize: 11, color: "#9A9A9A", marginTop: 4, display: "block" }}>Be specific — include subject + topic</span>
+              </div>
+
+              {/* Semester */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={labelStyle}>SEMESTER</label>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                  {["1st","2nd","3rd","4th","5th","6th","7th","8th"].map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSemester(s)}
+                      style={{
+                        padding: "10px 0",
+                        borderRadius: 10,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        textAlign: "center",
+                        background: semester === s ? "#1A1A2E" : "white",
+                        color: semester === s ? "white" : "#6B6B6B",
+                        border: `1.5px solid ${semester === s ? "#1A1A2E" : "#E8E4DC"}`,
+                        cursor: "pointer",
+                        transition: "all 150ms",
+                      }}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Subject */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={labelStyle}>SUBJECT</label>
+                <input
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="e.g. OOPs, DBMS, DSA..."
+                  style={inputStyle}
+                  onFocus={inputFocus}
+                  onBlur={inputBlur}
+                />
+              </div>
+
+              {/* Note type */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={labelStyle}>TYPE</label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {UPLOAD_TYPES.map(t => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setNoteType(t)}
+                      style={{
+                        padding: "8px 14px",
+                        borderRadius: 10,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        background: noteType === t ? "#F0FAF0" : "white",
+                        color: noteType === t ? "#4A9E47" : "#6B6B6B",
+                        border: `1.5px solid ${noteType === t ? "#7DC67A" : "#E8E4DC"}`,
+                        cursor: "pointer",
+                        transition: "all 150ms",
+                      }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => { if (title) setStep(2); }}
+                style={{
+                  width: "100%",
+                  padding: 14,
+                  background: title ? "#1A1A2E" : "#9A9A9A",
+                  color: "white",
+                  borderRadius: 12,
+                  border: "none",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: title ? "pointer" : "not-allowed",
+                }}
+              >
+                Next →
+              </button>
+            </motion.div>
+          )}
+
+          {step === 2 && (
+            <motion.div key="s2" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }}>
+              <h3 style={{ fontSize: 22, fontWeight: 800, color: "#1A1A2E", marginBottom: 4 }}>Upload your file</h3>
+              <p style={{ fontSize: 14, color: "#6B6B6B", marginBottom: 24 }}>Drag & drop or click to browse.</p>
+
+              {/* Drop zone */}
+              <div
+                onClick={() => fileRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                style={{
+                  border: `2px dashed ${dragOver ? "#7DC67A" : "#E8E4DC"}`,
+                  borderRadius: 16,
+                  padding: "48px 32px",
+                  textAlign: "center",
+                  background: dragOver ? "#F0FAF0" : "#F9F6F1",
+                  transition: "all 200ms",
+                  cursor: "pointer",
+                  marginBottom: 20,
+                }}
+              >
+                <div
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: "50%",
+                    background: "white",
+                    border: "2px solid #E8E4DC",
+                    margin: "0 auto 16px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 24,
+                  }}
+                >
+                  ⬆
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", marginBottom: 6 }}>
+                  {file ? file.name : "Drop your file here"}
+                </div>
+                <div style={{ fontSize: 13, color: "#9A9A9A", marginBottom: 16 }}>
+                  {file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : "or click to browse"}
+                </div>
+                {!file && (
+                  <span
+                    style={{
+                      display: "inline-block",
+                      background: "#1A1A2E",
+                      color: "white",
+                      borderRadius: 10,
+                      padding: "10px 24px",
+                      fontSize: 14,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Browse Files
+                  </span>
+                )}
+                <div style={{ fontSize: 12, color: "#9A9A9A", marginTop: 12 }}>
+                  PDF, JPG, PNG · Max 10MB
+                </div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.gif"
+                  onChange={(e) => setFile(e.target.files[0])}
+                  style={{ display: "none" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  style={{
+                    padding: "12px 24px",
+                    background: "white",
+                    color: "#6B6B6B",
+                    borderRadius: 10,
+                    border: "1.5px solid #E8E4DC",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  ← Back
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { if (file) setStep(3); }}
+                  style={{
+                    flex: 1,
+                    padding: 14,
+                    background: file ? "#1A1A2E" : "#9A9A9A",
+                    color: "white",
+                    borderRadius: 12,
+                    border: "none",
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: file ? "pointer" : "not-allowed",
+                  }}
+                >
+                  Next →
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 3 && (
+            <motion.div key="s3" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }}>
+              <h3 style={{ fontSize: 22, fontWeight: 800, color: "#1A1A2E", marginBottom: 4 }}>Almost done!</h3>
+              <p style={{ fontSize: 14, color: "#6B6B6B", marginBottom: 24 }}>Add some context and share.</p>
+
+              {/* Preview */}
+              <div
+                style={{
+                  background: "#F9F6F1",
+                  borderRadius: 12,
+                  padding: 16,
+                  marginBottom: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 56,
+                    background: "white",
+                    borderRadius: 6,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  }}
+                >
+                  📄
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A2E" }}>{title}</div>
+                  <div style={{ fontSize: 12, color: "#9A9A9A" }}>
+                    {file?.name} · {file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : ""}
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={labelStyle}>ADD CONTEXT (OPTIONAL)</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="e.g. This covers Unit 3 and 4 of OOPs. Includes examples."
+                  rows={3}
+                  style={{ ...inputStyle, resize: "vertical" }}
+                  onFocus={inputFocus}
+                  onBlur={inputBlur}
+                />
+              </div>
+
+              {/* Checkboxes */}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#6B6B6B", cursor: "pointer", marginBottom: 8 }}>
+                  <input type="checkbox" checked={rights} onChange={(e) => setRights(e.target.checked)} />
+                  I have the right to share this material
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#6B6B6B", cursor: "pointer" }}>
+                  <input type="checkbox" checked={edu} onChange={(e) => setEdu(e.target.checked)} />
+                  This is for educational purposes only
+                </label>
+              </div>
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  style={{
+                    padding: "12px 24px",
+                    background: "white",
+                    color: "#6B6B6B",
+                    borderRadius: 10,
+                    border: "1.5px solid #E8E4DC",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  ← Back
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={uploading || !rights || !edu}
+                  style={{
+                    flex: 1,
+                    padding: 14,
+                    background: rights && edu && !uploading ? "#7DC67A" : "#9A9A9A",
+                    color: "#1A1A2E",
+                    borderRadius: 12,
+                    border: "none",
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: rights && edu ? "pointer" : "not-allowed",
+                  }}
+                >
+                  {uploading ? "Uploading..." : "Share with community →"}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+/* ════════════════════════════════════════════════════════════════
+   MAIN NOTES COMMUNITY PAGE
+   ════════════════════════════════════════════════════════════════ */
 const Notes = () => {
   const { isGuestMode } = useTour();
   const { isAuthenticated, requireAuth } = useAuthGuard();
-  
-  const [publicNotes, setPublicNotes] = useState(isGuestMode ? [
-    { _id: 'p1', title: 'Organic Chemistry Basics', content: 'Introduction to carbon compounds...', subjectTag: 'Chemistry', owner: { name: 'Priya S.' }, likes: ['u1', 'u2'], isPublic: true },
-    { _id: 'p2', title: 'Newton\'s Laws of Motion', content: 'First, second, and third law explained...', subjectTag: 'Physics', owner: { name: 'Rahul M.' }, likes: [], isPublic: true },
-    { _id: 'p3', title: 'Data Structures - Trees', content: 'Binary trees, AVL trees, and heaps...', subjectTag: 'Computer Science', owner: { name: 'Alex K.' }, likes: ['u1'], isPublic: true }
-  ] : []);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [loadingPublic, setLoadingPublic] = useState(false);
-  const [viewNote, setViewNote] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTagFilter, setActiveTagFilter] = useState(null);
-  const [activeUploaderFilter, setActiveUploaderFilter] = useState(null);
-  /* Removed duplicates */
-  const [showFilters, setShowFilters] = useState(false);
-  
-  // User Search Suggestions
-  const [suggestedUsers, setSuggestedUsers] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
 
-  // For upload
-  const [file, setFile] = useState(null);
+  const [publicNotes, setPublicNotes] = useState([]);
+  const [loadingPublic, setLoadingPublic] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [viewNote, setViewNote] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("All");
+  const [selectedSubject, setSelectedSubject] = useState("All");
+  const [selectedType, setSelectedType] = useState("all");
+  const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadTitle, setUploadTitle] = useState("");
-  const [subjectTag, setSubjectTag] = useState("");
-  const [isPublicUpload, setIsPublicUpload] = useState(true);
-  const [showUploadPanel, setShowUploadPanel] = useState(false);
   const [showAuraAnimation, setShowAuraAnimation] = useState(false);
-  const fileInputRef = useRef(null);
   const token = localStorage.getItem("token");
-  
-  // Get current user ID
-  const getUserId = () => {
-    try {
-      if(!token) return null;
-      return JSON.parse(atob(token.split('.')[1])).id;
-    } catch(e) { return null; }
-  }
-  const currentUserId = getUserId();
 
-  // Fetch public notes
-  const fetchPublicNotes = async (search = "") => {
+  const getOwnerName = (note) => {
+    if (note.owner?.name) return note.owner.name;
+    if (note.owner?.email) return note.owner.email.split("@")[0];
+    return "Unknown";
+  };
+
+  const getSubjectName = (note) => {
+    if (note.subjectTag) return note.subjectTag;
+    if (note.subject?.name) return note.subject.name;
+    return "General";
+  };
+
+  const fetchPublicNotes = useCallback(async (search = "") => {
     setLoadingPublic(true);
     try {
-      const url = search 
+      const url = search
         ? `${API_BASE}/api/notes/public?search=${encodeURIComponent(search)}`
         : `${API_BASE}/api/notes/public`;
       const res = await fetch(url, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const data = await res.json();
-      if (res.ok) {
-        setPublicNotes(data.notes || []);
-      }
+      if (res.ok) setPublicNotes(data.notes || []);
     } catch {
       console.error("Error fetching public notes");
     }
     setLoadingPublic(false);
-  };
+  }, [token]);
 
   useEffect(() => {
-    // Fetch public notes immediately (or debounced if desired, but kept simple here)
     fetchPublicNotes(searchQuery);
+  }, [searchQuery, fetchPublicNotes]);
 
-    // Debounce user search suggestions
-    const timer = setTimeout(() => {
-        if (searchQuery.length >= 2) {
-            fetchUserSuggestions(searchQuery);
-        } else {
-            setSuggestedUsers([]);
-            setShowSuggestions(false);
-        }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  const fetchUserSuggestions = async (query) => {
-    try {
-      const res = await fetch(`${API_BASE}/api/users/search?query=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      if (res.ok) {
-        setSuggestedUsers(data.users || []);
-        setShowSuggestions(true);
-      }
-    } catch (e) {
-      console.error("Error searching users", e);
-    }
-  };
-
-  // Toggle Like
-  const toggleLike = async (e, noteId) => {
-    e.stopPropagation();
-    if (!isAuthenticated && !isGuestMode) {
-      requireAuth(() => {}, 'Liking Notes');
-      return;
-    }
-    try {
-      const res = await fetch(`${API_BASE}/api/notes/${noteId}/like`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setPublicNotes(publicNotes.map(n => {
-           if(n._id === noteId) {
-             const newLikes = data.isLiked 
-                ? [...(n.likes || []), currentUserId] 
-                : (n.likes || []).filter(id => id !== currentUserId);
-             return { ...n, likes: newLikes };
-           }
-           return n;
-        }));
-      }
-    } catch (err) {
-      console.error("Error toggling like", err);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!isAuthenticated && !isGuestMode) {
-      requireAuth(() => {}, 'Uploading Notes');
-      return;
-    }
-    if (!uploadTitle.trim()) {
-      setErrorMsg("Title is required.");
-      return;
-    }
-    if (!file || !subjectTag.trim()) {
-      setErrorMsg("Please select a file and enter a subject tag.");
-      return;
-    }
+  const handleUpload = async ({ title, semester, subject, file, description, noteType }) => {
     setUploading(true);
     setErrorMsg("");
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("subjectTag", subjectTag.trim());
-    formData.append("title", uploadTitle);
-    formData.append("isPublic", isPublicUpload);
+    formData.append("title", title);
+    formData.append("subjectTag", subject || "General");
+    formData.append("isPublic", true);
+    if (semester) formData.append("semester", semester);
+    if (description) formData.append("description", description);
+    if (noteType) formData.append("noteType", noteType);
 
     try {
       const res = await fetch(`${API_BASE}/api/notes`, {
@@ -186,16 +1040,8 @@ const Notes = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        setFile(null);
-        setUploadTitle("");
-        setSubjectTag("");
-        setShowUploadPanel(false);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        if (isPublicUpload) {
-          fetchPublicNotes(searchQuery);
-        }
-        setErrorMsg("");
-        // Show AURA++ animation
+        setShowUpload(false);
+        fetchPublicNotes(searchQuery);
         setShowAuraAnimation(true);
         setTimeout(() => setShowAuraAnimation(false), 3000);
       } else {
@@ -207,21 +1053,63 @@ const Notes = () => {
     setUploading(false);
   };
 
-  const getOwnerName = (note) => {
-    if (note.owner?.name) return note.owner.name;
-    if (note.owner?.email) return note.owner.email.split("@")[0];
-    return "Unknown";
-  };
+  // Compute filtered notes
+  const filtered = publicNotes.filter(note => {
+    if (selectedSemester !== "All" && note.semester && note.semester !== selectedSemester.replace(/[a-z]/g, "")) return false;
+    if (selectedSubject !== "All" && getSubjectName(note) !== selectedSubject) return false;
+    return true;
+  });
 
-  // Get subject name from note (support both old and new format)
-  const getSubjectName = (note) => {
-    if (note.subjectTag) return note.subjectTag;
-    if (note.subject?.name) return note.subject.name;
-    return "General";
-  };
+  // Get unique subjects from notes
+  const uniqueSubjects = ["All", ...new Set(publicNotes.map(n => getSubjectName(n)))].slice(0, 10);
+
+  // Active filters for strip
+  const activeFilters = [];
+  if (selectedSemester !== "All") activeFilters.push({ key: "semester", label: selectedSemester + " Sem" });
+  if (selectedSubject !== "All") activeFilters.push({ key: "subject", label: selectedSubject });
+  if (selectedType !== "all") activeFilters.push({ key: "type", label: NOTE_TYPES.find(t => t.key === selectedType)?.label });
 
   return (
-    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-transparent relative">
+    <div
+      style={{
+        background: "#F2EDE4",
+        minHeight: "100vh",
+        fontFamily: "'DM Sans', sans-serif",
+        position: "relative",
+      }}
+    >
+      <style>{`
+        .btn-shine { position: relative; overflow: hidden; }
+        .btn-shine::after {
+          content:''; position:absolute; top:-50%; left:-100%;
+          width:50%; height:200%;
+          background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);
+          transform:skewX(-20deg); transition:left 400ms ease;
+        }
+        .btn-shine:hover::after { left:160%; }
+        @media (max-width: 768px) {
+          .notes-grid { grid-template-columns: 1fr !important; }
+          .modal-body-grid { grid-template-columns: 1fr !important; }
+          .modal-sidebar { display: none !important; }
+        }
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .notes-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
+
+      {/* Dot grid bg */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundImage: "radial-gradient(circle, rgba(26,26,46,0.12) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+          opacity: 0.3,
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+
       {/* AURA++ Animation */}
       <AnimatePresence>
         {showAuraAnimation && (
@@ -229,26 +1117,13 @@ const Notes = () => {
             initial={{ opacity: 0, scale: 0.5, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 1.5, y: -100 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+            transition={{ duration: 0.5 }}
+            style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}
           >
             <motion.div
-              animate={{ 
-                textShadow: [
-                  "0 0 20px rgba(251, 191, 36, 0.8)",
-                  "0 0 60px rgba(251, 191, 36, 1)",
-                  "0 0 20px rgba(251, 191, 36, 0.8)"
-                ]
-              }}
+              animate={{ textShadow: ["0 0 20px rgba(251,191,36,0.8)", "0 0 60px rgba(251,191,36,1)", "0 0 20px rgba(251,191,36,0.8)"] }}
               transition={{ duration: 1, repeat: Infinity }}
-              className="text-6xl md:text-8xl font-black"
-              style={{
-                background: "linear-gradient(135deg, #fcd34d 0%, #f59e0b 50%, #fbbf24 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                filter: "drop-shadow(0 0 30px rgba(251, 191, 36, 0.6))"
-              }}
+              style={{ fontSize: 72, fontWeight: 900, background: "linear-gradient(135deg,#fcd34d,#f59e0b,#fbbf24)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
             >
               AURA++
             </motion.div>
@@ -256,348 +1131,288 @@ const Notes = () => {
         )}
       </AnimatePresence>
 
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", position: "relative", zIndex: 1 }}>
+        {/* ── HEADER ── */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
           <div>
-            <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tight">Notes Community</h1>
-            <p className="text-[var(--text-secondary)] font-medium">Discover and share study materials with fellow students.</p>
+            <h1 style={{ fontSize: 36, fontWeight: 800, color: "#1A1A2E", letterSpacing: "-0.03em", margin: 0 }}>
+              Notes Community
+            </h1>
+            <p style={{ fontSize: 15, color: "#6B6B6B", marginTop: 4 }}>
+              Study materials uploaded by students, for students.
+            </p>
           </div>
-          
-          {/* Upload Button */}
-          <Button 
+          <button
+            className="btn-shine"
             onClick={() => {
               if (isAuthenticated || isGuestMode) {
-                setShowUploadPanel(!showUploadPanel);
+                setShowUpload(true);
               } else {
-                requireAuth(() => setShowUploadPanel(true), 'Uploading Notes');
+                requireAuth(() => setShowUpload(true), "Uploading Notes");
               }
             }}
-            variant={showUploadPanel ? "secondary" : "primary"}
-            className="flex items-center gap-2"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "12px 20px",
+              background: "#1A1A2E",
+              color: "white",
+              borderRadius: 12,
+              border: "none",
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
           >
-            <FaPlus /> Share Your Notes
-          </Button>
+            + Share Your Notes
+          </button>
         </div>
 
+        {/* Disclaimer */}
+        <div
+          style={{
+            background: "#FFF8ED",
+            border: "1px solid rgba(245,158,11,0.3)",
+            borderRadius: 10,
+            padding: "10px 16px",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: 13,
+            color: "#92400E",
+            marginTop: 16,
+          }}
+        >
+          <span>⚠</span>
+          Notes are uploaded by students. MEDHA doesn't own this content. For educational use only.
+        </div>
+
+        {/* Error */}
         {errorMsg && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex justify-between items-center">
-            <span className="font-bold">{errorMsg}</span>
-            <button onClick={() => setErrorMsg("")} className="text-sm font-bold opacity-70 hover:opacity-100">Dismiss</button>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 8,
+              background: "rgba(239,68,68,0.06)",
+              border: "1px solid rgba(239,68,68,0.15)",
+              borderRadius: 10,
+              padding: "10px 16px",
+              fontSize: 13,
+              color: "#EF4444",
+              marginTop: 12,
+            }}
+          >
+            <span>⚠ {errorMsg}</span>
+            <button onClick={() => setErrorMsg("")} style={{ background: "none", border: "none", color: "#EF4444", cursor: "pointer", fontWeight: 700 }}>×</button>
           </div>
         )}
 
-        {/* Upload Panel - Collapsible */}
-        <AnimatePresence>
-          {showUploadPanel && (
+        {/* ── SMART FIND BAR ── */}
+        <div
+          style={{
+            background: "white",
+            borderRadius: 16,
+            border: "1px solid #E8E4DC",
+            padding: 20,
+            marginTop: 24,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+          }}
+        >
+          {/* Semester row */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>SEMESTER</label>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {SEMESTERS.map(s => (
+                <button key={s} type="button" onClick={() => setSelectedSemester(s)} style={chipStyle(selectedSemester === s)}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Subject row */}
+          {uniqueSubjects.length > 1 && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              style={{ marginBottom: 16 }}
             >
-              <Card className="border-2 border-dashed border-[var(--action-primary)]/30 bg-[var(--action-primary)]/5">
-                <div className="flex flex-col md:flex-row gap-6">
-                  {/* Left: Inputs */}
-                  <div className="flex-1 space-y-4">
-                    <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
-                      <FaCloudArrowUp className="text-[var(--action-primary)]" />
-                      Upload New Note
-                    </h3>
-                    
-                    {/* Title */}
-                    <input
-                      type="text"
-                      value={uploadTitle}
-                      onChange={(e) => setUploadTitle(e.target.value)}
-                      placeholder="Note Title (e.g., 'Data Structures - Unit 3')"
-                      className="w-full px-4 py-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] font-medium focus:outline-none focus:border-[var(--action-primary)]"
-                    />
-                    
-                    {/* Subject Tag Input */}
-                    <div className="relative">
-                      <FaTag className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
-                      <input
-                        type="text"
-                        value={subjectTag}
-                        onChange={(e) => setSubjectTag(e.target.value)}
-                        placeholder="Subject Tag (e.g., 'Physics', 'Data Structures')"
-                        className="w-full pl-11 pr-4 py-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] font-medium focus:outline-none focus:border-[var(--action-primary)]"
-                      />
-                      {subjectTag && (
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-bold ${getSubjectColor(subjectTag).bg} ${getSubjectColor(subjectTag).text} border ${getSubjectColor(subjectTag).border}`}>
-                            {subjectTag}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Visibility Toggle */}
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-bold text-[var(--text-secondary)]">Visibility:</span>
-                      <button 
-                        onClick={() => setIsPublicUpload(true)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${isPublicUpload ? "bg-[var(--color-success-bg)] text-[var(--color-success-text)] border-2 border-[var(--color-success-text)]" : "bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] border-2 border-transparent"}`}
-                      >
-                        <FaUnlock /> Public
-                      </button>
-                      <button 
-                        onClick={() => setIsPublicUpload(false)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${!isPublicUpload ? "bg-[var(--action-primary)]/20 text-[var(--action-primary)] border-2 border-[var(--action-primary)]" : "bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] border-2 border-transparent"}`}
-                      >
-                        <FaLock /> Private
-                      </button>
-                    </div>
-                    <p className="text-xs text-[var(--text-tertiary)]">
-                      {isPublicUpload ? "Public notes will appear in the community for everyone to access." : "Private notes are only visible to you."}
-                    </p>
-                  </div>
-
-                  {/* Right: File Drop */}
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div className="relative">
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        accept=".pdf,.jpg,.jpeg,.png,.gif"
-                        onChange={(e) => setFile(e.target.files[0])}
-                        className="hidden"
-                        id="file-upload"
-                      />
-                      <label 
-                        htmlFor="file-upload"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[var(--border-default)] rounded-xl cursor-pointer hover:bg-[var(--bg-tertiary)] hover:border-[var(--action-primary)]/50 transition-colors bg-[var(--bg-secondary)]"
-                      >
-                        <FaCloudArrowUp className="text-3xl text-[var(--text-tertiary)] mb-2" />
-                        <span className="text-sm font-bold text-[var(--text-secondary)]">
-                          {file ? file.name : "Click to select PDF or Image"}
-                        </span>
-                      </label>
-                    </div>
-                    <div className="flex gap-2 mt-4">
-                      <Button onClick={handleUpload} loading={uploading} fullWidth disabled={!subjectTag.trim() || !file || !uploadTitle.trim()}>
-                        Upload Note
-                      </Button>
-                      <Button onClick={() => setShowUploadPanel(false)} variant="ghost">
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+              <label style={labelStyle}>SUBJECT</label>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {uniqueSubjects.map(s => (
+                  <button key={s} type="button" onClick={() => setSelectedSubject(s)} style={chipStyle(selectedSubject === s)}>
+                    {s}
+                  </button>
+                ))}
+              </div>
             </motion.div>
           )}
-        </AnimatePresence>
 
-        {/* Disclaimer */}
-        <div className="bg-[var(--color-warning-bg)]/10 border border-[var(--color-warning-bg)]/20 rounded-xl p-4 flex items-start gap-4">
-          <FaCircleInfo className="text-[var(--color-warning-text)] text-xl shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-bold text-[var(--color-warning-text)]">Community Notes</h3>
-            <p className="text-sm text-[var(--color-warning-text)]/80">
-              Notes are uploaded by students. Medha does not claim ownership over this content. Use for educational reference only.
-            </p>
+          {/* Type row */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>TYPE</label>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {NOTE_TYPES.map(t => (
+                <button key={t.key} type="button" onClick={() => setSelectedType(t.key)} style={chipStyle(selectedType === t.key)}>
+                  {t.icon} {t.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Search */}
-        <div className="max-w-2xl mx-auto">
-           <div className="relative">
-             <FaMagnifyingGlass className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
-             <input
+          {/* Search */}
+          <div style={{ display: "flex", gap: 0, marginTop: 12 }}>
+            <div style={{ position: "relative", flex: 1 }}>
+              <span style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: "#9A9A9A" }}>🔍</span>
+              <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for topics, notes, or authors..."
-                className="w-full pl-12 pr-4 py-4 rounded-2xl border border-[var(--border-default)] shadow-xl shadow-[var(--action-primary)]/5 bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:outline-none focus:ring-4 focus:ring-[var(--action-primary)]/10 font-medium text-lg"
-             />
-             <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                <Button onClick={() => fetchPublicNotes(searchQuery)} size="sm">Search</Button>
-             </div>
-             
-             {/* User Suggestions Dropdown */}
-             {showSuggestions && suggestedUsers.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-xl shadow-xl z-50 overflow-hidden">
-                  {suggestedUsers.map(user => (
-                    <div 
-                      key={user._id}
-                      onClick={() => navigate(`/profile/${user._id}`)}
-                      className="p-3 hover:bg-[var(--bg-tertiary)] cursor-pointer flex items-center gap-3 border-b border-[var(--border-default)] last:border-none"
-                    >
-                       <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold overflow-hidden shrink-0">
-                          {user.avatar ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" /> : user.name[0]}
-                       </div>
-                       <div className="flex-1 min-w-0">
-                         <p className="text-sm font-bold text-[var(--text-primary)] truncate">{user.name}</p>
-                         <p className="text-xs text-[var(--text-secondary)] truncate">{user.email}</p>
-                       </div>
-                       <div className="text-xs font-bold text-[var(--action-primary)] px-2 py-1 bg-[var(--action-primary)]/10 rounded-lg whitespace-nowrap">
-                          View Profile
-                       </div>
-                    </div>
-                  ))}
-                </div>
-             )}
-           </div>
+                placeholder="Search by topic, chapter, author..."
+                style={{
+                  width: "100%",
+                  padding: "12px 16px 12px 44px",
+                  border: "1.5px solid #E8E4DC",
+                  borderRight: "none",
+                  borderRadius: "10px 0 0 10px",
+                  fontSize: 15,
+                  background: "#F9F6F1",
+                  color: "#1A1A2E",
+                  outline: "none",
+                  fontFamily: "inherit",
+                }}
+              />
+            </div>
+            <button
+              onClick={() => fetchPublicNotes(searchQuery)}
+              style={{
+                padding: "12px 24px",
+                background: "#7DC67A",
+                color: "white",
+                border: "none",
+                borderRadius: "0 10px 10px 0",
+                fontSize: 15,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Search
+            </button>
+          </div>
         </div>
 
-        {/* Filter Toggle */}
-        {publicNotes.length > 0 && (
-          <div className="space-y-3">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-default)] text-sm font-bold text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
-            >
-              <FaFilter size={12} />
-              Filters
-              {(activeTagFilter || activeUploaderFilter) && (
-                <span className="w-2 h-2 rounded-full bg-[var(--action-primary)]"></span>
-              )}
-              {showFilters ? <FaChevronUp size={10} /> : <FaChevronDown size={10} />}
-            </button>
-            
-            <AnimatePresence>
-              {showFilters && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden space-y-2"
+        {/* Active filters strip */}
+        {activeFilters.length > 0 && (
+          <div style={{ display: "flex", gap: 6, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ fontSize: 12, color: "#9A9A9A" }}>Filtered by:</span>
+            {activeFilters.map(f => (
+              <div
+                key={f.key}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  background: "#F0FAF0",
+                  border: "1px solid rgba(125,198,122,0.3)",
+                  borderRadius: 999,
+                  padding: "3px 10px",
+                  fontSize: 12,
+                  color: "#4A9E47",
+                  fontWeight: 500,
+                }}
+              >
+                {f.label}
+                <button
+                  onClick={() => {
+                    if (f.key === "semester") setSelectedSemester("All");
+                    if (f.key === "subject") setSelectedSubject("All");
+                    if (f.key === "type") setSelectedType("all");
+                  }}
+                  style={{ marginLeft: 2, color: "#4A9E47", background: "none", border: "none", cursor: "pointer", fontSize: 14, lineHeight: 1 }}
                 >
-                  {/* Subject Tags Filter */}
-                  <div className="flex flex-wrap items-center gap-2 p-3 bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-default)]">
-                    <span className="text-xs font-bold text-[var(--text-tertiary)] uppercase tracking-wide">Tags:</span>
-                    <button
-                      onClick={() => setActiveTagFilter(null)}
-                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${!activeTagFilter ? 'bg-[var(--action-primary)] text-white' : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]'}`}
-                    >
-                      All
-                    </button>
-                    {[...new Set(publicNotes.map(n => getSubjectName(n)))].slice(0, 6).map(tag => {
-                      const colors = getSubjectColor(tag);
-                      return (
-                        <button
-                          key={tag}
-                          onClick={() => setActiveTagFilter(activeTagFilter === tag ? null : tag)}
-                          className={`px-3 py-1 rounded-full text-xs font-bold transition-all border ${activeTagFilter === tag ? `${colors.bg} ${colors.text} ${colors.border}` : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] border-transparent hover:border-[var(--border-default)]'}`}
-                        >
-                          {tag}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Uploaders Filter */}
-                  <div className="flex flex-wrap items-center gap-2 p-3 bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-default)]">
-                    <span className="text-xs font-bold text-[var(--text-tertiary)] uppercase tracking-wide">By:</span>
-                    <button
-                      onClick={() => setActiveUploaderFilter(null)}
-                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${!activeUploaderFilter ? 'bg-[var(--action-primary)] text-white' : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]'}`}
-                    >
-                      All
-                    </button>
-                    {[...new Map(publicNotes.map(n => [n.owner?._id, { id: n.owner?._id, name: getOwnerName(n) }])).values()].slice(0, 5).map(uploader => (
-                      <button
-                        key={uploader.id}
-                        onClick={() => setActiveUploaderFilter(activeUploaderFilter === uploader.id ? null : uploader.id)}
-                        className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1 ${activeUploaderFilter === uploader.id ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]'}`}
-                      >
-                        <FaUser size={10} />
-                        {uploader.name}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  ×
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() => { setSelectedSemester("All"); setSelectedSubject("All"); setSelectedType("all"); }}
+              style={{ fontSize: 12, color: "#9A9A9A", textDecoration: "underline", background: "none", border: "none", cursor: "pointer" }}
+            >
+              Clear all
+            </button>
           </div>
         )}
 
-        {/* Notes Grid - Flat Layout with Subject Tags */}
-        {loadingPublic ? (
-           <div className="py-20 flex justify-center"><Loader /></div>
-        ) : publicNotes.length === 0 ? (
-           <div className="text-center py-20">
-             <div className="inline-block p-4 bg-sky-100 text-sky-500 rounded-full mb-3"><FaBookOpen size={32}/></div>
-             <p className="text-xl font-bold text-[var(--text-tertiary)]">No notes found.</p>
-             <p className="text-[var(--text-secondary)] mt-2">Be the first to share your study materials!</p>
-           </div>
-        ) : (
-           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-             {publicNotes
-               .filter(note => !activeTagFilter || getSubjectName(note) === activeTagFilter)
-               .filter(note => !activeUploaderFilter || note.owner?._id === activeUploaderFilter)
-               .map((note) => {
-               const subjectName = getSubjectName(note);
-               const colors = getSubjectColor(subjectName);
-               
-               return (
-                 <motion.div
-                   key={note._id}
-                   whileHover={{ y: -3, scale: 1.02 }}
-                   onClick={() => setViewNote(note)}
-                   className="cursor-pointer"
-                 >
-                    <Card className="h-full border-[var(--border-default)] hover:border-[var(--action-primary)]/50 transition-all bg-[var(--bg-secondary)] hover:shadow-lg">
-                       <div className="flex justify-between items-start mb-3">
-                          {/* Book Icon with Subject Color */}
-                          <div className={`p-2 rounded-xl ${colors.bg}`}>
-                            <FaBookOpen className={`text-xl ${colors.icon}`} />
-                          </div>
-                          <div className="flex items-center gap-2">
-                             {note.fileUrl && (
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-tertiary)] bg-[var(--bg-tertiary)] px-2 py-1 rounded">
-                                  PDF
-                                </span>
-                             )}
-                            <button 
-                              onClick={(e) => toggleLike(e, note._id)}
-                              className="flex items-center gap-1 text-[var(--text-tertiary)] hover:text-pink-500 transition-colors"
-                            >
-                              {currentUserId && note.likes?.includes(currentUserId) ? <FaHeart className="text-pink-500" /> : <FaRegHeart />}
-                              <span className="text-xs font-bold">{note.likes?.length || 0}</span>
-                            </button>
-                          </div>
-                       </div>
-                       
-                       {/* Subject Tag */}
-                       <div className="mb-2">
-                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold ${colors.bg} ${colors.text} border ${colors.border}`}>
-                           <FaTag size={8} />
-                           {subjectName}
-                         </span>
-                       </div>
-                       
-                       <h4 className="font-bold text-[var(--text-primary)] mb-1 line-clamp-2 text-sm">{note.title}</h4>
-                       <div className="flex items-center gap-2 pt-3 border-t border-[var(--border-default)]">
-                          <Link 
-                            to={note.owner?._id ? `/profile/${note.owner._id}` : "#"} 
-                            className="flex items-center gap-2 hover:opacity-80 transition-opacity group/owner" 
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="w-5 h-5 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-[10px] font-bold text-[var(--text-tertiary)] ring-1 ring-[var(--border-default)] group-hover/owner:ring-[var(--action-primary)] transition-all">
-                              {note.owner?.avatar ? (
-                                <img src={note.owner.avatar} alt="Owner" className="w-full h-full object-cover rounded-full" />
-                              ) : (
-                                <FaUser size={10} />
-                              )}
-                            </div>
-                            <span className="text-[10px] font-bold text-[var(--text-tertiary)] line-clamp-1 group-hover/owner:text-[var(--action-primary)] transition-colors">{getOwnerName(note)}</span>
-                          </Link>
-                       </div>
-                    </Card>
-                 </motion.div>
-               );
-             })}
-           </div>
-         )}
+        {/* Results count */}
+        <p style={{ fontSize: 13, color: "#9A9A9A", marginTop: 16, marginBottom: 20 }}>
+          Showing {filtered.length} note{filtered.length !== 1 ? "s" : ""}
+          {selectedSemester !== "All" ? ` for ${selectedSemester} Semester` : ""}
+          {selectedSubject !== "All" ? ` · ${selectedSubject}` : ""}
+        </p>
 
-        {viewNote && (
-          <NoteModal note={viewNote} onClose={() => setViewNote(null)} />
+        {/* ── NOTES GRID ── */}
+        {loadingPublic ? (
+          <div style={{ textAlign: "center", padding: "80px 0" }}>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              style={{
+                width: 40,
+                height: 40,
+                border: "3px solid #E8E4DC",
+                borderTopColor: "#7DC67A",
+                borderRadius: "50%",
+                margin: "0 auto",
+              }}
+            />
+            <p style={{ fontSize: 14, color: "#9A9A9A", marginTop: 16 }}>Loading notes...</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "80px 0" }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>📚</div>
+            <p style={{ fontSize: 18, fontWeight: 700, color: "#9A9A9A" }}>No notes found.</p>
+            <p style={{ fontSize: 14, color: "#9A9A9A", marginTop: 4 }}>Be the first to share your study materials!</p>
+          </div>
+        ) : (
+          <div className="notes-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
+            {filtered.map(note => (
+              <NoteCard
+                key={note._id}
+                note={note}
+                onClick={() => setViewNote(note)}
+                getOwnerName={getOwnerName}
+                getSubjectName={getSubjectName}
+              />
+            ))}
+          </div>
         )}
       </div>
+
+      {/* ── MODALS ── */}
+      <AnimatePresence>
+        {viewNote && (
+          <NoteDetailModal
+            note={viewNote}
+            onClose={() => setViewNote(null)}
+            getOwnerName={getOwnerName}
+            getSubjectName={getSubjectName}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showUpload && (
+          <UploadWizard
+            isOpen={showUpload}
+            onClose={() => setShowUpload(false)}
+            onUpload={handleUpload}
+            uploading={uploading}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

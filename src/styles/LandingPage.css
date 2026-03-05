@@ -1,0 +1,75 @@
+/* =============================================
+   MEDHA Landing Page — Scoped Reset & Design Tokens
+   ============================================= */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,300&display=swap');
+
+.landing-page {
+  font-family: 'DM Sans', sans-serif;
+  color: #1A1A2E;
+  background: #F2EDE4;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Override global dark theme on landing page */
+.landing-page,
+.landing-page * {
+  color-scheme: light;
+}
+
+/* Reset inherited heading styles from index.css */
+.landing-page h1,
+.landing-page h2,
+.landing-page h3,
+.landing-page h4,
+.landing-page h5,
+.landing-page h6 {
+  color: inherit;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Reset inherited link styles */
+.landing-page a {
+  color: inherit;
+  font-weight: inherit;
+}
+.landing-page a:hover {
+  filter: none;
+}
+
+/* Reset inherited input styles */
+.landing-page input,
+.landing-page textarea {
+  background: transparent;
+  border: none;
+  color: inherit;
+  box-shadow: none;
+}
+.landing-page input:focus,
+.landing-page textarea:focus {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Reset inherited body pseudo-element backgrounds */
+.landing-page button {
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .landing-page section > div > div[style*="grid-template-columns: repeat(4"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .landing-page section > div > div[style*="grid-template-columns: repeat"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .landing-page section > div > div[style*="display: flex"][style*="align-items: center"][style*="gap"] {
+    flex-direction: column;
+  }
+}

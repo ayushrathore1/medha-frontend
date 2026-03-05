@@ -36,6 +36,7 @@ const getBaseNavItems = (userUniversity) => {
     { path: "/visualizations", label: "Visualizations", isFree: true, isUSP: true },
     { path: "/notes", label: "Notes Community", isFree: true },
     { path: "/exams", label: examLabel, isFree: true },
+    { path: "/recommendations", label: "Recommendations", isFree: false },
   ];
 
   // Only add Charcha if feature flag is enabled

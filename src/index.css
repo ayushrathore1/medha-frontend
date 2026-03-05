@@ -2,6 +2,8 @@
 
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   --font-sans: "Manrope", "Inter", sans-serif;
   
@@ -12,6 +14,37 @@
   --color-jupiter-deep: #0a0a12;
   --color-space-black: #12121a;
   --color-dark-slate: #1a1a25;
+
+  /* shadcn/ui color tokens — mapped to Sun-Jupiter cosmic palette */
+  --color-background: #08080e;
+  --color-foreground: #f5f5f0;
+
+  --color-card: #14141f;
+  --color-card-foreground: #f5f5f0;
+
+  --color-popover: #14141f;
+  --color-popover-foreground: #f5f5f0;
+
+  --color-primary: #fbbf24;
+  --color-primary-foreground: #0a0a12;
+
+  --color-secondary: #1a1a25;
+  --color-secondary-foreground: #f5f5f0;
+
+  --color-muted: #1a1a25;
+  --color-muted-foreground: #a1a1aa;
+
+  --color-accent: #1a1a25;
+  --color-accent-foreground: #f5f5f0;
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #f5f5f0;
+
+  --color-border: rgba(251, 191, 36, 0.12);
+  --color-input: rgba(251, 191, 36, 0.12);
+  --color-ring: #fbbf24;
+
+  --radius: 0.75rem;
 }
 
 /* =========================================

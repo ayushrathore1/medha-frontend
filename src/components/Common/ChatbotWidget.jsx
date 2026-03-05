@@ -1,490 +1,541 @@
 /**
- * ChatbotWidget - Global AI Chatbot Widget
- * Floating chatbot that appears on all pages with SERP web search and RAG context
- * Premium Apple-inspired dark theme
+ * ChatbotWidget — Redesigned MEDHA Study Assistant
+ * Cream + green theme matching landing page design
+ * Context-aware per-page suggestions, nudge bubble
  */
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import {
-  FaComments,
-  FaTimes,
-  FaPaperPlane,
-  FaRobot,
-  FaUser,
-  FaGlobe,
-  FaSpinner,
-  FaChevronDown,
-  FaTrash,
-  FaBrain,
-  FaBookOpen,
-  FaGraduationCap,
-  FaSearch,
-} from "react-icons/fa";
 import { useChatbot } from "../../context/ChatbotContext";
 
-const APPLE_THEME = {
-  bg: "#000000",
-  surface: "#1c1c1e",
-  surfaceHover: "#2c2c2e",
-  surfaceElevated: "#38383a",
-  border: "rgba(255, 255, 255, 0.1)",
-  accent: "#0A84FF",
-  accentGradient: "linear-gradient(135deg, #0A84FF, #5e5ce6)",
-  text: "#F5F5F7",
-  textSec: "#86868B",
-  textTertiary: "#636366",
-  success: "#30D158",
-  danger: "#FF453A",
-  warning: "#FFD60A",
-  purple: "#BF5AF2",
+/* ── page-aware suggestions ── */
+const PAGE_PROMPTS = {
+  "/dashboard": [
+    "What should I study for tomorrow's exam?",
+    "Break down my pending tasks",
+    "Make a 3-hour study plan",
+    "Which subjects need the most attention?",
+  ],
+  "/notes": [
+    "Summarize this note for me",
+    "Explain the key concepts",
+    "What topics are missing?",
+    "Create flashcards from this",
+  ],
+  "/exams": [
+    "Explain this question step by step",
+    "Break down this paper's pattern",
+    "Which topics repeat the most?",
+    "How should I attempt this paper?",
+  ],
+  "/recommendations": [
+    "I didn't understand what was in this video",
+    "Explain this concept in simple terms",
+    "Which lecture should I watch first?",
+    "Compare these two explanations",
+  ],
+  "/visualizations": [
+    "Explain this concept in text",
+    "Give me a real-life analogy",
+    "How does this relate to the exam?",
+    "What's the formula behind this?",
+  ],
+  default: [
+    "What should I study for DBMS tomorrow?",
+    "Explain SQL joins simply",
+    "Which units are most important in OS?",
+    "I have 3 hours, what to focus on?",
+  ],
+};
+
+const PAGE_NUDGES = {
+  "/dashboard": "Need help planning your study session?",
+  "/notes": "Want me to summarize a note?",
+  "/exams": "Stuck on a past paper question?",
+  "/recommendations": "Not sure which lecture to pick?",
+  "/visualizations": "Need a text explanation?",
+  default: "Got a doubt? Ask me anything!",
 };
 
 const ChatbotWidget = () => {
   const { isOpen, setIsOpen } = useChatbot();
+  const location = useLocation();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const [hasContext, setHasContext] = useState(false);
-  const [webSearchUsed, setWebSearchUsed] = useState(false);
-
+  const [showNudge, setShowNudge] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const nudgeTimerRef = useRef(null);
   const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
-  // Suggestions for academic chatbot
-  const suggestions = [
-    { text: "What subjects should I focus on?", icon: FaBookOpen },
-    { text: "Explain my pending tasks", icon: FaGraduationCap },
-    { text: "Help me with exam preparation", icon: FaBrain },
-    { text: "What's trending in tech today?", icon: FaSearch },
-  ];
+  const currentPath = location.pathname;
+  const suggestions =
+    PAGE_PROMPTS[
+      Object.keys(PAGE_PROMPTS).find((k) => currentPath.startsWith(k)) || "default"
+    ] || PAGE_PROMPTS.default;
 
-  // Auto scroll to bottom
+  const nudgeText =
+    PAGE_NUDGES[
+      Object.keys(PAGE_NUDGES).find((k) => currentPath.startsWith(k)) || "default"
+    ] || PAGE_NUDGES.default;
+
+  // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Focus input when expanded
+  // Focus input
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
+    if (isOpen) setTimeout(() => inputRef.current?.focus(), 100);
   }, [isOpen]);
 
-  // Send message to AI
-  const sendMessage = async (text) => {
-    if (!text.trim()) return;
-
-    const userMessage = { role: "user", content: text };
-    setMessages((prev) => [...prev, userMessage]);
-    setInputText("");
-    setIsLoading(true);
-    setError(null);
-    setShowSuggestions(false);
-
-    try {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-      const response = await axios.post(
-        `${baseUrl}/api/chatbot/ask`,
-        {
-          input: text,
-          contextMessages: messages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-          model: "groq",
-        },
-        { headers, timeout: 60000 }
-      );
-
-      const aiMessage = {
-        role: "assistant",
-        content: response.data.answer,
-        hasWebSearch: response.data.webSearchUsed || false,
-        hasContext: response.data.hasContext || false,
-      };
-
-      setHasContext(response.data.hasContext || false);
-      setWebSearchUsed(response.data.webSearchUsed || false);
-      setMessages((prev) => [...prev, aiMessage]);
-    } catch (err) {
-      console.error("Chat error:", err);
-      setError(
-        err.response?.data?.message ||
-          "Failed to get response. Please try again."
-      );
-    } finally {
-      setIsLoading(false);
+  // Nudge bubble after 30s
+  useEffect(() => {
+    if (!isOpen && messages.length === 0) {
+      nudgeTimerRef.current = setTimeout(() => setShowNudge(true), 30000);
+      return () => clearTimeout(nudgeTimerRef.current);
+    } else {
+      setShowNudge(false);
     }
-  };
+  }, [isOpen, messages.length, currentPath]);
 
-  // Handle form submit
+  // Send message
+  const sendMessage = useCallback(
+    async (text) => {
+      if (!text.trim()) return;
+      const userMessage = { role: "user", content: text };
+      setMessages((prev) => [...prev, userMessage]);
+      setInputText("");
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const response = await axios.post(
+          `${baseUrl}/api/chatbot/ask`,
+          {
+            input: text,
+            contextMessages: messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+            model: "groq",
+          },
+          { headers, timeout: 60000 }
+        );
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: response.data.answer,
+            hasWebSearch: response.data.webSearchUsed || false,
+            hasContext: response.data.hasContext || false,
+          },
+        ]);
+      } catch (err) {
+        setError(
+          err.response?.data?.message ||
+            "Failed to get response. Please try again."
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [baseUrl, messages]
+  );
+
   const handleSubmit = (e) => {
     e.preventDefault();
     sendMessage(inputText);
   };
 
-  // Clear chat
   const clearChat = () => {
     setMessages([]);
-    setShowSuggestions(true);
-    setHasContext(false);
-    setWebSearchUsed(false);
+    setError(null);
   };
 
   return (
     <>
-      {/* Floating Chat Button */}
+      <style>{`
+        @keyframes dot-breathe {
+          0%,100% { transform:scale(1); opacity:1; }
+          50% { transform:scale(1.5); opacity:0.6; }
+        }
+        @keyframes pulse-ring {
+          0% { transform:scale(1); opacity:0.5; }
+          100% { transform:scale(1.6); opacity:0; }
+        }
+        .chatbot-prose h1,.chatbot-prose h2,.chatbot-prose h3 {
+          color:#1A1A2E; font-weight:700; margin:8px 0 4px;
+        }
+        .chatbot-prose p { margin:4px 0; }
+        .chatbot-prose ul,.chatbot-prose ol { padding-left:16px; margin:4px 0; }
+        .chatbot-prose code {
+          background:#F0FAF0; padding:1px 4px; border-radius:4px; font-size:13px;
+        }
+        .chatbot-prose pre { background:#1A1A2E; color:#F9F6F1; padding:10px; border-radius:8px; overflow-x:auto; }
+        .chatbot-prose pre code { background:transparent; color:inherit; }
+        .chatbot-prose a { color:#7DC67A; }
+      `}</style>
+
+      {/* ── TRIGGER BUTTON ── */}
       <motion.button
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        whileHover={{ scale: 1.1 }}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          setShowNudge(false);
+        }}
+        whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => setIsOpen(!isOpen)}
         style={{
           position: "fixed",
-          bottom: "24px",
-          right: "24px",
-          width: "60px",
-          height: "60px",
+          bottom: 24,
+          right: 24,
+          width: 52,
+          height: 52,
           borderRadius: "50%",
-          background: isOpen
-            ? APPLE_THEME.surfaceElevated
-            : APPLE_THEME.accentGradient,
-          border: isOpen ? `1px solid ${APPLE_THEME.accent}` : "none",
+          background: "#1A1A2E",
+          border: "2px solid rgba(125,198,122,0.4)",
+          boxShadow: "0 8px 24px rgba(26,26,46,0.3)",
           cursor: "pointer",
+          zIndex: 1000,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow: isOpen
-            ? "0 8px 32px rgba(0, 0, 0, 0.4)"
-            : "0 8px 32px rgba(10, 132, 255, 0.4)",
-          zIndex: 9999,
         }}
       >
         {isOpen ? (
-          <FaChevronDown color={APPLE_THEME.accent} size={22} />
+          <span style={{ color: "white", fontSize: 18, lineHeight: 1 }}>×</span>
         ) : (
-          <FaComments color="white" size={22} />
+          <div
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 6,
+              background: "linear-gradient(135deg, #7DC67A, #8B5CF6)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 14,
+              fontWeight: 800,
+              color: "white",
+            }}
+          >
+            M
+          </div>
+        )}
+
+        {/* Pulse ring */}
+        {!isOpen && messages.length === 0 && (
+          <div
+            style={{
+              position: "absolute",
+              inset: -4,
+              borderRadius: "50%",
+              border: "2px solid rgba(125,198,122,0.3)",
+              animation: "pulse-ring 2s ease-out infinite",
+              pointerEvents: "none",
+            }}
+          />
+        )}
+
+        {/* Unread dot */}
+        {!isOpen && messages.length > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              width: 12,
+              height: 12,
+              borderRadius: "50%",
+              background: "#EF4444",
+              border: "2px solid white",
+            }}
+          />
         )}
       </motion.button>
 
-      {/* Unread indicator */}
-      {!isOpen && messages.length > 0 && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          style={{
-            position: "fixed",
-            bottom: "72px",
-            right: "24px",
-            width: "22px",
-            height: "22px",
-            borderRadius: "50%",
-            background: APPLE_THEME.danger,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "11px",
-            fontWeight: 600,
-            color: "white",
-            zIndex: 10000,
-            border: `2px solid ${APPLE_THEME.bg}`,
-          }}
-        >
-          {messages.filter((m) => m.role === "assistant").length}
-        </motion.div>
-      )}
+      {/* ── NUDGE BUBBLE ── */}
+      <AnimatePresence>
+        {showNudge && !isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.9 }}
+            onClick={() => {
+              setIsOpen(true);
+              setShowNudge(false);
+            }}
+            style={{
+              position: "fixed",
+              bottom: 84,
+              right: 24,
+              background: "white",
+              border: "1px solid #E8E4DC",
+              borderRadius: "14px 14px 4px 14px",
+              padding: "10px 16px",
+              fontSize: 13,
+              color: "#1A1A2E",
+              fontWeight: 500,
+              boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+              cursor: "pointer",
+              zIndex: 999,
+              maxWidth: 220,
+              fontFamily: "'DM Sans', sans-serif",
+            }}
+          >
+            {nudgeText}
+            <div
+              style={{
+                position: "absolute",
+                bottom: -6,
+                right: 20,
+                width: 12,
+                height: 12,
+                background: "white",
+                border: "1px solid #E8E4DC",
+                borderTop: "none",
+                borderLeft: "none",
+                transform: "rotate(45deg)",
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Chat Panel */}
+      {/* ── CHAT PANEL ── */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             style={{
               position: "fixed",
-              bottom: "100px",
-              right: "24px",
-              width: "400px",
+              bottom: 88,
+              right: 24,
+              width: 360,
+              height: 520,
               maxWidth: "calc(100vw - 48px)",
-              height: "550px",
               maxHeight: "70vh",
-              background: "rgba(28, 28, 30, 0.98)",
-              backdropFilter: "blur(40px)",
-              WebkitBackdropFilter: "blur(40px)",
-              borderRadius: "24px",
-              border: `1px solid ${APPLE_THEME.border}`,
-              boxShadow: "0 25px 80px rgba(0, 0, 0, 0.6)",
-              zIndex: 9999,
-              overflow: "hidden",
+              background: "white",
+              borderRadius: 20,
+              border: "1px solid #E8E4DC",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
               display: "flex",
               flexDirection: "column",
+              overflow: "hidden",
+              zIndex: 999,
+              fontFamily: "'DM Sans', sans-serif",
             }}
           >
-            {/* Header */}
+            {/* HEADER */}
             <div
               style={{
+                padding: "16px 20px",
+                background: "#1A1A2E",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
-                padding: "16px 20px",
-                borderBottom: `1px solid ${APPLE_THEME.border}`,
-                background: "rgba(10, 132, 255, 0.08)",
+                gap: 10,
               }}
             >
               <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: "linear-gradient(135deg, #7DC67A, #8B5CF6)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: "white",
+                }}
               >
+                M
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "white" }}>
+                  MEDHA AI
+                </div>
                 <div
                   style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "12px",
-                    background: APPLE_THEME.accentGradient,
+                    fontSize: 11,
+                    color: "#7DC67A",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
+                    gap: 4,
                   }}
                 >
-                  <FaBrain color="white" size={20} />
-                </div>
-                <div>
-                  <div
+                  <span
                     style={{
-                      color: APPLE_THEME.text,
-                      fontWeight: 600,
-                      fontSize: "16px",
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: "#7DC67A",
+                      display: "inline-block",
+                      animation: "dot-breathe 2s infinite",
                     }}
-                  >
-                    Medha AI
-                  </div>
-                  <div style={{ color: APPLE_THEME.textSec, fontSize: "11px" }}>
-                    {hasContext ? "📚 Using your data" : "💬 Ready to help"}
-                    {webSearchUsed && " • 🌐 Web search"}
-                  </div>
+                  />
+                  Ready to help
                 </div>
               </div>
-              <div style={{ display: "flex", gap: "8px" }}>
+              <div style={{ display: "flex", gap: 6 }}>
                 {messages.length > 0 && (
                   <button
                     onClick={clearChat}
-                    style={{
-                      background: "rgba(255, 69, 58, 0.1)",
-                      border: "none",
-                      borderRadius: "8px",
-                      padding: "8px",
-                      cursor: "pointer",
-                    }}
                     title="Clear chat"
+                    style={{
+                      background: "rgba(239,68,68,0.15)",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: 8,
+                      cursor: "pointer",
+                      fontSize: 12,
+                      color: "#EF4444",
+                    }}
                   >
-                    <FaTrash color={APPLE_THEME.danger} size={14} />
+                    🗑
                   </button>
                 )}
                 <button
                   onClick={() => setIsOpen(false)}
                   style={{
-                    background: "rgba(255, 255, 255, 0.05)",
+                    background: "rgba(255,255,255,0.1)",
                     border: "none",
-                    borderRadius: "8px",
-                    padding: "8px",
+                    borderRadius: 8,
+                    padding: 8,
                     cursor: "pointer",
+                    color: "rgba(255,255,255,0.5)",
+                    fontSize: 18,
+                    lineHeight: 1,
                   }}
                 >
-                  <FaTimes color={APPLE_THEME.textSec} size={16} />
+                  ×
                 </button>
               </div>
             </div>
 
-            {/* Messages Area */}
+            {/* MESSAGES */}
             <div
               style={{
                 flex: 1,
                 overflowY: "auto",
-                padding: "16px",
+                padding: 16,
                 display: "flex",
                 flexDirection: "column",
-                gap: "12px",
+                gap: 10,
               }}
             >
-              {/* Welcome message */}
+              {/* Welcome + suggestions */}
               {messages.length === 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  style={{
-                    textAlign: "center",
-                    padding: "24px 16px",
-                  }}
-                >
+                <div style={{ padding: "8px 0" }}>
                   <div
                     style={{
-                      width: "72px",
-                      height: "72px",
-                      borderRadius: "20px",
-                      background: APPLE_THEME.accentGradient,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      margin: "0 auto 16px",
-                    }}
-                  >
-                    <FaBrain color="white" size={32} />
-                  </div>
-                  <div
-                    style={{
-                      color: APPLE_THEME.text,
+                      fontSize: 11,
                       fontWeight: 600,
-                      fontSize: "18px",
-                      marginBottom: "8px",
-                    }}
-                  >
-                    Hi, I'm Medha! 👋
-                  </div>
-                  <div
-                    style={{
-                      color: APPLE_THEME.textSec,
-                      fontSize: "14px",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    Your AI study companion. I can help with your subjects,
-                    explain concepts, and even search the web for real-time info!
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Suggestions */}
-              {showSuggestions && messages.length === 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px",
-                    marginTop: "8px",
-                  }}
-                >
-                  <div
-                    style={{
-                      color: APPLE_THEME.textSec,
-                      fontSize: "11px",
+                      color: "#9A9A9A",
                       textTransform: "uppercase",
-                      letterSpacing: "0.5px",
+                      letterSpacing: "0.06em",
+                      marginBottom: 8,
                     }}
                   >
-                    Try asking
+                    TRY ASKING
                   </div>
-                  {suggestions.map((suggestion, idx) => {
-                    const Icon = suggestion.icon;
-                    return (
-                      <motion.button
-                        key={idx}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        onClick={() => sendMessage(suggestion.text)}
-                        style={{
-                          background: "rgba(255, 255, 255, 0.05)",
-                          border: `1px solid ${APPLE_THEME.border}`,
-                          borderRadius: "12px",
-                          padding: "14px 16px",
-                          textAlign: "left",
-                          cursor: "pointer",
-                          color: APPLE_THEME.text,
-                          fontSize: "14px",
-                          transition: "all 0.2s ease",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "12px",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background =
-                            "rgba(10, 132, 255, 0.1)";
-                          e.currentTarget.style.borderColor = APPLE_THEME.accent;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background =
-                            "rgba(255, 255, 255, 0.05)";
-                          e.currentTarget.style.borderColor = APPLE_THEME.border;
-                        }}
-                      >
-                        <Icon color={APPLE_THEME.accent} size={16} />
-                        {suggestion.text}
-                      </motion.button>
-                    );
-                  })}
+                  {suggestions.map((prompt, i) => (
+                    <button
+                      key={i}
+                      onClick={() => sendMessage(prompt)}
+                      style={{
+                        display: "block",
+                        width: "100%",
+                        textAlign: "left",
+                        padding: "10px 12px",
+                        background: "#F9F6F1",
+                        border: "1px solid #E8E4DC",
+                        borderRadius: 10,
+                        fontSize: 13,
+                        color: "#1A1A2E",
+                        cursor: "pointer",
+                        marginBottom: 6,
+                        transition: "all 150ms",
+                        fontFamily: "inherit",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.borderColor = "#7DC67A";
+                        e.target.style.background = "#F0FAF0";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.borderColor = "#E8E4DC";
+                        e.target.style.background = "#F9F6F1";
+                      }}
+                    >
+                      {prompt}
+                    </button>
+                  ))}
                 </div>
               )}
 
               {/* Messages */}
               {messages.map((msg, idx) => (
-                <motion.div
+                <div
                   key={idx}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
                   style={{
                     display: "flex",
                     justifyContent:
                       msg.role === "user" ? "flex-end" : "flex-start",
-                    gap: "10px",
                   }}
                 >
                   {msg.role === "assistant" && (
                     <div
                       style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "10px",
-                        background: APPLE_THEME.accentGradient,
+                        width: 24,
+                        height: 24,
+                        borderRadius: 6,
+                        background:
+                          "linear-gradient(135deg, #7DC67A, #8B5CF6)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        fontSize: 10,
+                        fontWeight: 800,
+                        color: "white",
+                        marginRight: 6,
                         flexShrink: 0,
+                        marginTop: 2,
                       }}
                     >
-                      <FaRobot color="white" size={16} />
+                      M
                     </div>
                   )}
+
                   <div
                     style={{
                       maxWidth: "80%",
-                      padding: "14px 18px",
+                      padding: "10px 14px",
                       borderRadius:
                         msg.role === "user"
-                          ? "18px 18px 4px 18px"
-                          : "18px 18px 18px 4px",
+                          ? "14px 14px 4px 14px"
+                          : "14px 14px 14px 4px",
                       background:
-                        msg.role === "user"
-                          ? APPLE_THEME.accentGradient
-                          : "linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%)",
-                      backdropFilter:
-                        msg.role === "assistant" ? "blur(20px)" : "none",
-                      WebkitBackdropFilter:
-                        msg.role === "assistant" ? "blur(20px)" : "none",
-                      border:
-                        msg.role === "assistant"
-                          ? "1px solid rgba(255, 255, 255, 0.15)"
-                          : "none",
-                      boxShadow:
-                        msg.role === "assistant"
-                          ? "0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-                          : "0 4px 12px rgba(10, 132, 255, 0.3)",
-                      color: APPLE_THEME.text,
-                      fontSize: "14px",
+                        msg.role === "user" ? "#1A1A2E" : "#F9F6F1",
+                      color: msg.role === "user" ? "white" : "#1A1A2E",
+                      fontSize: 14,
                       lineHeight: 1.6,
                     }}
                   >
                     {msg.role === "assistant" ? (
-                      <div className="prose prose-sm prose-invert max-w-none">
+                      <div className="chatbot-prose">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {msg.content}
                         </ReactMarkdown>
@@ -493,39 +544,16 @@ const ChatbotWidget = () => {
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              gap: "10px",
-                              marginTop: "10px",
-                              paddingTop: "10px",
-                              borderTop: `1px solid ${APPLE_THEME.border}`,
-                              fontSize: "11px",
+                              gap: 8,
+                              marginTop: 8,
+                              paddingTop: 8,
+                              borderTop: "1px solid #E8E4DC",
+                              fontSize: 11,
+                              color: "#9A9A9A",
                             }}
                           >
-                            {msg.hasContext && (
-                              <span
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "4px",
-                                  color: APPLE_THEME.purple,
-                                }}
-                              >
-                                <FaGraduationCap size={10} />
-                                Your data
-                              </span>
-                            )}
-                            {msg.hasWebSearch && (
-                              <span
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "4px",
-                                  color: APPLE_THEME.success,
-                                }}
-                              >
-                                <FaGlobe size={10} />
-                                Web search
-                              </span>
-                            )}
+                            {msg.hasContext && <span>📚 Your data</span>}
+                            {msg.hasWebSearch && <span>🌐 Web search</span>}
                           </div>
                         )}
                       </div>
@@ -533,175 +561,146 @@ const ChatbotWidget = () => {
                       msg.content
                     )}
                   </div>
-                  {msg.role === "user" && (
-                    <div
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "10px",
-                        background: APPLE_THEME.purple,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <FaUser color="white" size={14} />
-                    </div>
-                  )}
-                </motion.div>
+                </div>
               ))}
 
-              {/* Loading indicator */}
+              {/* Loading */}
               {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    padding: "14px 18px",
-                  }}
-                >
+                <div style={{ display: "flex", gap: 4, padding: "6px 0" }}>
                   <div
                     style={{
-                      width: "32px",
-                      height: "32px",
-                      borderRadius: "10px",
-                      background: APPLE_THEME.accentGradient,
+                      width: 24,
+                      height: 24,
+                      borderRadius: 6,
+                      background:
+                        "linear-gradient(135deg, #7DC67A, #8B5CF6)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: "white",
+                      marginRight: 6,
                     }}
                   >
-                    <FaRobot color="white" size={16} />
+                    M
                   </div>
                   <div
                     style={{
+                      background: "#F9F6F1",
+                      borderRadius: "14px 14px 14px 4px",
+                      padding: "12px 16px",
                       display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "14px 18px",
-                      background: "rgba(255, 255, 255, 0.05)",
-                      borderRadius: "14px",
+                      gap: 4,
                     }}
                   >
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 1,
-                        ease: "linear",
-                      }}
-                    >
-                      <FaSpinner color={APPLE_THEME.accent} size={16} />
-                    </motion.div>
-                    <span
-                      style={{ color: APPLE_THEME.textSec, fontSize: "14px" }}
-                    >
-                      Thinking...
-                    </span>
+                    {[0, 1, 2].map((i) => (
+                      <div
+                        key={i}
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#9A9A9A",
+                          animation: `dot-breathe 1.2s ease-in-out ${i * 0.2}s infinite`,
+                        }}
+                      />
+                    ))}
                   </div>
-                </motion.div>
+                </div>
               )}
 
               {/* Error */}
               {error && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                <div
                   style={{
-                    padding: "14px 18px",
-                    background: "rgba(255, 69, 58, 0.1)",
-                    borderRadius: "14px",
-                    color: APPLE_THEME.danger,
-                    fontSize: "14px",
+                    padding: "10px 14px",
+                    background: "rgba(239,68,68,0.06)",
+                    border: "1px solid rgba(239,68,68,0.15)",
+                    borderRadius: 10,
+                    fontSize: 13,
+                    color: "#EF4444",
                     textAlign: "center",
                   }}
                 >
                   {error}
-                </motion.div>
+                </div>
               )}
 
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
-            <form
-              onSubmit={handleSubmit}
+            {/* INPUT */}
+            <div
               style={{
-                padding: "14px 18px 18px",
-                borderTop: `1px solid ${APPLE_THEME.border}`,
-                background: "rgba(0, 0, 0, 0.3)",
+                padding: "12px 16px",
+                borderTop: "1px solid #E8E4DC",
+                background: "white",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  background: "rgba(255, 255, 255, 0.08)",
-                  borderRadius: "18px",
-                  padding: "6px 6px 6px 18px",
-                  border: `1px solid ${APPLE_THEME.border}`,
-                }}
+              <form
+                onSubmit={handleSubmit}
+                style={{ display: "flex", gap: 8 }}
               >
                 <input
                   ref={inputRef}
-                  type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Ask me anything..."
+                  placeholder="Ask anything..."
                   disabled={isLoading}
                   style={{
                     flex: 1,
-                    background: "transparent",
-                    border: "none",
+                    padding: "10px 14px",
+                    border: "1.5px solid #E8E4DC",
+                    borderRadius: 10,
+                    fontSize: 14,
                     outline: "none",
-                    color: APPLE_THEME.text,
-                    fontSize: "15px",
-                    padding: "10px 0",
+                    color: "#1A1A2E",
+                    background: "#F9F6F1",
+                    transition: "border-color 200ms",
+                    fontFamily: "inherit",
                   }}
+                  onFocus={(e) => (e.target.style.borderColor = "#7DC67A")}
+                  onBlur={(e) => (e.target.style.borderColor = "#E8E4DC")}
                 />
-                <motion.button
+                <button
                   type="submit"
                   disabled={!inputText.trim() || isLoading}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                   style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "14px",
-                    background:
-                      inputText.trim() && !isLoading
-                        ? APPLE_THEME.accentGradient
-                        : "rgba(255, 255, 255, 0.1)",
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: inputText.trim() ? "#7DC67A" : "#E8E4DC",
                     border: "none",
-                    cursor:
-                      inputText.trim() && !isLoading
-                        ? "pointer"
-                        : "not-allowed",
+                    cursor: inputText.trim() ? "pointer" : "default",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    opacity: inputText.trim() && !isLoading ? 1 : 0.5,
+                    transition: "all 150ms",
+                    flexShrink: 0,
                   }}
                 >
-                  <FaPaperPlane color="white" size={16} />
-                </motion.button>
-              </div>
+                  <span
+                    style={{
+                      fontSize: 16,
+                      color: inputText.trim() ? "white" : "#9A9A9A",
+                    }}
+                  >
+                    →
+                  </span>
+                </button>
+              </form>
               <div
                 style={{
-                  color: APPLE_THEME.textTertiary,
-                  fontSize: "10px",
+                  fontSize: 10,
+                  color: "#9A9A9A",
                   textAlign: "center",
-                  marginTop: "10px",
+                  marginTop: 6,
                 }}
               >
-                Press Enter to send • Powered by Groq AI + SERP
+                Press Enter · Powered by Groq AI
               </div>
-            </form>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

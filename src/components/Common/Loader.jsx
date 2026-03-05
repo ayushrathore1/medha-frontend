@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const motivationalQuotes = [
   "Stay focused, you're one step closer!",
@@ -21,7 +22,7 @@ const Loader = ({ fullScreen = false }) => {
   }, []);
 
   const containerClasses = fullScreen
-    ? "fixed inset-0 z-50 flex flex-col items-center justify-center bg-[var(--bg-primary)]/80 backdrop-blur-sm"
+    ? "fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm"
     : "flex flex-col items-center justify-center py-12";
 
   const letterVariants = {
@@ -52,7 +53,7 @@ const Loader = ({ fullScreen = false }) => {
             variants={letterVariants}
             initial="hidden"
             animate="visible"
-            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)]"
+            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-[var(--accent-secondary)]"
           >
             {char}
           </motion.span>
@@ -68,7 +69,7 @@ const Loader = ({ fullScreen = false }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.5 }}
-            className="text-[var(--text-secondary)] font-medium italic text-sm md:text-base absolute w-full left-0"
+            className="text-muted-foreground font-medium italic text-sm md:text-base absolute w-full left-0"
           >
             "{motivationalQuotes[quoteIndex]}"
           </motion.p>
@@ -78,4 +79,34 @@ const Loader = ({ fullScreen = false }) => {
   );
 };
 
+/**
+ * ContentSkeleton: A shadcn Skeleton-based placeholder for page content loading.
+ * Use this for card/list loading states.
+ */
+const ContentSkeleton = ({ rows = 3, className = "" }) => (
+  <div className={`space-y-4 ${className}`}>
+    <Skeleton className="h-8 w-3/4 bg-muted" />
+    {[...Array(rows)].map((_, i) => (
+      <Skeleton key={i} className="h-4 w-full bg-muted" />
+    ))}
+    <Skeleton className="h-4 w-1/2 bg-muted" />
+  </div>
+);
+
+/**
+ * CardSkeleton: A card-shaped loading placeholder.
+ */
+const CardSkeleton = ({ className = "" }) => (
+  <div className={`glass-card p-6 rounded-xl space-y-4 ${className}`}>
+    <Skeleton className="h-6 w-1/2 bg-muted" />
+    <Skeleton className="h-4 w-full bg-muted" />
+    <Skeleton className="h-4 w-3/4 bg-muted" />
+    <div className="flex gap-3 pt-2">
+      <Skeleton className="h-10 w-24 bg-muted rounded-lg" />
+      <Skeleton className="h-10 w-24 bg-muted rounded-lg" />
+    </div>
+  </div>
+);
+
 export default Loader;
+export { ContentSkeleton, CardSkeleton };
