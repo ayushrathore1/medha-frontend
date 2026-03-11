@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Button as ShadcnButton, buttonVariants } from "@/components/ui/button";
+import { Button as ShadcnButton, buttonVariants } from "@/components/UI/button";
 import { cn } from "@/lib/utils";
 
 /**

@@ -1,25 +1,25 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useSignUp } from "@clerk/clerk-react";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import { AuthContext } from "../AuthContext";
 
 /**
  * EmailVerification page for existing users who haven't verified their email.
- * They arrive here after login with emailVerified: false
+ * They arrive here after login with emailVerified: false.
+ * Uses custom OTP system via /api/auth/send-otp and /api/auth/verify-otp
  */
 const EmailVerification = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
-  // Clerk SignUp hook - only used for email verification (OTP delivery)\n  const { isLoaded, signUp } = useSignUp();
-  
+  const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
   // Get user data passed from login page
   const userData = location.state?.userData;
   const token = location.state?.token;
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [verificationStep, setVerificationStep] = useState("init"); // init, code, complete
@@ -31,85 +31,60 @@ const EmailVerification = () => {
       navigate("/login");
       return;
     }
-    
-    // If user is already verified, redirect to dashboard
     if (userData.emailVerified === true) {
       navigate("/dashboard");
     }
   }, [userData, navigate]);
 
-  // Step 1: Create Clerk signup and send verification code
+  // Step 1: Send OTP code
   const handleSendCode = async () => {
-    if (!isLoaded) {
-      setError("Verification service is loading. Please wait.");
-      return;
-    }
-
     setLoading(true);
     setError("");
 
     try {
-      // Create a Clerk signup for this email to send verification
-      await signUp.create({
-        emailAddress: userData.email,
+      const res = await fetch(`${baseUrl}/api/auth/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userData.email, type: "verification" }),
       });
+      const data = await res.json();
 
-      // Request email verification code
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      
-      setVerificationStep("code");
-    } catch (err) {
-      console.error("Send verification error:", err);
-      if (err.errors && err.errors.length > 0) {
-        const clerkError = err.errors[0];
-        // If email already exists in Clerk, try to just send verification
-        if (clerkError.code === "form_identifier_exists") {
-          setError("Please use the 'Forgot Password' flow or contact support.");
-        } else {
-          setError(clerkError.longMessage || "Failed to send verification code");
-        }
+      if (res.ok) {
+        setVerificationStep("code");
+      } else if (res.status === 429) {
+        setError(data.message || "Please wait before requesting another code.");
       } else {
-        setError(err.message || "Failed to send verification code");
+        setError(data.message || "Failed to send verification code.");
       }
+    } catch {
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 2: Verify the code
+  // Step 2: Verify the OTP code
   const handleVerifyCode = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      const result = await signUp.attemptEmailAddressVerification({
-        code: verificationCode,
+      const res = await fetch(`${baseUrl}/api/auth/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userData.email, code: verificationCode }),
       });
+      const data = await res.json();
 
-      console.log("Verification result:", result.status);
-
-      if (result.status === "complete" || 
-          result.verifications?.emailAddress?.status === "verified") {
-        // Update our backend that this user is now verified
+      if (res.ok && data.verified) {
         await updateBackendVerification();
       } else {
-        setError("Verification incomplete. Please try again.");
+        setError(data.message || "Invalid code. Please try again.");
         setLoading(false);
       }
-    } catch (err) {
-      console.error("Verification error:", err);
-      if (err.errors && err.errors.length > 0) {
-        const clerkError = err.errors[0];
-        if (clerkError.message?.toLowerCase().includes("already")) {
-          // Already verified, proceed
-          await updateBackendVerification();
-          return;
-        }
-        setError(clerkError.longMessage || "Invalid verification code");
-      } else {
-        setError(err.message || "Verification failed");
-      }
+    } catch {
+      setError("Network error. Please try again.");
       setLoading(false);
     }
   };
@@ -117,76 +92,49 @@ const EmailVerification = () => {
   // Update backend with verification status
   const updateBackendVerification = async () => {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/users/verify-email`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        // Update local user data
-        const updatedUser = { ...userData, emailVerified: true };
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        login(updatedUser);
-        setVerificationStep("complete");
-        
-        // Redirect to dashboard after brief delay
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 2000);
-      } else {
-        // Backend endpoint might not exist yet - still mark as verified locally
-        console.warn("Backend verify-email endpoint issue, proceeding anyway");
-        const updatedUser = { ...userData, emailVerified: true };
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        login(updatedUser);
-        setVerificationStep("complete");
-        
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 2000);
-      }
-    } catch (err) {
-      console.error("Backend update error:", err);
-      // Even if backend fails, the Clerk verification succeeded
-      // Let user proceed - backend can sync later
-      const updatedUser = { ...userData, emailVerified: true };
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      login(updatedUser);
-      setVerificationStep("complete");
-      
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 2000);
+      await fetch(`${baseUrl}/api/users/verify-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch {
+      // Proceed anyway — OTP verification succeeded
     }
+
+    const updatedUser = { ...userData, emailVerified: true };
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    login(updatedUser);
+    setVerificationStep("complete");
+    setTimeout(() => navigate("/dashboard"), 2000);
   };
 
-  // Resend verification code
+  // Resend code
   const handleResendCode = async () => {
     try {
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setError("");
-      alert("Verification code resent! Check your email.");
-    } catch (err) {
+      const res = await fetch(`${baseUrl}/api/auth/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userData.email, type: "verification" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setError("");
+        alert("Verification code resent! Check your email.");
+      } else {
+        setError(data.message || "Failed to resend code.");
+      }
+    } catch {
       setError("Failed to resend code. Please try again.");
     }
   };
 
-  if (!userData) {
-    return null; // Will redirect in useEffect
-  }
+  if (!userData) return null;
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center px-4 relative overflow-hidden bg-slate-50">
-      {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
         <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse"></div>
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "3s" }}></div>
@@ -208,10 +156,9 @@ const EmailVerification = () => {
             {verificationStep === "complete" ? "Email Verified!" : "Verify Your Email"}
           </h2>
           <p className="text-slate-500 font-medium text-lg">
-            {verificationStep === "complete" 
-              ? "Redirecting to dashboard..." 
-              : `Verify ${userData.email} to continue`
-            }
+            {verificationStep === "complete"
+              ? "Redirecting to dashboard..."
+              : `Verify ${userData.email} to continue`}
           </p>
         </div>
 
@@ -235,7 +182,7 @@ const EmailVerification = () => {
 
               <Button
                 onClick={handleSendCode}
-                disabled={loading || !isLoaded}
+                disabled={loading}
                 loading={loading}
                 variant="primary"
                 size="lg"

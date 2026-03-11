@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from "@/components/UI/dialog";
 import { cn } from "@/lib/utils";
 
 /**

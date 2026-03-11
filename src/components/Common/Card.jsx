@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Card as ShadcnCard, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card as ShadcnCard, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from "@/components/UI/card";
 import { cn } from "@/lib/utils";
 
 /**

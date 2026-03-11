@@ -1,7 +1,6 @@
 import React, { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSignUp } from "@clerk/clerk-react";
 import { AuthContext } from "../AuthContext";
 
 // ─── Shared Left Column ─────────────────────────────────────
@@ -269,7 +268,7 @@ const Register = () => {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
-  const { isLoaded, signUp } = useSignUp();
+  const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -324,37 +323,35 @@ const Register = () => {
     setStep(2);
   };
 
-  // ── Submit → Clerk email verification
+  // ── Submit → Send OTP for email verification
   const handleSubmit = async () => {
     setError("");
-    if (!isLoaded) {
-      setError("Authentication service is loading. Please wait.");
-      return;
-    }
     setLoading(true);
 
     try {
-      await signUp.create({ emailAddress: formData.email });
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setVerificationStep(true);
-    } catch (err) {
-      if (err.errors && err.errors.length > 0) {
-        const ce = err.errors[0];
-        if (ce.code === "form_identifier_exists") {
-          setError("This email is already registered. Try logging in.");
-        } else {
-          setError(ce.longMessage || ce.message || "Signup failed");
-        }
+      const res = await fetch(`${baseUrl}/api/auth/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, type: "registration" }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setVerificationStep(true);
+      } else if (res.status === 429) {
+        setError(data.message || "Please wait before requesting another code.");
       } else {
-        setError(err.message || "Registration failed. Please try again.");
+        setError(data.message || "Failed to send verification code.");
       }
+    } catch (err) {
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Backend account after Clerk
-  const createBackendAccount = async (clerkSignUp, retryCount = 0) => {
+  // ── Backend account after OTP verification
+  const createBackendAccount = async (retryCount = 0) => {
     const maxRetries = 3;
     try {
       const response = await fetch(
@@ -407,7 +404,7 @@ const Register = () => {
         }
       } else if (response.status >= 500 && retryCount < maxRetries) {
         await new Promise((r) => setTimeout(r, 1000 * (retryCount + 1)));
-        return createBackendAccount(clerkSignUp, retryCount + 1);
+        return createBackendAccount(retryCount + 1);
       } else {
         setError(data.message || "Failed to create account.");
         setLoading(false);
@@ -415,64 +412,53 @@ const Register = () => {
     } catch {
       if (retryCount < maxRetries) {
         await new Promise((r) => setTimeout(r, 1000 * (retryCount + 1)));
-        return createBackendAccount(clerkSignUp, retryCount + 1);
+        return createBackendAccount(retryCount + 1);
       }
       setError("Failed to complete registration. Please try again.");
       setLoading(false);
     }
   };
 
-  // ── Verify email
+  // ── Verify email OTP
   const handleVerifyEmail = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      const result = await signUp.attemptEmailAddressVerification({
-        code: verificationCode,
+      const res = await fetch(`${baseUrl}/api/auth/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, code: verificationCode }),
       });
+      const data = await res.json();
 
-      if (result.status === "complete") {
-        await createBackendAccount(result);
-      } else if (result.status === "missing_requirements") {
-        const emailVerified =
-          result.verifications?.emailAddress?.status === "verified";
-        if (emailVerified) {
-          await createBackendAccount(result);
-        } else {
-          setError("Verification incomplete. Please check the code.");
-          setLoading(false);
-        }
+      if (res.ok && data.verified) {
+        await createBackendAccount();
       } else {
-        setError(`Verification status: ${result.status}. Please try again.`);
+        setError(data.message || "Verification failed. Please try again.");
         setLoading(false);
       }
     } catch (err) {
-      if (err.errors && err.errors.length > 0) {
-        const ce = err.errors[0];
-        if (
-          ce.code === "verification_already_verified" ||
-          ce.message?.toLowerCase().includes("already")
-        ) {
-          await createBackendAccount({
-            createdUserId: signUp.id || signUp.createdUserId,
-          });
-          return;
-        }
-        setError(ce.longMessage || ce.message || "Verification failed");
-      } else {
-        setError(err.message || "Verification failed.");
-      }
+      setError("Network error. Please try again.");
       setLoading(false);
     }
   };
 
   const handleResendCode = async () => {
     try {
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setError("");
-      alert("Verification code resent! Check your email.");
+      const res = await fetch(`${baseUrl}/api/auth/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, type: "registration" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setError("");
+        alert("Verification code resent! Check your email.");
+      } else {
+        setError(data.message || "Failed to resend code.");
+      }
     } catch {
       setError("Failed to resend code.");
     }

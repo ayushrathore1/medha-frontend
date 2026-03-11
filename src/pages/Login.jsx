@@ -247,8 +247,12 @@ const Login = () => {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loginMode, setLoginMode] = useState("password"); // "password" | "otp"
+  const [otpStep, setOtpStep] = useState("email"); // "email" | "code"
+  const [otpCode, setOtpCode] = useState("");
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
+  const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -256,14 +260,11 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const response = await fetch(`${baseUrl}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
       const data = await response.json();
 
@@ -288,8 +289,67 @@ const Login = () => {
     }
   };
 
+  // OTP: Send code
+  const handleSendLoginOtp = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      setError("Please enter your email.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(`${baseUrl}/api/auth/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, type: "login" }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setOtpStep("code");
+      } else {
+        setError(data.message || "Failed to send code.");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // OTP: Verify code & login
+  const handleVerifyLoginOtp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(`${baseUrl}/api/auth/login-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: otpCode }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        login(data.user);
+        navigate("/dashboard");
+      } else {
+        setError(data.message || "Verification failed");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`;
+    window.location.href = `${baseUrl}/api/auth/google`;
   };
 
   /* ── input base style ── */
@@ -316,6 +376,20 @@ const Login = () => {
     e.target.style.boxShadow = "none";
     e.target.style.background = "#F9F6F1";
   };
+
+  const tabStyle = (active) => ({
+    flex: 1,
+    padding: "10px 0",
+    fontSize: 13,
+    fontWeight: 600,
+    border: "none",
+    borderBottom: active ? "2px solid #1A1A2E" : "2px solid transparent",
+    background: "none",
+    color: active ? "#1A1A2E" : "#9A9A9A",
+    cursor: "pointer",
+    transition: "all 200ms",
+    fontFamily: "'DM Sans', sans-serif",
+  });
 
   return (
     <div
@@ -442,147 +516,364 @@ const Login = () => {
               fontSize: 15,
               color: "#6B6B6B",
               marginTop: 4,
-              marginBottom: 32,
+              marginBottom: 24,
             }}
           >
             Your exam prep is waiting.
           </p>
 
-          <form onSubmit={handleLogin}>
-            {/* Error */}
-            {error && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontSize: 12,
-                  color: "#EF4444",
-                  marginBottom: 16,
-                  padding: "10px 14px",
-                  background: "rgba(239,68,68,0.06)",
-                  border: "1px solid rgba(239,68,68,0.15)",
-                  borderRadius: 10,
-                }}
-              >
-                <span>⚠</span>
-                <span>{error}</span>
-              </div>
-            )}
+          {/* Login method tabs */}
+          <div
+            style={{
+              display: "flex",
+              borderBottom: "1px solid #E8E4DC",
+              marginBottom: 24,
+            }}
+          >
+            <button
+              style={tabStyle(loginMode === "password")}
+              onClick={() => {
+                setLoginMode("password");
+                setError("");
+                setOtpStep("email");
+                setOtpCode("");
+              }}
+            >
+              🔒 Password
+            </button>
+            <button
+              style={tabStyle(loginMode === "otp")}
+              onClick={() => {
+                setLoginMode("otp");
+                setError("");
+                setOtpStep("email");
+                setOtpCode("");
+              }}
+            >
+              ✉️ Login via OTP
+            </button>
+          </div>
 
-            {/* Email */}
-            <div style={{ marginBottom: 16 }}>
-              <label
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "#9A9A9A",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  display: "block",
-                  marginBottom: 6,
-                }}
-              >
-                EMAIL
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@university.edu"
-                required
-                style={inputStyle}
-                onFocus={inputFocus}
-                onBlur={inputBlur}
-              />
+          {/* Error */}
+          {error && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 12,
+                color: "#EF4444",
+                marginBottom: 16,
+                padding: "10px 14px",
+                background: "rgba(239,68,68,0.06)",
+                border: "1px solid rgba(239,68,68,0.15)",
+                borderRadius: 10,
+              }}
+            >
+              <span>⚠</span>
+              <span>{error}</span>
             </div>
+          )}
 
-            {/* Password */}
-            <div style={{ marginBottom: 16 }}>
-              <label
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "#9A9A9A",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  display: "block",
-                  marginBottom: 6,
-                }}
-              >
-                PASSWORD
-              </label>
-              <div style={{ position: "relative" }}>
+          {/* ═══ PASSWORD LOGIN ═══ */}
+          {loginMode === "password" && (
+            <form onSubmit={handleLogin}>
+              {/* Email */}
+              <div style={{ marginBottom: 16 }}>
+                <label
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#9A9A9A",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    display: "block",
+                    marginBottom: 6,
+                  }}
+                >
+                  EMAIL
+                </label>
                 <input
-                  type={showPw ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Your password"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@university.edu"
                   required
-                  minLength={6}
                   style={inputStyle}
                   onFocus={inputFocus}
                   onBlur={inputBlur}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPw(!showPw)}
+              </div>
+
+              {/* Password */}
+              <div style={{ marginBottom: 16 }}>
+                <label
                   style={{
-                    position: "absolute",
-                    right: 14,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: 14,
+                    fontSize: 12,
+                    fontWeight: 600,
                     color: "#9A9A9A",
-                    padding: 4,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    display: "block",
+                    marginBottom: 6,
                   }}
                 >
-                  {showPw ? "🙈" : "👁"}
-                </button>
+                  PASSWORD
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showPw ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Your password"
+                    required
+                    minLength={6}
+                    style={inputStyle}
+                    onFocus={inputFocus}
+                    onBlur={inputBlur}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(!showPw)}
+                    style={{
+                      position: "absolute",
+                      right: 14,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 14,
+                      color: "#9A9A9A",
+                      padding: 4,
+                    }}
+                  >
+                    {showPw ? "🙈" : "👁"}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Forgot password */}
-            <div
-              style={{ textAlign: "right", marginBottom: 24 }}
-            >
-              <Link
-                to="/forgot-password"
+              {/* Forgot password */}
+              <div style={{ textAlign: "right", marginBottom: 24 }}>
+                <Link
+                  to="/forgot-password"
+                  style={{
+                    fontSize: 13,
+                    color: "#7DC67A",
+                    textDecoration: "none",
+                    fontWeight: 500,
+                  }}
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              {/* Sign in button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-shine"
                 style={{
-                  fontSize: 13,
-                  color: "#7DC67A",
-                  textDecoration: "none",
-                  fontWeight: 500,
+                  width: "100%",
+                  padding: 16,
+                  background: loading ? "#2D2D3F" : "#1A1A2E",
+                  color: "white",
+                  borderRadius: 12,
+                  border: "none",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  cursor: loading ? "not-allowed" : "pointer",
+                  transition: "all 200ms",
                 }}
               >
-                Forgot password?
-              </Link>
-            </div>
+                {loading ? "Signing in..." : "Sign In"}
+              </button>
+            </form>
+          )}
 
-            {/* Sign in button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-shine"
-              style={{
-                width: "100%",
-                padding: 16,
-                background: loading ? "#2D2D3F" : "#1A1A2E",
-                color: "white",
-                borderRadius: 12,
-                border: "none",
-                fontSize: 16,
-                fontWeight: 700,
-                cursor: loading ? "not-allowed" : "pointer",
-                transition: "all 200ms",
-              }}
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
+          {/* ═══ OTP LOGIN ═══ */}
+          {loginMode === "otp" && otpStep === "email" && (
+            <form onSubmit={handleSendLoginOtp}>
+              <div style={{ marginBottom: 24 }}>
+                <label
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#9A9A9A",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    display: "block",
+                    marginBottom: 6,
+                  }}
+                >
+                  EMAIL
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@university.edu"
+                  required
+                  style={inputStyle}
+                  onFocus={inputFocus}
+                  onBlur={inputBlur}
+                />
+              </div>
+
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "#6B6B6B",
+                  marginBottom: 24,
+                  lineHeight: 1.5,
+                }}
+              >
+                We'll send a 6-digit code to your email. No password needed.
+              </p>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-shine"
+                style={{
+                  width: "100%",
+                  padding: 16,
+                  background: loading ? "#5A9E57" : "#7DC67A",
+                  color: "white",
+                  borderRadius: 12,
+                  border: "none",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  cursor: loading ? "not-allowed" : "pointer",
+                  transition: "all 200ms",
+                }}
+              >
+                {loading ? "Sending code..." : "Send Login Code"}
+              </button>
+            </form>
+          )}
+
+          {loginMode === "otp" && otpStep === "code" && (
+            <form onSubmit={handleVerifyLoginOtp}>
+              <div style={{ textAlign: "center", marginBottom: 20 }}>
+                <div
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 14,
+                    background: "#F0FAF0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 12px",
+                    fontSize: 24,
+                  }}
+                >
+                  ✉️
+                </div>
+                <p
+                  style={{
+                    fontSize: 14,
+                    color: "#6B6B6B",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Enter the 6-digit code sent to{" "}
+                  <strong style={{ color: "#1A1A2E" }}>{email}</strong>
+                </p>
+              </div>
+
+              <div style={{ marginBottom: 24 }}>
+                <input
+                  type="text"
+                  value={otpCode}
+                  onChange={(e) =>
+                    setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  placeholder="000000"
+                  maxLength={6}
+                  required
+                  style={{
+                    ...inputStyle,
+                    textAlign: "center",
+                    fontSize: 28,
+                    fontWeight: 800,
+                    letterSpacing: "0.4em",
+                    padding: "16px",
+                    fontFamily: "'Courier New', monospace",
+                  }}
+                  onFocus={inputFocus}
+                  onBlur={inputBlur}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || otpCode.length !== 6}
+                className="btn-shine"
+                style={{
+                  width: "100%",
+                  padding: 16,
+                  background:
+                    loading || otpCode.length !== 6 ? "#B8E0B6" : "#7DC67A",
+                  color: "white",
+                  borderRadius: 12,
+                  border: "none",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  cursor:
+                    loading || otpCode.length !== 6
+                      ? "not-allowed"
+                      : "pointer",
+                  transition: "all 200ms",
+                }}
+              >
+                {loading ? "Verifying..." : "Verify & Login"}
+              </button>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginTop: 16,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtpStep("email");
+                    setOtpCode("");
+                    setError("");
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: 13,
+                    color: "#9A9A9A",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  ← Change email
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSendLoginOtp}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: 13,
+                    color: "#7DC67A",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  Resend code
+                </button>
+              </div>
+            </form>
+          )}
 
           {/* OR */}
           <div

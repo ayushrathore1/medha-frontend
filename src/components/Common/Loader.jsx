@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/UI/skeleton";
 
 const motivationalQuotes = [
   "Stay focused, you're one step closer!",
