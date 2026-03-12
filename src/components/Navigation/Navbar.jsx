@@ -408,35 +408,18 @@ const Navbar = ({ user, onLogout }) => {
                 )}
               </button>
 
-              {/* Join Premium Button - Golden/Black Theme */}
+              {/* Join Premium Button - Medha Theme */}
               <button
                 onClick={() => setShowPremiumToast(true)}
-                className="relative ml-3 px-5 py-2.5 rounded-xl font-bold text-sm overflow-hidden group border border-amber-500/30"
+                className="relative ml-3 px-5 py-2.5 rounded-xl font-bold text-sm overflow-hidden group shadow-lg hover:shadow-xl transition-all"
                 style={{
-                  background: "linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 50%, #1a1a1a 100%)",
-                  boxShadow: "0 0 25px rgba(251, 191, 36, 0.3), inset 0 1px 0 rgba(251, 191, 36, 0.2)",
+                  background: "linear-gradient(135deg, var(--action-primary) 0%, var(--accent-secondary) 100%)",
+                  color: "#ffffff"
                 }}
               >
-                {/* Shimmer effect */}
-                <span 
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{
-                    background: "linear-gradient(90deg, transparent 0%, rgba(251, 191, 36, 0.3) 50%, transparent 100%)",
-                    animation: "shimmer 2s infinite",
-                  }}
-                />
-                {/* Inner glow border */}
-                <span className="absolute inset-0 rounded-xl opacity-50 group-hover:opacity-100 transition-opacity" style={{
-                  background: "linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, transparent 50%, rgba(251, 191, 36, 0.1) 100%)",
-                }} />
-                <span className="relative flex items-center gap-2 drop-shadow-lg">
-                  <FaCrown className="text-amber-400" />
-                  <span style={{
-                    background: "linear-gradient(to right, #fcd34d, #f59e0b, #fbbf24)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}>Join Premium</span>
+                <span className="relative flex items-center gap-2 drop-shadow-sm">
+                  <FaCrown className="text-white" />
+                  <span>Join Premium</span>
                 </span>
               </button>
 
@@ -452,83 +435,49 @@ const Navbar = ({ user, onLogout }) => {
                     style={{ backdropFilter: "blur(12px)" }}
                     onClick={() => setShowPremiumToast(false)}
                   />
-                    {/* Portrait Metallic Card - NOT BLURRED */}
+                    {/* Portrait Medha Clean Card */}
                     <div 
                       onClick={(e) => e.stopPropagation()}
                       className="relative w-[500px] overflow-hidden rounded-[2.5rem] transform scale-100"
                       style={{
-                        background: "linear-gradient(165deg, #1f1f1f 0%, #0a0a0a 40%, #0d0d0d 60%, #1a1a1a 100%)",
-                        boxShadow: "0 0 100px rgba(251, 191, 36, 0.3), 0 40px 80px -20px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255,255,255,0.15)",
-                        border: "2px solid rgba(251, 191, 36, 0.35)",
+                        background: "#ffffff",
+                        boxShadow: "0 0 60px rgba(0, 0, 0, 0.1), 0 20px 40px -10px rgba(0, 0, 0, 0.1)",
+                        border: "1px solid var(--border-default)",
                         height: "580px",
                       }}
                     >
-                      {/* Curved Golden Lines Texture */}
-                      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40" preserveAspectRatio="none" viewBox="0 0 500 580">
-                        <defs>
-                          <linearGradient id="goldGradPremium" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.7" />
-                            <stop offset="50%" stopColor="#f59e0b" stopOpacity="0.4" />
-                            <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.7" />
-                          </linearGradient>
-                        </defs>
-                        <path d="M-50 80 Q170 30 390 130" stroke="url(#goldGradPremium)" strokeWidth="1.5" fill="none" />
-                        <path d="M-50 180 Q140 130 390 230" stroke="url(#goldGradPremium)" strokeWidth="1" fill="none" />
-                        <path d="M-50 300 Q200 250 390 350" stroke="url(#goldGradPremium)" strokeWidth="1.5" fill="none" />
-                        <path d="M-50 420 Q120 370 390 470" stroke="url(#goldGradPremium)" strokeWidth="1" fill="none" />
-                        <path d="M-50 520 Q180 480 390 560" stroke="url(#goldGradPremium)" strokeWidth="1" fill="none" />
-                        <path d="M340 60 Q170 110 0 40" stroke="url(#goldGradPremium)" strokeWidth="0.8" fill="none" />
-                        <path d="M340 240 Q120 290 0 190" stroke="url(#goldGradPremium)" strokeWidth="0.8" fill="none" />
-                        <path d="M340 400 Q150 450 0 360" stroke="url(#goldGradPremium)" strokeWidth="0.8" fill="none" />
-                      </svg>
-                      
-                      {/* Subtle metallic sheen */}
-                      <div className="absolute inset-0 pointer-events-none" style={{
-                        background: "radial-gradient(ellipse at 30% 15%, rgba(251, 191, 36, 0.15) 0%, transparent 50%)",
-                      }} />
-                      
-                      {/* Top golden accent bar */}
+                      {/* Top accent bar */}
                       <div className="h-2 w-full" style={{
-                        background: "linear-gradient(90deg, transparent 0%, #fbbf24 10%, #f59e0b 50%, #fbbf24 90%, transparent 100%)",
-                        boxShadow: "0 0 30px rgba(251, 191, 36, 0.6)",
+                        background: "linear-gradient(90deg, var(--action-primary), var(--accent-secondary))",
                       }} />
                       
-                      {/* Content - Clear, not blurred */}
-                      <div className="relative p-8 pt-8 flex flex-col items-center h-[560px]">
+                      {/* Content */}
+                      <div className="relative p-8 flex flex-col items-center h-[570px]">
                         {/* Premium Badge */}
-                        <div className="mb-5 px-5 py-2 rounded-full border border-amber-500/40" style={{
-                          background: "linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(251, 191, 36, 0.08) 100%)",
+                        <div className="mb-5 px-5 py-2 rounded-full border" style={{
+                          background: "var(--bg-secondary)",
+                          borderColor: "var(--action-primary)"
                         }}>
-                          <span className="text-xs font-bold tracking-[0.25em] text-amber-400 uppercase">✦ Premium ✦</span>
+                          <span className="text-xs font-bold tracking-[0.2em] text-[var(--action-primary)] uppercase">✦ Premium ✦</span>
                         </div>
                         
-                        {/* Crown icon with glow */}
+                        {/* Crown icon with soft background */}
                         <div className="relative mb-5">
-                          <div className="absolute inset-0 blur-2xl bg-amber-500/40 rounded-full scale-150" />
-                          <div className="relative inline-flex items-center justify-center w-28 h-28 rounded-full" style={{
-                            background: "linear-gradient(135deg, rgba(251, 191, 36, 0.3) 0%, rgba(251, 191, 36, 0.08) 100%)",
-                            border: "3px solid rgba(251, 191, 36, 0.5)",
-                            boxShadow: "0 0 50px rgba(251, 191, 36, 0.4), inset 0 0 30px rgba(251, 191, 36, 0.15)",
-                          }}>
-                            <FaCrown className="text-6xl text-amber-400" style={{ filter: "drop-shadow(0 0 20px rgba(251, 191, 36, 0.7))" }} />
+                          <div className="relative inline-flex items-center justify-center w-28 h-28 rounded-full bg-[var(--bg-tertiary)] border-4 border-white shadow-lg">
+                            <FaCrown className="text-5xl text-[var(--action-primary)]" />
                           </div>
                         </div>
                         
                         {/* Coming Soon Title */}
-                        <h2 className="text-4xl font-black mb-2 tracking-tight" style={{
-                          background: "linear-gradient(to right, #fcd34d, #f59e0b, #d97706, #f59e0b, #fcd34d)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          backgroundClip: "text",
-                        }}>
+                        <h2 className="text-4xl font-black mb-2 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)]">
                           Coming Soon
                         </h2>
                         
-                        <p className="text-gray-400 text-sm text-center mb-6">
+                        <p className="text-[var(--text-secondary)] text-sm font-medium text-center mb-6">
                           Premium features are being crafted for you
                         </p>
                         
-                        {/* Features List - ONLY THIS IS BLURRED */}
+                        {/* Features List */}
                         <div className="w-full space-y-2.5 mb-6 select-none relative">
                           <div style={{ filter: "blur(4px)" }}>
                             {[
@@ -540,20 +489,16 @@ const Navbar = ({ user, onLogout }) => {
                             ].map((feature, idx) => (
                               <div 
                                 key={idx}
-                                className="flex items-center gap-3 px-4 py-2.5 rounded-xl mb-2"
-                                style={{
-                                  background: "linear-gradient(90deg, rgba(251, 191, 36, 0.1) 0%, transparent 100%)",
-                                  borderLeft: "3px solid rgba(251, 191, 36, 0.4)",
-                                }}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl mb-2 bg-[var(--bg-tertiary)] border-l-4 border-[var(--accent-secondary)]"
                               >
-                                <span className="text-amber-400/80 text-sm font-semibold">{feature}</span>
+                                <span className="text-[var(--text-primary)] text-sm font-semibold">{feature}</span>
                               </div>
                             ))}
                           </div>
                           {/* Lock overlay */}
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="p-4 rounded-full bg-black/60 border border-amber-500/30">
-                              <FaLock className="text-amber-400 text-2xl" style={{ filter: "drop-shadow(0 0 15px rgba(251, 191, 36, 0.5))" }} />
+                            <div className="p-4 rounded-full bg-white/90 shadow-xl border border-[var(--border-default)]">
+                              <FaLock className="text-[var(--accent-secondary)] text-2xl" />
                             </div>
                           </div>
                         </div>
@@ -562,21 +507,15 @@ const Navbar = ({ user, onLogout }) => {
                         <button
                           onClick={handleNotifyPremium}
                           disabled={hasNotifiedPremium}
-                          className={`mt-auto px-10 py-3.5 rounded-2xl font-bold text-base transition-all ${
+                          className={`mt-auto px-10 py-3.5 rounded-2xl font-bold text-base transition-all shadow-lg ${
                             hasNotifiedPremium 
-                            ? "bg-amber-900/50 text-amber-500/50 cursor-not-allowed shadow-none border border-amber-900/30"
-                            : "bg-gradient-to-br from-[#fbbf24] via-[#f59e0b] to-[#d97706] text-[#0a0a0a] hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(251,191,36,0.5),0_15px_30px_-10px_rgba(0,0,0,0.6)]"
+                            ? "bg-[var(--bg-secondary)] text-[var(--text-secondary)] cursor-not-allowed shadow-none border border-[var(--border-default)]"
+                            : "bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)] text-white hover:scale-105 active:scale-95 hover:shadow-xl"
                           }`} 
                         >
                           {hasNotifiedPremium ? "Notified ✓" : `Notify Me (${premiumCount})`}
                         </button>
                       </div>
-                      
-                      {/* Bottom golden accent */}
-                      <div className="absolute bottom-0 left-0 right-0 h-1.5" style={{
-                        background: "linear-gradient(90deg, transparent 0%, #fbbf24 10%, #f59e0b 50%, #fbbf24 90%, transparent 100%)",
-                        boxShadow: "0 0 20px rgba(251, 191, 36, 0.5)",
-                      }} />
                     </div>
                 </div>,
                 document.body

@@ -53,7 +53,7 @@ const Loader = ({ fullScreen = false }) => {
             variants={letterVariants}
             initial="hidden"
             animate="visible"
-            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-[var(--accent-secondary)]"
+            className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)]"
           >
             {char}
           </motion.span>

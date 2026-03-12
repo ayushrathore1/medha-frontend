@@ -1,106 +1,102 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Inter:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,300&display=swap');
 
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: "Manrope", "Inter", sans-serif;
+  --font-sans: "DM Sans", sans-serif;
   
-  /* Sun-Jupiter Cosmic Palette */
-  --color-sun-gold: #fbbf24;
-  --color-sun-amber: #f59e0b;
-  --color-jupiter-orange: #d97706;
-  --color-jupiter-deep: #0a0a12;
-  --color-space-black: #12121a;
-  --color-dark-slate: #1a1a25;
+  /* MEDHA Landing Theme Palette */
+  --color-medha-cream: #F2EDE4;
+  --color-medha-navy: #1A1A2E;
+  --color-medha-green: #7DC67A;
+  --color-medha-purple: #8B5CF6;
+  --color-medha-card: #F9F6F1;
+  --color-medha-border: #E8E4DC;
 
-  /* shadcn/ui color tokens — mapped to Sun-Jupiter cosmic palette */
-  --color-background: #08080e;
-  --color-foreground: #f5f5f0;
+  /* shadcn/ui color tokens — mapped to Medha theme */
+  --color-background: #F2EDE4;
+  --color-foreground: #1A1A2E;
 
-  --color-card: #14141f;
-  --color-card-foreground: #f5f5f0;
+  --color-card: #F9F6F1;
+  --color-card-foreground: #1A1A2E;
 
-  --color-popover: #14141f;
-  --color-popover-foreground: #f5f5f0;
+  --color-popover: #F9F6F1;
+  --color-popover-foreground: #1A1A2E;
 
-  --color-primary: #fbbf24;
-  --color-primary-foreground: #0a0a12;
+  --color-primary: #7DC67A;
+  --color-primary-foreground: #ffffff;
 
-  --color-secondary: #1a1a25;
-  --color-secondary-foreground: #f5f5f0;
+  --color-secondary: #8B5CF6;
+  --color-secondary-foreground: #ffffff;
 
-  --color-muted: #1a1a25;
-  --color-muted-foreground: #a1a1aa;
+  --color-muted: #E8E4DC;
+  --color-muted-foreground: #6B6B6B;
 
-  --color-accent: #1a1a25;
-  --color-accent-foreground: #f5f5f0;
+  --color-accent: #8B5CF6;
+  --color-accent-foreground: #ffffff;
 
   --color-destructive: #ef4444;
-  --color-destructive-foreground: #f5f5f0;
+  --color-destructive-foreground: #ffffff;
 
-  --color-border: rgba(251, 191, 36, 0.12);
-  --color-input: rgba(251, 191, 36, 0.12);
-  --color-ring: #fbbf24;
+  --color-border: #E8E4DC;
+  --color-input: #E8E4DC;
+  --color-ring: #7DC67A;
 
-  --radius: 0.75rem;
+  --radius: 1rem;
 }
 
-/* =========================================
-   UNIFIED THEME: SUN-JUPITER COSMIC
-   Inspired by Sun's golden glow and Jupiter's bands
-   ========================================= */
 :root {
   --custom-font: var(--font-sans);
   font-family: var(--custom-font);
   line-height: 1.5;
   font-weight: 400;
 
-  /* Backgrounds - Deep Space */
-  --bg-primary: #0a0a12;       /* Jupiter Deep */
-  --bg-secondary: #08080e;     /* Space Void */
-  --bg-tertiary: #14141f;      /* Elevated Cards */
+  /* Backgrounds */
+  --bg-primary: #F2EDE4;
+  --bg-secondary: #E8E4DC;   
+  --bg-tertiary: #F9F6F1;   
   
-  /* Text - Warm Cosmic */
-  --text-primary: #f5f5f0;     /* Warm White */
-  --text-secondary: #a1a1aa;   /* Soft Gray */
-  --text-tertiary: #71717a;    /* Muted Gray */
+  /* Text */
+  --text-primary: #1A1A2E;
+  --text-secondary: #6B6B6B;
+  --text-tertiary: #9A9A9A;
   
-  /* Actions - Solar Gold */
-  --action-primary: #fbbf24;   /* Sun Gold */
-  --action-hover: #f59e0b;     /* Amber */
-  --accent-secondary: #d97706; /* Jupiter Orange */
+  /* Actions */
+  --action-primary: #7DC67A;
+  --action-hover: #6ab367;
+  --accent-secondary: #8B5CF6;
 
-  /* Borders - Subtle Gold */
-  --border-default: rgba(251, 191, 36, 0.12);
-  --border-glow: rgba(251, 191, 36, 0.25);
+  /* Borders */
+  --border-default: #E8E4DC;
+  --border-glow: rgba(125, 198, 122, 0.4);
   
   /* Shadows */
-  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(251, 191, 36, 0.08);
-  --shadow-glow: 0 0 30px rgba(251, 191, 36, 0.15);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+  --shadow-glow: 0 0 30px rgba(125, 198, 122, 0.15);
 
   /* Semantic Status Colors */
-  --color-success-bg: rgba(74, 222, 128, 0.12);
-  --color-success-text: #4ade80;
-  --color-warning-bg: rgba(251, 191, 36, 0.12);
-  --color-warning-text: #fbbf24;
-  --color-danger-bg: rgba(248, 113, 113, 0.12);
-  --color-danger-text: #f87171;
+  --color-success-bg: rgba(125, 198, 122, 0.15);
+  --color-success-text: #5AA157;
+  --color-warning-bg: rgba(251, 191, 36, 0.15);
+  --color-warning-text: #D97706;
+  --color-danger-bg: rgba(239, 68, 68, 0.1);
+  --color-danger-text: #DC2626;
   
   /* Gradients */
-  --gradient-start: #fbbf24;
-  --gradient-end: #d97706;
-  --gradient-gold: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  --gradient-start: #7DC67A;
+  --gradient-end: #8B5CF6;
+  --gradient-gold: linear-gradient(135deg, #7DC67A 0%, #8B5CF6 100%);
 
   /* Glass Effect */
-  --glass-bg: rgba(20, 20, 31, 0.85);
-  --glass-border: rgba(251, 191, 36, 0.15);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  --glass-bg: rgba(249, 246, 241, 0.85);
+  --glass-border: rgba(232, 228, 220, 0.8);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
 
   color: var(--text-primary);
-  background-color: var(--bg-secondary);
-  color-scheme: dark;
+  background-color: var(--bg-primary);
+  color-scheme: light;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -108,119 +104,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Light theme overrides (kept for backward compatibility with toggle if any) */
+.light-theme {
+  color-scheme: light;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #06060a;
+  background: var(--bg-primary);
   position: relative;
   overflow-x: hidden;
-}
-
-/* ===== PREMIUM COSMIC BACKGROUND ===== */
-/* Layer 1: Base gradient with prominent sun glows + corner/edge lighting */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -3;
-  background: 
-    /* CORNER GLOW - Top Right */
-    radial-gradient(ellipse 50% 40% at 100% 0%, rgba(251, 191, 36, 0.4) 0%, rgba(245, 158, 11, 0.1) 50%, transparent 70%),
-    /* CORNER GLOW - Top Left */
-    radial-gradient(ellipse 40% 35% at 0% 0%, rgba(252, 211, 77, 0.25) 0%, rgba(251, 191, 36, 0.05) 50%, transparent 70%),
-    /* CORNER GLOW - Bottom Right */
-    radial-gradient(ellipse 45% 40% at 100% 100%, rgba(217, 119, 6, 0.3) 0%, rgba(245, 158, 11, 0.08) 50%, transparent 70%),
-    /* CORNER GLOW - Bottom Left */
-    radial-gradient(ellipse 35% 30% at 0% 100%, rgba(245, 158, 11, 0.2) 0%, rgba(251, 191, 36, 0.05) 50%, transparent 70%),
-    /* EDGE GLOW - Right side */
-    radial-gradient(ellipse 20% 60% at 100% 50%, rgba(251, 191, 36, 0.15) 0%, transparent 70%),
-    /* EDGE GLOW - Left side */
-    radial-gradient(ellipse 15% 50% at 0% 50%, rgba(217, 119, 6, 0.12) 0%, transparent 70%),
-    /* MAIN SUN - Top right - very prominent */
-    radial-gradient(ellipse 80% 60% at 95% 0%, rgba(251, 191, 36, 0.35) 0%, rgba(245, 158, 11, 0.15) 30%, transparent 60%),
-    /* SECONDARY SUN - Left side */
-    radial-gradient(ellipse 60% 70% at 0% 40%, rgba(217, 119, 6, 0.25) 0%, rgba(251, 191, 36, 0.08) 40%, transparent 70%),
-    /* JUPITER GLOW - Bottom */
-    radial-gradient(ellipse 90% 50% at 50% 100%, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.08) 50%, transparent 80%),
-    /* MID AMBIENT - Center area warmth */
-    radial-gradient(ellipse 100% 80% at 50% 50%, rgba(251, 191, 36, 0.06) 0%, transparent 70%),
-    /* Deep base */
-    linear-gradient(180deg, #050508 0%, #06060a 40%, #08080c 70%, #0a0a0e 100%);
-  pointer-events: none;
-}
-
-/* Layer 2: Floating orbs and curved bands */
-body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -2;
-  background:
-    /* Large floating orb - left center */
-    radial-gradient(circle 300px at 15% 45%, rgba(251, 191, 36, 0.12) 0%, rgba(245, 158, 11, 0.04) 50%, transparent 70%),
-    /* Large floating orb - right */
-    radial-gradient(circle 250px at 85% 60%, rgba(217, 119, 6, 0.1) 0%, rgba(251, 191, 36, 0.03) 50%, transparent 70%),
-    /* Medium orb - top left */
-    radial-gradient(circle 180px at 25% 15%, rgba(252, 211, 77, 0.15) 0%, transparent 60%),
-    /* Medium orb - bottom right */
-    radial-gradient(circle 200px at 75% 85%, rgba(245, 158, 11, 0.12) 0%, transparent 60%),
-    /* Small accent orb 1 */
-    radial-gradient(circle 100px at 40% 70%, rgba(251, 191, 36, 0.1) 0%, transparent 70%),
-    /* Small accent orb 2 */
-    radial-gradient(circle 120px at 60% 25%, rgba(217, 119, 6, 0.08) 0%, transparent 70%),
-    /* Curved horizon band - top */
-    radial-gradient(ellipse 200% 15% at 50% 5%, rgba(251, 191, 36, 0.1) 0%, transparent 80%),
-    /* Curved horizon band - bottom */
-    radial-gradient(ellipse 180% 12% at 50% 95%, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-/* Layer 3: Light particles and subtle texture */
-#root::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-  background:
-    /* Star particle cluster - scattered */
-    radial-gradient(circle 3px at 10% 20%, rgba(252, 211, 77, 0.8) 0%, transparent 100%),
-    radial-gradient(circle 2px at 25% 10%, rgba(251, 191, 36, 0.7) 0%, transparent 100%),
-    radial-gradient(circle 4px at 45% 8%, rgba(245, 158, 11, 0.6) 0%, transparent 100%),
-    radial-gradient(circle 2px at 70% 15%, rgba(252, 211, 77, 0.7) 0%, transparent 100%),
-    radial-gradient(circle 3px at 90% 5%, rgba(251, 191, 36, 0.8) 0%, transparent 100%),
-    radial-gradient(circle 2px at 5% 60%, rgba(245, 158, 11, 0.6) 0%, transparent 100%),
-    radial-gradient(circle 3px at 95% 55%, rgba(251, 191, 36, 0.7) 0%, transparent 100%),
-    radial-gradient(circle 2px at 15% 85%, rgba(252, 211, 77, 0.6) 0%, transparent 100%),
-    radial-gradient(circle 4px at 50% 90%, rgba(245, 158, 11, 0.7) 0%, transparent 100%),
-    radial-gradient(circle 2px at 80% 80%, rgba(251, 191, 36, 0.6) 0%, transparent 100%),
-    radial-gradient(circle 3px at 35% 50%, rgba(252, 211, 77, 0.5) 0%, transparent 100%),
-    radial-gradient(circle 2px at 65% 45%, rgba(245, 158, 11, 0.5) 0%, transparent 100%),
-    /* Subtle grid texture */
-    linear-gradient(rgba(251, 191, 36, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(251, 191, 36, 0.02) 1px, transparent 1px);
-  background-size: 
-    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
-    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
-    100% 100%, 100% 100%,
-    60px 60px, 60px 60px;
-  pointer-events: none;
-  animation: twinkle 8s ease-in-out infinite alternate;
-}
-
-@keyframes twinkle {
-  0% { opacity: 0.7; }
-  50% { opacity: 1; }
-  100% { opacity: 0.8; }
 }
 
 /* Base Elements */
@@ -242,8 +137,7 @@ a {
 }
 
 a:hover {
-  color: var(--action-hover);
-  filter: brightness(110%);
+  filter: brightness(0.9);
 }
 
 /* Glass Panels */
@@ -255,10 +149,11 @@ a:hover {
 }
 
 .glass-card {
-  background: rgba(20, 20, 31, 0.7);
+  background: var(--bg-tertiary);
   border: 1px solid var(--border-default);
   box-shadow: var(--shadow-card);
   border-radius: 16px;
+  transition: all 0.2s ease;
 }
 
 .glass-card:hover {
@@ -266,29 +161,29 @@ a:hover {
   box-shadow: var(--shadow-card), var(--shadow-glow);
 }
 
-/* Custom Scrollbar - Golden */
+/* Custom Scrollbar - Green */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(20, 20, 31, 0.5);
+  background: rgba(0, 0, 0, 0.02);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(251, 191, 36, 0.3);
+  background: rgba(125, 198, 122, 0.5);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(251, 191, 36, 0.5);
+  background: rgba(125, 198, 122, 0.8);
 }
 
 /* Selection */
 ::selection {
-  background: rgba(251, 191, 36, 0.3);
+  background: rgba(125, 198, 122, 0.3);
   color: var(--text-primary);
 }
 
-/* Focus rings - golden */
+/* Focus rings */
 :focus-visible {
   outline: 2px solid var(--action-primary);
   outline-offset: 2px;
@@ -300,50 +195,26 @@ button, .btn {
 }
 
 button:hover:not(:disabled), .btn:hover:not(:disabled) {
-  filter: brightness(1.1);
+  filter: brightness(0.95);
 }
 
-/* Input Fields - Dark cosmic style */
+/* Input Fields */
 input, textarea, select {
-  background: rgba(20, 20, 31, 0.8);
+  background: #ffffff;
   border: 1px solid var(--border-default);
   color: var(--text-primary);
 }
 
 input:focus, textarea:focus, select:focus {
   border-color: var(--action-primary);
-  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15);
+  box-shadow: 0 0 0 3px rgba(125, 198, 122, 0.15);
 }
 
 input::placeholder, textarea::placeholder {
   color: var(--text-tertiary);
 }
 
-/* MOBILE PERFORMANCE */
-@media (max-width: 768px) {
-  body::before,
-  body::after {
-    opacity: 0.7;
-  }
-  
-  .glass-panel,
-  .glass-card {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-}
-
-/* Respect user preference for reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    animation-delay: 0.01ms !important;
-  }
-}
-
-/* Golden Shimmer Effect */
+/* Shimmer Effect */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -353,9 +224,9 @@ input::placeholder, textarea::placeholder {
   background: linear-gradient(
     90deg,
     var(--action-primary) 0%,
-    #fcd34d 25%,
+    var(--accent-secondary) 25%,
     var(--action-primary) 50%,
-    #fcd34d 75%,
+    var(--accent-secondary) 75%,
     var(--action-primary) 100%
   );
   background-size: 200% 100%;
@@ -367,150 +238,10 @@ input::placeholder, textarea::placeholder {
 
 /* Glow pulse animation */
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.2); }
-  50% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.4); }
+  0%, 100% { box-shadow: 0 0 20px rgba(125, 198, 122, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(125, 198, 122, 0.4); }
 }
 
 .glow-pulse {
   animation: glow-pulse 2s ease-in-out infinite;
 }
-
-/* ===== LIGHT THEME ===== */
-.light-theme {
-  /* Warm cream backgrounds */
-  --bg-primary: #fffbf5;
-  --bg-secondary: #faf6f0;
-  --bg-tertiary: #f5f0e8;
-  
-  /* Rich dark text */
-  --text-primary: #1a1612;
-  --text-secondary: #5c5347;
-  --text-tertiary: #8a7f72;
-  
-  /* Golden amber accents */
-  --action-primary: #d97706;
-  --action-hover: #b45309;
-  --accent-secondary: #f59e0b;
-
-  /* Warm borders */
-  --border-default: rgba(217, 119, 6, 0.15);
-  --border-glow: rgba(217, 119, 6, 0.3);
-  
-  /* Shadows */
-  --shadow-card: 0 4px 20px rgba(139, 90, 43, 0.08), 0 0 0 1px rgba(217, 119, 6, 0.08);
-  --shadow-glow: 0 0 25px rgba(217, 119, 6, 0.12);
-
-  /* Semantic colors for light */
-  --color-success-bg: rgba(34, 197, 94, 0.12);
-  --color-success-text: #15803d;
-  --color-warning-bg: rgba(245, 158, 11, 0.15);
-  --color-warning-text: #b45309;
-  --color-danger-bg: rgba(239, 68, 68, 0.12);
-  --color-danger-text: #dc2626;
-  
-  /* Glass effects for light */
-  --glass-bg: rgba(255, 251, 245, 0.9);
-  --glass-border: rgba(217, 119, 6, 0.12);
-  --glass-shadow: 0 8px 32px rgba(139, 90, 43, 0.1);
-
-  color-scheme: light;
-}
-
-/* Light theme body background - warm textured */
-.light-theme body {
-  background: #faf6f0;
-}
-
-.light-theme body::before {
-  background: 
-    /* Warm corner glow - top right */
-    radial-gradient(ellipse 50% 40% at 100% 0%, rgba(251, 191, 36, 0.15) 0%, transparent 60%),
-    /* Warm corner glow - top left */
-    radial-gradient(ellipse 40% 35% at 0% 0%, rgba(245, 158, 11, 0.1) 0%, transparent 60%),
-    /* Warm corner glow - bottom */
-    radial-gradient(ellipse 80% 40% at 50% 100%, rgba(217, 119, 6, 0.08) 0%, transparent 60%),
-    /* Ambient warmth */
-    radial-gradient(ellipse 100% 80% at 50% 50%, rgba(251, 191, 36, 0.04) 0%, transparent 70%),
-    /* Cream base with subtle variations */
-    linear-gradient(180deg, #fffbf5 0%, #faf6f0 40%, #f7f2ea 70%, #f5f0e8 100%);
-}
-
-.light-theme body::after {
-  background:
-    /* Floating warm orbs */
-    radial-gradient(circle 200px at 20% 30%, rgba(251, 191, 36, 0.06) 0%, transparent 60%),
-    radial-gradient(circle 180px at 80% 60%, rgba(217, 119, 6, 0.05) 0%, transparent 60%),
-    radial-gradient(circle 150px at 60% 20%, rgba(245, 158, 11, 0.04) 0%, transparent 60%),
-    /* Subtle paper texture */
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  background-size: 100% 100%, 100% 100%, 100% 100%, 150px 150px;
-  opacity: 1;
-}
-
-.light-theme #root::before {
-  background:
-    /* Subtle golden dots */
-    radial-gradient(circle 2px at 15% 25%, rgba(217, 119, 6, 0.3) 0%, transparent 100%),
-    radial-gradient(circle 2px at 85% 15%, rgba(245, 158, 11, 0.25) 0%, transparent 100%),
-    radial-gradient(circle 2px at 45% 85%, rgba(251, 191, 36, 0.2) 0%, transparent 100%),
-    radial-gradient(circle 2px at 75% 75%, rgba(217, 119, 6, 0.25) 0%, transparent 100%),
-    /* Subtle grid */
-    linear-gradient(rgba(217, 119, 6, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(217, 119, 6, 0.025) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 50px 50px, 50px 50px;
-  animation: none;
-  opacity: 1;
-}
-
-/* Light theme component overrides */
-.light-theme .glass-panel {
-  background: rgba(255, 251, 245, 0.95);
-  border: 1px solid rgba(217, 119, 6, 0.1);
-}
-
-.light-theme .glass-card {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(217, 119, 6, 0.1);
-  box-shadow: 0 4px 20px rgba(139, 90, 43, 0.06);
-}
-
-.light-theme .glass-card:hover {
-  border-color: rgba(217, 119, 6, 0.2);
-  box-shadow: 0 8px 30px rgba(139, 90, 43, 0.1);
-}
-
-/* Light scrollbar */
-.light-theme ::-webkit-scrollbar-track {
-  background: rgba(217, 119, 6, 0.05);
-}
-
-.light-theme ::-webkit-scrollbar-thumb {
-  background: rgba(217, 119, 6, 0.25);
-}
-
-.light-theme ::-webkit-scrollbar-thumb:hover {
-  background: rgba(217, 119, 6, 0.4);
-}
-
-/* Light selection */
-.light-theme ::selection {
-  background: rgba(217, 119, 6, 0.2);
-  color: var(--text-primary);
-}
-
-/* Light inputs */
-.light-theme input,
-.light-theme textarea,
-.light-theme select {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(217, 119, 6, 0.15);
-  color: var(--text-primary);
-}
-
-.light-theme input:focus,
-.light-theme textarea:focus,
-.light-theme select:focus {
-  border-color: var(--action-primary);
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
-}
-

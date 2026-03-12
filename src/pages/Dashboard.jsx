@@ -174,14 +174,14 @@ const Dashboard = () => {
                 {/* Stats Card */}
                 <Card 
                   data-tour="cards-mastered"
-                  className="flex items-center gap-4 bg-gradient-to-br from-indigo-500 to-violet-600 text-white border-none shrink-0"
+                  className="flex items-center gap-4 bg-gradient-to-br from-[var(--action-primary)] to-[var(--accent-secondary)] text-white border-none shrink-0"
                 >
                   <div className="p-3 bg-white/20 rounded-xl">
                     <FaBook size={24} />
                   </div>
                   <div>
                     <div className="text-3xl font-black">{stats.cardsLearned}</div>
-                    <div className="text-indigo-100 font-medium">Cards Mastered</div>
+                    <div className="text-white/80 font-medium">Cards Mastered</div>
                   </div>
                 </Card>
 
@@ -216,7 +216,7 @@ const Dashboard = () => {
                   className="absolute bottom-[11.5rem] left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 text-[var(--text-secondary)] text-xs font-bold z-20 bg-[var(--bg-primary)]/90 backdrop-blur-md px-5 py-2 rounded-full shadow-lg border border-[var(--border-default)] ring-1 ring-transparent"
                 >
                   <span>Scroll for more</span>
-                  <svg className="w-3.5 h-3.5 animate-bounce text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 animate-bounce text-[var(--accent-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                   </svg>
                 </motion.div>
