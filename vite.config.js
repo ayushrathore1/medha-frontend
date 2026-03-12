@@ -21,7 +21,6 @@ export default defineConfig({
           'vendor-motion': ['framer-motion'],
           'vendor-pdf': ['react-pdf'],
           'vendor-utils': ['date-fns', 'axios'],
-          'vendor-auth': ['@clerk/clerk-react'],
           // Other libraries (swr, markdown, katex) left to auto-chunk to avoid circular deps
         },
       },
