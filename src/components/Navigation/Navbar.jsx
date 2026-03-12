@@ -36,6 +36,7 @@ const getBaseNavItems = (userUniversity) => {
     { path: "/visualizations", label: "Visualizations", isFree: true, isUSP: true },
     { path: "/notes", label: "Notes Community", isFree: true },
     { path: "/exams", label: examLabel, isFree: true },
+    { path: "/chat", label: "Ask AI", isFree: true },
     { path: "/recommendations", label: "Recommendations", isFree: false },
   ];
 
@@ -48,22 +49,21 @@ const getBaseNavItems = (userUniversity) => {
 };
 
 const linkVariants = {
-  inactive: { scale: 1, color: "var(--text-secondary)" },
+  inactive: { scale: 1, color: "var(--text-primary)", fontWeight: 400 },
   hover: {
-    scale: 1.07,
     color: "var(--action-primary)",
-    transition: { type: "spring", stiffness: 320 },
+    transition: { duration: 0.15 },
   },
   active: {
-    scale: 1.12,
     color: "var(--action-primary)",
-    transition: { type: "spring", stiffness: 320 },
+    fontWeight: 500,
+    transition: { duration: 0.15 },
   },
 };
 
 const underlineVariants = {
-  hidden: { scaleX: 0 },
-  visible: { scaleX: 1, transition: { type: "spring", stiffness: 230 } },
+  hidden: { scaleX: 0, opacity: 0 },
+  visible: { scaleX: 1, opacity: 1, transition: { duration: 0.2 } },
 };
 
 const Navbar = ({ user, onLogout }) => {
@@ -78,47 +78,7 @@ const Navbar = ({ user, onLogout }) => {
   const [unreadNotifications, setUnreadNotifications] = useState(0); // Notifications
   const [imgError, setImgError] = useState(false);
   const [mobileImgError, setMobileImgError] = useState(false);
-  const [showPremiumToast, setShowPremiumToast] = useState(false);
-  const [premiumCount, setPremiumCount] = useState(0);
-  const [hasNotifiedPremium, setHasNotifiedPremium] = useState(false);
   const prevUnreadNotifications = useRef(0);
-
-  // Fetch premium stats on mount
-  useEffect(() => {
-    const fetchPremiumStats = async () => {
-      try {
-        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/premium/count`);
-        setPremiumCount(res.data.count);
-        
-        if (user) {
-          const statusRes = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/premium/status`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          });
-          setHasNotifiedPremium(statusRes.data.hasRegistered);
-        }
-      } catch (err) {
-        console.error("Failed to fetch premium stats", err);
-      }
-    };
-    fetchPremiumStats();
-  }, [user]);
-
-  const handleNotifyPremium = async () => {
-    if (!user) {
-      showAuthModal();
-      return;
-    }
-    
-    try {
-      setHasNotifiedPremium(true);
-      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/premium/notify`, {}, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setPremiumCount(res.data.count);
-    } catch (err) {
-       console.error("Failed to notify premium interest", err);
-    }
-  };
 
   // Reset image errors when user profile changes
   useEffect(() => {
@@ -250,28 +210,26 @@ const Navbar = ({ user, onLogout }) => {
       initial={{ y: -32, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
-      className="fixed top-0 left-0 w-full z-50 backdrop-blur-xl bg-[var(--bg-primary)]/90 border-b border-[var(--accent-secondary)]/20 shadow-sm transition-all"
+      style={{
+        background: 'rgba(242,237,228,0.9)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid #E8E4DC',
+      }}
+      className="fixed top-0 left-0 w-full z-50 transition-all"
     >
-      <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16 relative">
+      <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[72px] relative">
         {/* Logo Section */}
         <div
-          className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:opacity-90 transition-opacity shrink-0"
+          className="flex items-center cursor-pointer hover:opacity-90 transition-opacity shrink-0"
           onClick={handleLogoClick}
         >
-          {/* Logo - Rectangle SVG with overflow hidden */}
-          <div className="h-12 sm:h-14 overflow-hidden flex items-center">
-            <img
-              src={
-                theme === "premium-dark"
-                  ? "https://ik.imagekit.io/ayushrathore1/MEDHA%20Revision%20Logo%20(5)/4.svg?updatedAt=1767677218648" // Dark Mode Logo
-                  : "https://ik.imagekit.io/ayushrathore1/MEDHA%20Revision%20Logo%20(5)/2.svg?updatedAt=1767677218424" // Light Mode Logo
-              }
-              alt="MEDHA Revision"
-              className="h-20 sm:h-24 object-contain"
-              draggable="false"
-            />
-          </div>
-
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 800, fontSize: 22, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
+            MEDHA
+          </span>
+          <span className="logo-dot" style={{
+            display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
+            background: '#F59E0B', marginBottom: 2, marginLeft: 2, verticalAlign: 'middle'
+          }} />
         </div>
 
         {/* Desktop Nav - Always show for all users */}
@@ -296,8 +254,8 @@ const Navbar = ({ user, onLogout }) => {
                 data-tour={item.path === '/dashboard' ? 'dashboard-link' : 
                            item.path === '/rtu-exams' ? 'rtu-exams' : undefined}
                 style={{ position: "relative", display: "inline-block" }}
-                className={`font-medium px-3 py-2 rounded-xl transition-all duration-200 text-base whitespace-nowrap ${
-                  item.isAdmin ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30" : ""
+                className={`px-3 py-2 rounded-xl transition-all duration-150 text-[15px] whitespace-nowrap ${
+                  item.isAdmin ? "bg-amber-500/10 border border-amber-500/20" : ""
                 } ${isLocked ? "opacity-70" : ""}`}
               >
                 {({ isActive }) => (
@@ -310,10 +268,9 @@ const Navbar = ({ user, onLogout }) => {
                       inactive: { scale: 1, color: "#f59e0b" },
                       active: { scale: 1.12, color: "#f59e0b" },
                     } : linkVariants}
-                    className="relative block flex items-center gap-1.5"
+                    className="relative flex items-center gap-1.5"
                   >
                     {item.isAdmin && <FaCrown className="text-amber-500" />}
-                    {item.isUSP && <Sparkles size={16} className="text-[var(--accent-secondary)]" />}
                     {isLocked && <FaLock className="text-gray-400 text-[10px]" />}
                     {item.label}
                     {/* Notification badge for Messages */}
@@ -334,10 +291,10 @@ const Navbar = ({ user, onLogout }) => {
                         animate="visible"
                         exit="hidden"
                         variants={underlineVariants}
-                        className={`absolute left-0 right-0 -bottom-2 h-1 rounded-xl shadow ${
+                        className={`absolute left-0 right-0 -bottom-[12px] h-[2px] rounded-full ${
                           item.isAdmin 
-                            ? "bg-gradient-to-r from-amber-500 to-orange-500" 
-                            : "bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)]"
+                            ? "bg-amber-500" 
+                            : "bg-[var(--action-primary)]"
                         }`}
                       />
                     )}
@@ -408,118 +365,7 @@ const Navbar = ({ user, onLogout }) => {
                 )}
               </button>
 
-              {/* Join Premium Button - Medha Theme */}
-              <button
-                onClick={() => setShowPremiumToast(true)}
-                className="relative ml-3 px-5 py-2.5 rounded-xl font-bold text-sm overflow-hidden group shadow-lg hover:shadow-xl transition-all"
-                style={{
-                  background: "linear-gradient(135deg, var(--action-primary) 0%, var(--accent-secondary) 100%)",
-                  color: "#ffffff"
-                }}
-              >
-                <span className="relative flex items-center gap-2 drop-shadow-sm">
-                  <FaCrown className="text-white" />
-                  <span>Join Premium</span>
-                </span>
-              </button>
 
-              {/* Premium Coming Soon Modal - Using Portal */}
-              {showPremiumToast && ReactDOM.createPortal(
-                <div 
-                  className="fixed inset-0 flex items-center justify-center"
-                  style={{ zIndex: 999999 }}
-                >
-                  {/* Backdrop */}
-                  <div 
-                    className="absolute inset-0 bg-black/90"
-                    style={{ backdropFilter: "blur(12px)" }}
-                    onClick={() => setShowPremiumToast(false)}
-                  />
-                    {/* Portrait Medha Clean Card */}
-                    <div 
-                      onClick={(e) => e.stopPropagation()}
-                      className="relative w-[500px] overflow-hidden rounded-[2.5rem] transform scale-100"
-                      style={{
-                        background: "#ffffff",
-                        boxShadow: "0 0 60px rgba(0, 0, 0, 0.1), 0 20px 40px -10px rgba(0, 0, 0, 0.1)",
-                        border: "1px solid var(--border-default)",
-                        height: "580px",
-                      }}
-                    >
-                      {/* Top accent bar */}
-                      <div className="h-2 w-full" style={{
-                        background: "linear-gradient(90deg, var(--action-primary), var(--accent-secondary))",
-                      }} />
-                      
-                      {/* Content */}
-                      <div className="relative p-8 flex flex-col items-center h-[570px]">
-                        {/* Premium Badge */}
-                        <div className="mb-5 px-5 py-2 rounded-full border" style={{
-                          background: "var(--bg-secondary)",
-                          borderColor: "var(--action-primary)"
-                        }}>
-                          <span className="text-xs font-bold tracking-[0.2em] text-[var(--action-primary)] uppercase">✦ Premium ✦</span>
-                        </div>
-                        
-                        {/* Crown icon with soft background */}
-                        <div className="relative mb-5">
-                          <div className="relative inline-flex items-center justify-center w-28 h-28 rounded-full bg-[var(--bg-tertiary)] border-4 border-white shadow-lg">
-                            <FaCrown className="text-5xl text-[var(--action-primary)]" />
-                          </div>
-                        </div>
-                        
-                        {/* Coming Soon Title */}
-                        <h2 className="text-4xl font-black mb-2 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)]">
-                          Coming Soon
-                        </h2>
-                        
-                        <p className="text-[var(--text-secondary)] text-sm font-medium text-center mb-6">
-                          Premium features are being crafted for you
-                        </p>
-                        
-                        {/* Features List */}
-                        <div className="w-full space-y-2.5 mb-6 select-none relative">
-                          <div style={{ filter: "blur(4px)" }}>
-                            {[
-                              "✦ Unlimited AI Generations",
-                              "✦ Premium Visualizations",
-                              "✦ Priority Support",
-                              "✦ Ad-Free Experience",
-                              "✦ Early Access Features",
-                            ].map((feature, idx) => (
-                              <div 
-                                key={idx}
-                                className="flex items-center gap-3 px-4 py-3 rounded-xl mb-2 bg-[var(--bg-tertiary)] border-l-4 border-[var(--accent-secondary)]"
-                              >
-                                <span className="text-[var(--text-primary)] text-sm font-semibold">{feature}</span>
-                              </div>
-                            ))}
-                          </div>
-                          {/* Lock overlay */}
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="p-4 rounded-full bg-white/90 shadow-xl border border-[var(--border-default)]">
-                              <FaLock className="text-[var(--accent-secondary)] text-2xl" />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Notify Me Button */}
-                        <button
-                          onClick={handleNotifyPremium}
-                          disabled={hasNotifiedPremium}
-                          className={`mt-auto px-10 py-3.5 rounded-2xl font-bold text-base transition-all shadow-lg ${
-                            hasNotifiedPremium 
-                            ? "bg-[var(--bg-secondary)] text-[var(--text-secondary)] cursor-not-allowed shadow-none border border-[var(--border-default)]"
-                            : "bg-gradient-to-r from-[var(--action-primary)] to-[var(--accent-secondary)] text-white hover:scale-105 active:scale-95 hover:shadow-xl"
-                          }`} 
-                        >
-                          {hasNotifiedPremium ? "Notified ✓" : `Notify Me (${premiumCount})`}
-                        </button>
-                      </div>
-                    </div>
-                </div>,
-                document.body
-              )}
 
               <button
                 onClick={() => {
@@ -538,20 +384,19 @@ const Navbar = ({ user, onLogout }) => {
             <>
               <NavLink to="/login">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="hidden sm:block px-5 py-2.5 rounded-xl font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] border border-transparent hover:border-[var(--accent-secondary)]/30 transition-all"
+                  whileHover={{ color: '#7DC67A' }}
+                  className="hidden sm:block px-4 py-2 text-[15px] text-[var(--text-primary)] transition-colors"
                 >
-                  Log in
+                  Login
                 </motion.button>
               </NavLink>
               <NavLink to="/register">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-2.5 rounded-xl font-bold text-white shadow-lg bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:shadow-xl hover:opacity-90 transition-all"
+                  className="px-5 py-2.5 rounded-full font-semibold text-[14px] flex items-center gap-2 text-white transition-transform"
+                  style={{ background: 'var(--text-primary)' }}
                 >
-                  Join for Free
+                  Join Now
                 </motion.button>
               </NavLink>
             </>

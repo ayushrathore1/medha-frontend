@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import Navbar from "./Navigation/Navbar";
 import { AuthContext } from "../AuthContext";
 import TourOverlay from "./Common/TourOverlay";
-import ChatbotWidget from "./Common/ChatbotWidget";
 import ThemeSetupPrompt from "./Common/ThemeSetupPrompt";
 
 const MainLayout = ({ children }) => {
@@ -32,9 +31,6 @@ const MainLayout = ({ children }) => {
           {children}
         </main>
       )}
-
-      {/* Global Chatbot Widget */}
-      {!isFullScreenPage && <ChatbotWidget />}
     </div>
   );
 };

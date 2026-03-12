@@ -9,7 +9,6 @@ import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import SubjectManager from "../components/Dashboard/SubjectManager";
-import FloatingToolsSidebar from "../components/Dashboard/FloatingToolsSidebar";
 import FeatureAnnouncementModal from "../components/Common/FeatureAnnouncementModal";
 import DailyPlanWidget from "../components/Dashboard/DailyPlanWidget";
 import TodoList from "../components/Dashboard/TodoList";
@@ -280,9 +279,6 @@ const Dashboard = () => {
         isOpen={showFeatureModal} 
         onClose={() => setShowFeatureModal(false)} 
       />
-      
-      {/* Floating Clock & Timer Sidebar */}
-      <FloatingToolsSidebar />
     </div>
   );
 };

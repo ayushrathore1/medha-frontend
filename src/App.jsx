@@ -22,6 +22,7 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Welcome = React.lazy(() => import("./pages/Welcome"));
 const WelcomeDark = React.lazy(() => import("./pages/WelcomeDark"));
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
+const ChatbotPage = React.lazy(() => import("./pages/ChatbotPage"));
 const Notes = React.lazy(() => import("./pages/Notes"));
 const ForgotPassword = React.lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = React.lazy(() => import("./pages/ResetPassword"));
@@ -103,6 +104,12 @@ const AppContent = () => {
                   path="/visualizations"
                   element={
                     <PageTransition><VisualizeConcepts /></PageTransition>
+                  }
+                />
+                <Route
+                  path="/chat"
+                  element={
+                    <PageTransition><ChatbotPage /></PageTransition>
                   }
                 />
                 {/* Shareable visualization URLs */}
