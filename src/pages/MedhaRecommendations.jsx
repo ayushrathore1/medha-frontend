@@ -24,7 +24,24 @@ import {
   Brain,
   FileText,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import api from "../api/api";
+
+// ─── Design Tokens (matches app theme) ──────────────────────
+const T = {
+  bg: "#F2EDE4",
+  bgCard: "white",
+  bgTertiary: "#F9F6F1",
+  text: "#1A1A2E",
+  textSecondary: "#6B6B6B",
+  textMuted: "#9A9A9A",
+  border: "#E8E4DC",
+  accent: "#7DC67A",
+  accentDark: "#4A9E47",
+  accentSecondary: "#A78BFA",
+  amber: "#F59E0B",
+  font: "'DM Sans', 'Inter', sans-serif",
+};
 
 // ─── Score Circle SVG ───────────────────────────────────────
 const ScoreCircle = ({ score, size = 48 }) => {
@@ -33,8 +50,8 @@ const ScoreCircle = ({ score, size = 48 }) => {
   const offset = circumference - (score / 100) * circumference;
 
   const getColor = () => {
-    if (score >= 80) return "#22c55e";
-    if (score >= 60) return "#eab308";
+    if (score >= 80) return T.accentDark;
+    if (score >= 60) return T.amber;
     if (score >= 40) return "#f97316";
     return "#ef4444";
   };
@@ -42,39 +59,19 @@ const ScoreCircle = ({ score, size = 48 }) => {
   return (
     <div style={{ width: size, height: size, position: "relative" }}>
       <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={T.border} strokeWidth="3" />
         <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="rgba(255,255,255,0.1)"
-          strokeWidth="3"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={getColor()}
-          strokeWidth="3"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
+          cx={size / 2} cy={size / 2} r={radius} fill="none"
+          stroke={getColor()} strokeWidth="3"
+          strokeDasharray={circumference} strokeDashoffset={offset}
           strokeLinecap="round"
           style={{ transition: "stroke-dashoffset 1s ease-out" }}
         />
       </svg>
-      <span
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: size * 0.3,
-          fontWeight: 700,
-          color: getColor(),
-        }}
-      >
+      <span style={{
+        position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: size * 0.3, fontWeight: 700, color: getColor(),
+      }}>
         {score}
       </span>
     </div>
@@ -94,98 +91,58 @@ const VideoCard = ({ video, index, isTopPick }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08 }}
-      className="lecture-video-card"
       style={{
         background: isTopPick
-          ? "linear-gradient(135deg, rgba(34,197,94,0.08), rgba(16,185,129,0.04))"
-          : "rgba(255,255,255,0.03)",
+          ? "linear-gradient(135deg, rgba(125,198,122,0.08), rgba(74,158,71,0.04))"
+          : T.bgCard,
         border: isTopPick
-          ? "1px solid rgba(34,197,94,0.3)"
-          : "1px solid rgba(255,255,255,0.08)",
-        borderRadius: "16px",
-        padding: "16px",
+          ? `1.5px solid ${T.accent}`
+          : `1.5px solid ${T.border}`,
+        borderRadius: 16,
+        padding: 16,
         display: "flex",
-        gap: "16px",
+        gap: 16,
         position: "relative",
-        transition: "all 0.3s ease",
+        transition: "all 0.2s ease",
         cursor: "pointer",
       }}
-      whileHover={{ y: -2, borderColor: "rgba(255,255,255,0.2)" }}
-      onClick={() =>
-        window.open(
-          `https://youtube.com/watch?v=${video.videoId}`,
-          "_blank"
-        )
-      }
+      whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
+      onClick={() => window.open(`https://youtube.com/watch?v=${video.videoId}`, "_blank")}
     >
       {isTopPick && (
-        <div
-          style={{
-            position: "absolute",
-            top: "-10px",
-            right: "16px",
-            background: "linear-gradient(135deg, #22c55e, #10b981)",
-            color: "#fff",
-            padding: "3px 12px",
-            borderRadius: "100px",
-            fontSize: "11px",
-            fontWeight: 700,
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-            boxShadow: "0 2px 8px rgba(34,197,94,0.3)",
-          }}
-        >
+        <div style={{
+          position: "absolute", top: -10, right: 16,
+          background: `linear-gradient(135deg, ${T.accent}, ${T.accentDark})`,
+          color: "#fff", padding: "3px 12px", borderRadius: 100,
+          fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", gap: 4,
+          boxShadow: "0 2px 8px rgba(125,198,122,0.3)",
+        }}>
           <Star size={12} /> TOP PICK
         </div>
       )}
 
       {/* Thumbnail */}
-      <div style={{ flexShrink: 0, width: "180px", position: "relative" }}>
+      <div style={{ flexShrink: 0, width: 180, position: "relative" }}>
         <img
-          src={video.thumbnail}
-          alt={video.title}
-          style={{
-            width: "100%",
-            height: "100px",
-            objectFit: "cover",
-            borderRadius: "10px",
-          }}
+          src={video.thumbnail} alt={video.title}
+          style={{ width: "100%", height: 100, objectFit: "cover", borderRadius: 10 }}
         />
         {video.duration && (
-          <span
-            style={{
-              position: "absolute",
-              bottom: "6px",
-              right: "6px",
-              background: "rgba(0,0,0,0.8)",
-              color: "#fff",
-              padding: "2px 6px",
-              borderRadius: "4px",
-              fontSize: "11px",
-              fontWeight: 600,
-            }}
-          >
+          <span style={{
+            position: "absolute", bottom: 6, right: 6,
+            background: "rgba(0,0,0,0.75)", color: "#fff",
+            padding: "2px 6px", borderRadius: 4, fontSize: 11, fontWeight: 600,
+          }}>
             {video.duration}
           </span>
         )}
         {video.isTrustedChannel && (
-          <span
-            style={{
-              position: "absolute",
-              top: "6px",
-              left: "6px",
-              background: "rgba(34,197,94,0.9)",
-              color: "#fff",
-              padding: "2px 6px",
-              borderRadius: "4px",
-              fontSize: "10px",
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              gap: "3px",
-            }}
-          >
+          <span style={{
+            position: "absolute", top: 6, left: 6,
+            background: `rgba(74,158,71,0.9)`, color: "#fff",
+            padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 700,
+            display: "flex", alignItems: "center", gap: 3,
+          }}>
             <Shield size={10} /> Verified
           </span>
         )}
@@ -193,84 +150,40 @@ const VideoCard = ({ video, index, isTopPick }) => {
 
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <h4
-          style={{
-            fontSize: "14px",
-            fontWeight: 600,
-            color: "#f1f5f9",
-            marginBottom: "4px",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            lineHeight: 1.4,
-          }}
-        >
+        <h4 style={{
+          fontSize: 14, fontWeight: 600, color: T.text, marginBottom: 4,
+          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+          overflow: "hidden", lineHeight: 1.4,
+        }}>
           {video.title}
         </h4>
-        <p
-          style={{
-            fontSize: "12px",
-            color: "#94a3b8",
-            marginBottom: "6px",
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-          }}
-        >
+        <p style={{ fontSize: 12, color: T.textMuted, marginBottom: 6, display: "flex", alignItems: "center", gap: 4 }}>
           <Youtube size={12} /> {video.channelTitle || video.channelName}
         </p>
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            fontSize: "11px",
-            color: "#64748b",
-            marginBottom: "8px",
-          }}
-        >
-          <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+        <div style={{ display: "flex", gap: 12, fontSize: 11, color: T.textMuted, marginBottom: 8 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
             <Eye size={11} /> {formatNumber(video.viewCount)}
           </span>
-          <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
             <ThumbsUp size={11} /> {formatNumber(video.likeCount)}
           </span>
         </div>
 
-        {/* AI explanation */}
         {video.explanation && (
-          <p
-            style={{
-              fontSize: "11px",
-              color: "#a78bfa",
-              fontStyle: "italic",
-              marginBottom: "6px",
-              lineHeight: 1.4,
-            }}
-          >
-            <Sparkles
-              size={11}
-              style={{ display: "inline", marginRight: "4px" }}
-            />
+          <p style={{ fontSize: 11, color: T.accentDark, fontStyle: "italic", marginBottom: 6, lineHeight: 1.4 }}>
+            <Sparkles size={11} style={{ display: "inline", marginRight: 4 }} />
             {video.explanation}
           </p>
         )}
 
-        {/* Matched topics */}
         {video.matchedTopics?.length > 0 && (
-          <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
             {video.matchedTopics.slice(0, 3).map((t, i) => (
-              <span
-                key={i}
-                style={{
-                  background: "rgba(139,92,246,0.15)",
-                  color: "#a78bfa",
-                  padding: "2px 8px",
-                  borderRadius: "100px",
-                  fontSize: "10px",
-                  fontWeight: 500,
-                }}
-              >
+              <span key={i} style={{
+                background: "rgba(125,198,122,0.12)", color: T.accentDark,
+                padding: "2px 8px", borderRadius: 100, fontSize: 10, fontWeight: 600,
+                border: `1px solid rgba(125,198,122,0.2)`,
+              }}>
                 {t}
               </span>
             ))}
@@ -279,19 +192,10 @@ const VideoCard = ({ video, index, isTopPick }) => {
       </div>
 
       {/* Score */}
-      <div
-        style={{
-          flexShrink: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "4px",
-        }}
-      >
+      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
         <ScoreCircle score={video.aiScore || 0} />
-        <span style={{ fontSize: "9px", color: "#64748b", fontWeight: 500 }}>
-          RELEVANCE
+        <span style={{ fontSize: 9, color: T.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+          Relevance
         </span>
       </div>
     </motion.div>
@@ -301,82 +205,48 @@ const VideoCard = ({ video, index, isTopPick }) => {
 // ─── GFG Card ───────────────────────────────────────────────
 const GfgCard = ({ article, index }) => (
   <motion.a
-    href={article.link}
-    target="_blank"
-    rel="noopener noreferrer"
+    href={article.link} target="_blank" rel="noopener noreferrer"
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: index * 0.08 }}
     style={{
-      display: "flex",
-      gap: "12px",
-      padding: "14px",
-      background: "rgba(255,255,255,0.03)",
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: "12px",
-      textDecoration: "none",
-      transition: "all 0.3s ease",
-      alignItems: "center",
+      display: "flex", gap: 12, padding: 14,
+      background: T.bgCard, border: `1.5px solid ${T.border}`,
+      borderRadius: 14, textDecoration: "none",
+      transition: "all 0.2s ease", alignItems: "center",
     }}
-    whileHover={{ borderColor: "rgba(34,197,94,0.3)", y: -1 }}
+    whileHover={{ borderColor: T.accent, y: -1, boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}
   >
-    <div
-      style={{
-        width: "40px",
-        height: "40px",
-        borderRadius: "10px",
-        background: "linear-gradient(135deg, #22c55e, #10b981)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-      }}
-    >
+    <div style={{
+      width: 40, height: 40, borderRadius: 10,
+      background: `linear-gradient(135deg, ${T.accent}, ${T.accentDark})`,
+      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+    }}>
       <FileText size={18} color="#fff" />
     </div>
     <div style={{ flex: 1, minWidth: 0 }}>
-      <h4
-        style={{
-          fontSize: "13px",
-          fontWeight: 600,
-          color: "#e2e8f0",
-          marginBottom: "3px",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
+      <h4 style={{
+        fontSize: 13, fontWeight: 600, color: T.text, marginBottom: 3,
+        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+      }}>
         {article.title}
       </h4>
-      <p
-        style={{
-          fontSize: "11px",
-          color: "#64748b",
-          display: "-webkit-box",
-          WebkitLineClamp: 1,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-        }}
-      >
+      <p style={{
+        fontSize: 11, color: T.textMuted,
+        display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical", overflow: "hidden",
+      }}>
         {article.snippet}
       </p>
       {article.explanation && (
-        <p
-          style={{
-            fontSize: "10px",
-            color: "#a78bfa",
-            fontStyle: "italic",
-            marginTop: "3px",
-          }}
-        >
-          <Sparkles size={10} style={{ display: "inline", marginRight: "3px" }} />
+        <p style={{ fontSize: 10, color: T.accentDark, fontStyle: "italic", marginTop: 3 }}>
+          <Sparkles size={10} style={{ display: "inline", marginRight: 3 }} />
           {article.explanation}
         </p>
       )}
     </div>
-    <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+    <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 8 }}>
       <ScoreCircle score={article.aiScore || 0} size={36} />
-      <ExternalLink size={14} color="#64748b" />
+      <ExternalLink size={14} color={T.textMuted} />
     </div>
   </motion.a>
 );
@@ -387,9 +257,9 @@ const LoadingSteps = () => {
   const steps = [
     { icon: Search, text: "Searching approved channels…", color: "#3b82f6" },
     { icon: Youtube, text: "Fetching YouTube results…", color: "#ef4444" },
-    { icon: BookOpen, text: "Loading syllabus context…", color: "#eab308" },
-    { icon: Brain, text: "AI scoring against syllabus…", color: "#a78bfa" },
-    { icon: Sparkles, text: "Ranking & preparing results…", color: "#22c55e" },
+    { icon: BookOpen, text: "Loading syllabus context…", color: T.amber },
+    { icon: Brain, text: "AI scoring against syllabus…", color: T.accentSecondary },
+    { icon: Sparkles, text: "Ranking & preparing results…", color: T.accentDark },
   ];
 
   useEffect(() => {
@@ -400,20 +270,9 @@ const LoadingSteps = () => {
   }, []);
 
   return (
-    <div
-      style={{
-        padding: "40px 20px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "24px",
-      }}
-    >
-      <Loader2
-        size={40}
-        style={{ color: "#a78bfa", animation: "spin 1s linear infinite" }}
-      />
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%", maxWidth: "320px" }}>
+    <div style={{ padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
+      <Loader2 size={40} style={{ color: T.accent, animation: "spin 1s linear infinite" }} />
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%", maxWidth: 320 }}>
         {steps.map((s, i) => {
           const Icon = s.icon;
           const isActive = i === step;
@@ -422,30 +281,15 @@ const LoadingSteps = () => {
             <motion.div
               key={i}
               initial={{ opacity: 0.3 }}
-              animate={{
-                opacity: isDone || isActive ? 1 : 0.3,
-                x: isActive ? 8 : 0,
-              }}
+              animate={{ opacity: isDone || isActive ? 1 : 0.3, x: isActive ? 8 : 0 }}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                fontSize: "13px",
-                color: isDone ? "#22c55e" : isActive ? s.color : "#475569",
-                fontWeight: isActive ? 600 : 400,
+                display: "flex", alignItems: "center", gap: 10,
+                fontSize: 13, fontWeight: isActive ? 600 : 400,
+                color: isDone ? T.accentDark : isActive ? s.color : T.textMuted,
               }}
             >
-              {isDone ? (
-                <CheckCircle size={16} color="#22c55e" />
-              ) : (
-                <Icon
-                  size={16}
-                  style={
-                    isActive
-                      ? { animation: "pulse 1.5s ease-in-out infinite" }
-                      : {}
-                  }
-                />
+              {isDone ? <CheckCircle size={16} color={T.accentDark} /> : (
+                <Icon size={16} style={isActive ? { animation: "pulse 1.5s ease-in-out infinite" } : {}} />
               )}
               {s.text}
             </motion.div>
@@ -468,128 +312,117 @@ export default function MedhaRecommendations() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tab, setTab] = useState("all");
+  const [syllabusConnected, setSyllabusConnected] = useState(false);
+  const [syllabusSource, setSyllabusSource] = useState("global");
   const inputRef = useRef(null);
 
-  // Fetch subjects + trending on mount
   useEffect(() => {
     const fetchInit = async () => {
       try {
-        const [subRes, trendRes] = await Promise.all([
+        const [subRes, trendRes, sylRes] = await Promise.all([
           api.get("/recommendations/subjects").catch(() => ({ data: { subjects: [] } })),
           api.get("/recommendations/trending").catch(() => ({ data: { topics: [] } })),
+          api.get("/recommendations/syllabus").catch(() => ({ data: { semesters: [] } })),
         ]);
         setSubjects(subRes.data.subjects || []);
         setTrending(trendRes.data.topics || []);
-      } catch {
-        // Silently fail
-      }
+        setSyllabusSource(subRes.data.source || "global");
+        const sems = sylRes.data.semesters || [];
+        if (sems.length > 0) {
+          setSyllabusConnected(true);
+        }
+      } catch { /* silent */ }
     };
     fetchInit();
   }, []);
 
-  // Fetch units when subject changes
   useEffect(() => {
-    if (!subject) {
-      setUnits([]);
-      setUnit("");
-      return;
-    }
+    if (!subject) { setUnits([]); setUnit(""); return; }
     const fetchUnits = async () => {
       try {
-        const res = await api.get(
-          `/recommendations/units/${encodeURIComponent(subject)}`
-        );
+        const res = await api.get(`/recommendations/units/${encodeURIComponent(subject)}`);
         setUnits(res.data.units || []);
-      } catch {
-        setUnits([]);
-      }
+      } catch { setUnits([]); }
     };
     fetchUnits();
   }, [subject]);
 
-  // Search handler
   const handleSearch = async (searchTopic) => {
     const q = (searchTopic || topic).trim();
     if (q.length < 2) return;
-
-    setLoading(true);
-    setError("");
-    setResults(null);
-
+    setLoading(true); setError(""); setResults(null);
     try {
-      const res = await api.post("/recommendations/search", {
-        topic: q,
-        subject,
-        unit,
-      });
-      setResults(res.data.data);
-      setTab("all");
+      const res = await api.post("/recommendations/search", { topic: q, subject, unit });
+      setResults(res.data.data); setTab("all");
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Search failed. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+      setError(err.response?.data?.message || "Search failed. Please try again.");
+    } finally { setLoading(false); }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") handleSearch();
-  };
-
-  // Filter results by tab
+  const handleKeyDown = (e) => { if (e.key === "Enter") handleSearch(); };
   const displayYT = results?.youtube || [];
   const displayGfg = results?.gfg || [];
 
+  // Shared styles
+  const selectStyle = {
+    width: "100%", padding: "12px 16px", borderRadius: 12,
+    background: T.bgTertiary, border: `1.5px solid ${T.border}`,
+    color: T.text, fontSize: 13, appearance: "none",
+    cursor: "pointer", outline: "none", fontFamily: T.font,
+    transition: "border-color 200ms",
+  };
+
+  const chipStyle = (active) => ({
+    padding: "7px 16px", borderRadius: 10, fontSize: 12, fontWeight: 600,
+    background: active ? T.text : T.bgCard,
+    color: active ? "white" : T.textSecondary,
+    border: `1.5px solid ${active ? T.text : T.border}`,
+    cursor: "pointer", transition: "all 150ms", fontFamily: T.font,
+  });
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#0a0a0f",
-        color: "#e2e8f0",
-        padding: "24px",
-        fontFamily: "'Inter', 'DM Sans', sans-serif",
-      }}
-    >
+    <div style={{ minHeight: "100vh", fontFamily: T.font }}>
       <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-        .lecture-video-card:hover {
-          background: rgba(255,255,255,0.06) !important;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
       `}</style>
 
-      <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 8px" }}>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{ textAlign: "center", marginBottom: "32px" }}
+          style={{ textAlign: "center", marginBottom: 32 }}
         >
-          <h1
-            style={{
-              fontSize: "28px",
-              fontWeight: 800,
-              background: "linear-gradient(135deg, #a78bfa, #22c55e)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              marginBottom: "8px",
-            }}
-          >
-            <GraduationCap
-              size={28}
-              style={{ display: "inline", marginRight: "8px", color: "#a78bfa" }}
-            />
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            background: T.bgTertiary, border: `1.5px solid ${T.border}`,
+            borderRadius: 100, padding: "6px 16px", marginBottom: 16,
+            fontSize: 12, fontWeight: 600, color: T.accent,
+            textTransform: "uppercase", letterSpacing: "0.08em",
+          }}>
+            <GraduationCap size={14} />
             Smart Lecture Finder
+          </div>
+          {syllabusConnected && (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              background: "rgba(125,198,122,0.1)", border: `1px solid rgba(125,198,122,0.3)`,
+              borderRadius: 100, padding: "5px 14px", marginBottom: 16, marginLeft: 8,
+              fontSize: 11, fontWeight: 700, color: T.accentDark,
+            }}>
+              <CheckCircle size={12} />
+              Syllabus Connected
+            </div>
+          )}
+          <h1 style={{
+            fontSize: 32, fontWeight: 800, color: T.text,
+            letterSpacing: "-0.03em", marginBottom: 8,
+          }}>
+            Find the Best Lectures<span style={{ color: T.accent }}>.</span>
           </h1>
-          <p style={{ color: "#64748b", fontSize: "14px" }}>
-            AI-curated lectures from approved channels, scored against your
-            syllabus
+          <p style={{ color: T.textSecondary, fontSize: 15, lineHeight: 1.5, maxWidth: 480, margin: "0 auto" }}>
+            AI-curated lectures from approved channels, scored against your syllabus
           </p>
         </motion.div>
 
@@ -601,85 +434,36 @@ export default function MedhaRecommendations() {
           style={{
             display: "grid",
             gridTemplateColumns: subjects.length > 0 ? "1fr 1fr" : "1fr",
-            gap: "12px",
-            marginBottom: "16px",
+            gap: 12, marginBottom: 16,
           }}
         >
           {subjects.length > 0 && (
             <div style={{ position: "relative" }}>
-              <select
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  borderRadius: "12px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#e2e8f0",
-                  fontSize: "13px",
-                  appearance: "none",
-                  cursor: "pointer",
-                  outline: "none",
-                }}
-              >
+              <select value={subject} onChange={(e) => setSubject(e.target.value)} style={selectStyle}>
                 <option value="">All Subjects</option>
                 {subjects.map((s) => (
-                  <option key={s.code} value={s.name}>
-                    {s.name} (Sem {s.semester})
-                  </option>
+                  <option key={s.code} value={s.name}>{s.name} (Sem {s.semester})</option>
                 ))}
               </select>
-              <ChevronDown
-                size={14}
-                style={{
-                  position: "absolute",
-                  right: "14px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#64748b",
-                  pointerEvents: "none",
-                }}
-              />
+              <ChevronDown size={14} style={{
+                position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
+                color: T.textMuted, pointerEvents: "none",
+              }} />
             </div>
           )}
 
           {units.length > 0 && (
             <div style={{ position: "relative" }}>
-              <select
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  borderRadius: "12px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "#e2e8f0",
-                  fontSize: "13px",
-                  appearance: "none",
-                  cursor: "pointer",
-                  outline: "none",
-                }}
-              >
+              <select value={unit} onChange={(e) => setUnit(e.target.value)} style={selectStyle}>
                 <option value="">All Units</option>
                 {units.map((u) => (
-                  <option key={u.unitNumber} value={u.title}>
-                    Unit {u.unitNumber}: {u.title}
-                  </option>
+                  <option key={u.unitNumber} value={u.title}>Unit {u.unitNumber}: {u.title}</option>
                 ))}
               </select>
-              <ChevronDown
-                size={14}
-                style={{
-                  position: "absolute",
-                  right: "14px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#64748b",
-                  pointerEvents: "none",
-                }}
-              />
+              <ChevronDown size={14} style={{
+                position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)",
+                color: T.textMuted, pointerEvents: "none",
+              }} />
             </div>
           )}
         </motion.div>
@@ -689,110 +473,53 @@ export default function MedhaRecommendations() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          style={{
-            display: "flex",
-            gap: "10px",
-            marginBottom: "16px",
-          }}
+          style={{ display: "flex", gap: 10, marginBottom: 16 }}
         >
-          <div
-            style={{
-              flex: 1,
-              position: "relative",
-            }}
-          >
-            <Search
-              size={16}
-              style={{
-                position: "absolute",
-                left: "14px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "#64748b",
-              }}
-            />
+          <div style={{ flex: 1, position: "relative" }}>
+            <Search size={16} style={{
+              position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: T.textMuted,
+            }} />
             <input
-              ref={inputRef}
-              type="text"
-              value={topic}
+              ref={inputRef} type="text" value={topic}
               onChange={(e) => setTopic(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search any topic — e.g. 'SQL Joins', 'Binary Trees', 'ER Model'"
               style={{
-                width: "100%",
-                padding: "12px 16px 12px 40px",
-                borderRadius: "12px",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "#e2e8f0",
-                fontSize: "14px",
-                outline: "none",
-                transition: "border-color 0.3s ease",
+                width: "100%", padding: "14px 16px 14px 40px", borderRadius: 12,
+                background: T.bgTertiary, border: `1.5px solid ${T.border}`,
+                color: T.text, fontSize: 14, outline: "none",
+                transition: "border-color 200ms, box-shadow 200ms", fontFamily: T.font,
               }}
-              onFocus={(e) =>
-                (e.target.style.borderColor = "rgba(167,139,250,0.5)")
-              }
-              onBlur={(e) =>
-                (e.target.style.borderColor = "rgba(255,255,255,0.1)")
-              }
+              onFocus={(e) => { e.target.style.borderColor = T.accent; e.target.style.boxShadow = "0 0 0 3px rgba(125,198,122,0.1)"; e.target.style.background = "white"; }}
+              onBlur={(e) => { e.target.style.borderColor = T.border; e.target.style.boxShadow = "none"; e.target.style.background = T.bgTertiary; }}
             />
           </div>
           <button
             onClick={() => handleSearch()}
             disabled={loading || topic.trim().length < 2}
             style={{
-              padding: "12px 24px",
-              borderRadius: "12px",
-              background:
-                loading || topic.trim().length < 2
-                  ? "rgba(139,92,246,0.2)"
-                  : "linear-gradient(135deg, #7c3aed, #6d28d9)",
-              color: "#fff",
-              fontSize: "14px",
-              fontWeight: 600,
-              border: "none",
-              cursor:
-                loading || topic.trim().length < 2
-                  ? "not-allowed"
-                  : "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              transition: "all 0.3s ease",
+              padding: "12px 24px", borderRadius: 12,
+              background: loading || topic.trim().length < 2 ? T.border : T.text,
+              color: "#fff", fontSize: 14, fontWeight: 600, border: "none",
+              cursor: loading || topic.trim().length < 2 ? "not-allowed" : "pointer",
+              display: "flex", alignItems: "center", gap: 6,
+              transition: "all 0.2s ease", fontFamily: T.font,
               opacity: loading || topic.trim().length < 2 ? 0.5 : 1,
             }}
           >
-            {loading ? (
-              <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
-            ) : (
-              <Sparkles size={16} />
-            )}
+            {loading ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <Sparkles size={16} />}
             Search
           </button>
         </motion.div>
 
-        {/* Topic chips from syllabus units or trending */}
+        {/* Topic chips */}
         {!results && !loading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            style={{ marginBottom: "24px" }}
-          >
-            <p
-              style={{
-                fontSize: "12px",
-                color: "#475569",
-                marginBottom: "8px",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} style={{ marginBottom: 24 }}>
+            <p style={{ fontSize: 12, color: T.textMuted, marginBottom: 8, display: "flex", alignItems: "center", gap: 4, fontWeight: 600 }}>
               <TrendingUp size={12} />
               {units.length > 0 ? "Topics from syllabus:" : "Trending searches:"}
             </p>
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {(units.length > 0
                 ? units.flatMap((u) => u.topics.slice(0, 2))
                 : trending
@@ -801,28 +528,15 @@ export default function MedhaRecommendations() {
                 .map((t) => (
                   <button
                     key={t}
-                    onClick={() => {
-                      setTopic(t);
-                      handleSearch(t);
-                    }}
+                    onClick={() => { setTopic(t); handleSearch(t); }}
                     style={{
-                      padding: "6px 12px",
-                      borderRadius: "100px",
-                      background: "rgba(139,92,246,0.1)",
-                      border: "1px solid rgba(139,92,246,0.2)",
-                      color: "#a78bfa",
-                      fontSize: "12px",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
+                      padding: "6px 14px", borderRadius: 100,
+                      background: "rgba(125,198,122,0.08)", border: `1px solid rgba(125,198,122,0.2)`,
+                      color: T.accentDark, fontSize: 12, fontWeight: 500,
+                      cursor: "pointer", transition: "all 0.2s ease", fontFamily: T.font,
                     }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = "rgba(139,92,246,0.2)";
-                      e.target.style.borderColor = "rgba(139,92,246,0.4)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = "rgba(139,92,246,0.1)";
-                      e.target.style.borderColor = "rgba(139,92,246,0.2)";
-                    }}
+                    onMouseEnter={(e) => { e.target.style.background = "rgba(125,198,122,0.15)"; e.target.style.borderColor = "rgba(125,198,122,0.4)"; }}
+                    onMouseLeave={(e) => { e.target.style.background = "rgba(125,198,122,0.08)"; e.target.style.borderColor = "rgba(125,198,122,0.2)"; }}
                   >
                     {t}
                   </button>
@@ -840,16 +554,10 @@ export default function MedhaRecommendations() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             style={{
-              padding: "16px",
-              borderRadius: "12px",
-              background: "rgba(239,68,68,0.1)",
-              border: "1px solid rgba(239,68,68,0.2)",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              color: "#fca5a5",
-              fontSize: "13px",
-              marginBottom: "16px",
+              padding: 16, borderRadius: 14,
+              background: "rgba(239,68,68,0.06)", border: "1.5px solid rgba(239,68,68,0.2)",
+              display: "flex", alignItems: "center", gap: 10,
+              color: "#dc2626", fontSize: 13, marginBottom: 16,
             }}
           >
             <AlertCircle size={16} />
@@ -859,50 +567,29 @@ export default function MedhaRecommendations() {
 
         {/* Results */}
         {results && !loading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             {/* Study tip */}
             {results.studyTip && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 style={{
-                  padding: "14px 18px",
-                  borderRadius: "12px",
-                  background: "linear-gradient(135deg, rgba(139,92,246,0.1), rgba(34,197,94,0.05))",
-                  border: "1px solid rgba(139,92,246,0.2)",
-                  marginBottom: "20px",
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "10px",
+                  padding: "14px 18px", borderRadius: 14,
+                  background: T.bgTertiary,
+                  border: `1.5px solid ${T.border}`,
+                  marginBottom: 20,
+                  display: "flex", alignItems: "flex-start", gap: 10,
                 }}
               >
-                <Lightbulb
-                  size={18}
-                  style={{ color: "#eab308", flexShrink: 0, marginTop: "1px" }}
-                />
+                <Lightbulb size={18} style={{ color: T.amber, flexShrink: 0, marginTop: 1 }} />
                 <div>
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      color: "#a78bfa",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
+                  <span style={{
+                    fontSize: 11, fontWeight: 700, color: T.accent,
+                    textTransform: "uppercase", letterSpacing: "0.5px",
+                  }}>
                     AI Study Tip
                   </span>
-                  <p
-                    style={{
-                      fontSize: "13px",
-                      color: "#cbd5e1",
-                      marginTop: "4px",
-                      lineHeight: 1.5,
-                    }}
-                  >
+                  <p style={{ fontSize: 13, color: T.textSecondary, marginTop: 4, lineHeight: 1.5 }}>
                     {results.studyTip}
                   </p>
                 </div>
@@ -910,50 +597,21 @@ export default function MedhaRecommendations() {
             )}
 
             {/* Tab filter + result count */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "16px",
-              }}
-            >
-              <div style={{ display: "flex", gap: "8px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div style={{ display: "flex", gap: 8 }}>
                 {[
                   { key: "all", label: "All", count: displayYT.length + displayGfg.length },
                   { key: "youtube", label: "YouTube", count: displayYT.length },
                   { key: "gfg", label: "GFG", count: displayGfg.length },
                 ].map((t) => (
-                  <button
-                    key={t.key}
-                    onClick={() => setTab(t.key)}
-                    style={{
-                      padding: "6px 14px",
-                      borderRadius: "100px",
-                      background:
-                        tab === t.key
-                          ? "rgba(139,92,246,0.2)"
-                          : "rgba(255,255,255,0.03)",
-                      border:
-                        tab === t.key
-                          ? "1px solid rgba(139,92,246,0.4)"
-                          : "1px solid rgba(255,255,255,0.08)",
-                      color: tab === t.key ? "#a78bfa" : "#64748b",
-                      fontSize: "12px",
-                      fontWeight: 500,
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
+                  <button key={t.key} onClick={() => setTab(t.key)} style={chipStyle(tab === t.key)}>
                     {t.label}{" "}
-                    <span style={{ opacity: 0.6, fontSize: "11px" }}>
-                      ({t.count})
-                    </span>
+                    <span style={{ opacity: 0.6, fontSize: 11 }}>({t.count})</span>
                   </button>
                 ))}
               </div>
               {results.channelsUsed?.length > 0 && (
-                <span style={{ fontSize: "11px", color: "#475569" }}>
+                <span style={{ fontSize: 11, color: T.textMuted, fontWeight: 500 }}>
                   {results.channelsUsed.length} channels searched
                 </span>
               )}
@@ -961,32 +619,20 @@ export default function MedhaRecommendations() {
 
             {/* YouTube results */}
             {(tab === "all" || tab === "youtube") && displayYT.length > 0 && (
-              <div style={{ marginBottom: "24px" }}>
+              <div style={{ marginBottom: 24 }}>
                 {tab === "all" && (
-                  <h3
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: 700,
-                      color: "#94a3b8",
-                      marginBottom: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
+                  <h3 style={{
+                    fontSize: 14, fontWeight: 700, color: T.text,
+                    marginBottom: 12, display: "flex", alignItems: "center", gap: 6,
+                  }}>
                     <Youtube size={16} color="#ef4444" /> YouTube Lectures
                   </h3>
                 )}
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {displayYT.map((video, i) => (
                     <VideoCard
-                      key={video.videoId}
-                      video={video}
-                      index={i}
-                      isTopPick={
-                        results.topPick === `YT_${i}` ||
-                        (i === 0 && !results.topPick?.startsWith("GFG"))
-                      }
+                      key={video.videoId} video={video} index={i}
+                      isTopPick={results.topPick === `YT_${i}` || (i === 0 && !results.topPick?.startsWith("GFG"))}
                     />
                   ))}
                 </div>
@@ -995,29 +641,16 @@ export default function MedhaRecommendations() {
 
             {/* GFG results */}
             {(tab === "all" || tab === "gfg") && displayGfg.length > 0 && (
-              <div style={{ marginBottom: "24px" }}>
+              <div style={{ marginBottom: 24 }}>
                 {tab === "all" && (
-                  <h3
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: 700,
-                      color: "#94a3b8",
-                      marginBottom: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <BookOpen size={16} color="#22c55e" /> GeeksforGeeks Articles
+                  <h3 style={{
+                    fontSize: 14, fontWeight: 700, color: T.text,
+                    marginBottom: 12, display: "flex", alignItems: "center", gap: 6,
+                  }}>
+                    <BookOpen size={16} color={T.accentDark} /> GeeksforGeeks Articles
                   </h3>
                 )}
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px",
-                  }}
-                >
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {displayGfg.map((article, i) => (
                     <GfgCard key={i} article={article} index={i} />
                   ))}
@@ -1027,17 +660,9 @@ export default function MedhaRecommendations() {
 
             {/* Empty state */}
             {displayYT.length === 0 && displayGfg.length === 0 && (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "48px 20px",
-                  color: "#475569",
-                }}
-              >
-                <Search size={40} style={{ marginBottom: "12px", opacity: 0.3 }} />
-                <p style={{ fontSize: "14px" }}>
-                  No results found. Try a different topic or subject.
-                </p>
+              <div style={{ textAlign: "center", padding: "48px 20px", color: T.textMuted }}>
+                <Search size={40} style={{ marginBottom: 12, opacity: 0.3 }} />
+                <p style={{ fontSize: 14 }}>No results found. Try a different topic or subject.</p>
               </div>
             )}
           </motion.div>
@@ -1049,33 +674,37 @@ export default function MedhaRecommendations() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            style={{
-              textAlign: "center",
-              padding: "60px 20px",
-              color: "#334155",
-            }}
+            style={{ textAlign: "center", padding: "60px 20px", color: T.textSecondary }}
           >
-            <div
-              style={{
-                width: "80px",
-                height: "80px",
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, rgba(139,92,246,0.1), rgba(34,197,94,0.1))",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 16px",
-              }}
-            >
-              <GraduationCap size={36} style={{ color: "#7c3aed" }} />
+            <div style={{
+              width: 80, height: 80, borderRadius: "50%",
+              background: T.bgTertiary, border: `1.5px solid ${T.border}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 16px",
+            }}>
+              <GraduationCap size={36} style={{ color: T.accent }} />
             </div>
-            <p style={{ fontSize: "15px", fontWeight: 600, color: "#64748b", marginBottom: "6px" }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: T.text, marginBottom: 6 }}>
               Search for any engineering topic
             </p>
-            <p style={{ fontSize: "12px", color: "#475569" }}>
-              Select a subject to get syllabus-matched results, or search
-              directly
+            <p style={{ fontSize: 13, color: T.textMuted, marginBottom: 16 }}>
+              {syllabusConnected
+                ? "Your syllabus is connected — results will be scored against your actual syllabus"
+                : "Select a subject to get syllabus-matched results, or search directly"
+              }
             </p>
+            {!syllabusConnected && (
+              <Link to="/profile" style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "8px 20px", borderRadius: 10,
+                background: "rgba(125,198,122,0.1)", border: `1px solid rgba(125,198,122,0.25)`,
+                color: T.accentDark, fontSize: 12, fontWeight: 600,
+                textDecoration: "none", transition: "all 0.2s",
+              }}>
+                <BookOpen size={14} />
+                Upload your syllabus in Profile for accurate matching
+              </Link>
+            )}
           </motion.div>
         )}
       </div>

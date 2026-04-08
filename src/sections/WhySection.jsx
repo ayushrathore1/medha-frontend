@@ -14,7 +14,7 @@ const WhySection = ({ stats }) => {
     <section style={{ background: 'white', padding: '96px 0', position: 'relative', overflow: 'hidden' }}>
       <div className="dot-grid" style={{ position: 'absolute', right: 0, top: 0, width: '50%', height: '100%', pointerEvents: 'none', zIndex: 0, opacity: 0.3 }} />
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px', display: 'flex', alignItems: 'center', gap: 64, position: 'relative', zIndex: 10 }}>
+      <div className="why-layout section-container" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px', display: 'flex', alignItems: 'center', gap: 64, position: 'relative', zIndex: 10 }}>
         {/* LEFT — Timeline */}
         <div style={{ flex: 1 }}>
           <motion.div {...fadeUp}>
@@ -85,7 +85,7 @@ const WhySection = ({ stats }) => {
           </div>
 
           {/* Secondary cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="why-stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div style={{ background: '#1A1A2E', borderRadius: 16, padding: 24 }}>
               <div style={{ fontSize: 36, fontWeight: 900, color: '#F59E0B', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>10</div>
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.4 }}>Years of RTU Past Papers</div>

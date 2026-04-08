@@ -71,7 +71,7 @@ const SubjectsSection = () => {
 
   return (
     <section style={{ background: '#F2EDE4', padding: '96px 0', position: 'relative' }}>
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px' }}>
+      <div className="section-container" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <motion.div {...fadeUp}>
@@ -109,7 +109,7 @@ const SubjectsSection = () => {
         </motion.div>
 
         {/* Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, alignItems: 'start' }}>
+        <div className="subjects-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, alignItems: 'start' }}>
           {filtered.map((subj, i) => (
             <motion.div
               key={subj.name}

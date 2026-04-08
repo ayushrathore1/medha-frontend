@@ -5,6 +5,7 @@ import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import { AuthContext } from "../AuthContext";
+import api from "../api/api";
 import { generateAvatarOptions, getAvatarByIndex } from "../utils/avatarUtils";
 import { 
   FaMars, 
@@ -20,7 +21,14 @@ import {
   FaBuildingColumns,
   FaUsers,
   FaFileLines,
-  FaPen
+  FaPen,
+  FaCloudArrowUp,
+  FaBookOpen,
+  FaCircleCheck,
+  FaSpinner,
+  FaCircleXmark,
+  FaChevronDown,
+  FaChevronUp,
 } from "react-icons/fa6";
 
 const UNIVERSITIES = ["RTU", "GGSIPU", "DTU", "AKTU"];
@@ -261,6 +269,13 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [imgError, setImgError] = useState(false);
 
+  // Syllabus states
+  const [syllabusSemesters, setSyllabusSemesters] = useState([]);
+  const [syllabusUploading, setSyllabusUploading] = useState(false);
+  const [selectedSem, setSelectedSem] = useState(null);
+  const [expandedSubjects, setExpandedSubjects] = useState({});
+  const syllabusFileRef = useRef(null);
+
   // Reset img error when data changes
   useEffect(() => {
     setImgError(false);
@@ -280,6 +295,7 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
+    fetchSyllabus();
   }, []);
 
   const fetchProfile = async () => {
@@ -317,6 +333,61 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Syllabus API handlers
+  const fetchSyllabus = async () => {
+    try {
+      const res = await api.get("/recommendations/syllabus");
+      const sems = res.data.semesters || [];
+      setSyllabusSemesters(sems);
+      if (sems.length > 0 && !selectedSem) setSelectedSem(sems[0].semester);
+    } catch (err) {
+      console.error("Error fetching syllabus:", err);
+    }
+  };
+
+  const handleSyllabusUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = null;
+
+    setSyllabusUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("syllabus", file);
+      await api.post("/recommendations/syllabus/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      // Poll for processing completion
+      pollSyllabusStatus();
+    } catch (err) {
+      console.error("Syllabus upload failed:", err);
+      setSyllabusUploading(false);
+    }
+  };
+
+  const pollSyllabusStatus = () => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.get("/recommendations/syllabus");
+        const sems = res.data.semesters || [];
+        if (sems.length > 0) {
+          setSyllabusSemesters(sems);
+          if (!selectedSem) setSelectedSem(sems[0].semester);
+          setSyllabusUploading(false);
+          clearInterval(interval);
+        }
+      } catch {
+        clearInterval(interval);
+        setSyllabusUploading(false);
+      }
+    }, 4000);
+    setTimeout(() => clearInterval(interval), 120000);
+  };
+
+  const toggleSubjectExpand = (idx) => {
+    setExpandedSubjects(prev => ({ ...prev, [idx]: !prev[idx] }));
   };
 
   const handleSelect = (field, value) => {
@@ -809,6 +880,148 @@ const Profile = () => {
                       </div>
                   </Card>
              </div>
+
+             {/* University Syllabus Section */}
+             <Card className="bg-[var(--bg-secondary)] border border-[var(--border-default)]">
+                 <div className="flex items-center justify-between mb-4">
+                     <div className="flex items-center gap-4">
+                         <div className="p-3 bg-green-100 text-green-600 rounded-xl">
+                             <FaBookOpen size={24} />
+                         </div>
+                         <div>
+                             <h3 className="text-lg font-bold text-[var(--text-primary)]">University Syllabus</h3>
+                             <p className="text-sm text-[var(--text-secondary)]">
+                                 {syllabusSemesters.length > 0
+                                     ? `${userData?.university || ""} · ${userData?.branch || ""} · ${syllabusSemesters.length} semester${syllabusSemesters.length > 1 ? "s" : ""}`
+                                     : "Upload your syllabus — it will be shared with all students of your university & branch"}
+                             </p>
+                         </div>
+                     </div>
+                     <div className="flex gap-2">
+                         <input
+                             type="file"
+                             ref={syllabusFileRef}
+                             className="hidden"
+                             accept=".pdf,.jpg,.jpeg,.png"
+                             onChange={handleSyllabusUpload}
+                         />
+                         <Button
+                             variant="primary" size="sm"
+                             disabled={syllabusUploading}
+                             onClick={() => syllabusFileRef.current?.click()}
+                         >
+                             {syllabusUploading ? (
+                                 <><FaSpinner className="mr-1 animate-spin" /> Processing...</>
+                             ) : (
+                                 <><FaCloudArrowUp className="mr-1" /> {syllabusSemesters.length > 0 ? "Upload More" : "Upload Syllabus"}</>
+                             )}
+                         </Button>
+                     </div>
+                 </div>
+
+                 {/* Processing state */}
+                 {syllabusUploading && (
+                     <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3 mb-4">
+                         <FaSpinner className="text-amber-600 animate-spin" />
+                         <span className="text-sm text-amber-800 font-medium">
+                             Extracting and structuring your syllabus with AI... This may take up to a minute.
+                         </span>
+                     </div>
+                 )}
+
+                 {/* Semester tabs */}
+                 {syllabusSemesters.length > 0 && (
+                     <div className="space-y-3">
+                         <div className="flex gap-2 flex-wrap">
+                             {syllabusSemesters.map((sem) => (
+                                 <button
+                                     key={sem.semester}
+                                     onClick={() => { setSelectedSem(sem.semester); setExpandedSubjects({}); }}
+                                     className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                                         selectedSem === sem.semester
+                                             ? "bg-green-600 text-white shadow-md"
+                                             : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]"
+                                     }`}
+                                 >
+                                     Sem {sem.semester}
+                                     <span className={`text-xs ml-1.5 ${selectedSem === sem.semester ? "text-green-100" : "text-[var(--text-tertiary)]"}`}>
+                                         {sem.subjects?.length || 0}
+                                     </span>
+                                 </button>
+                             ))}
+                         </div>
+
+                         {/* Contributor badge */}
+                         {(() => {
+                             const activeSem = syllabusSemesters.find(s => s.semester === selectedSem);
+                             if (!activeSem) return null;
+                             return (
+                                 <div className="flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
+                                     <FaUsers size={12} />
+                                     <span>Contributed by {activeSem.contributorCount || 1} student{activeSem.contributorCount > 1 ? "s" : ""}</span>
+                                 </div>
+                             );
+                         })()}
+
+                         {/* Subjects for selected semester */}
+                         {(() => {
+                             const activeSem = syllabusSemesters.find(s => s.semester === selectedSem);
+                             if (!activeSem) return null;
+                             return (
+                                 <div className="space-y-2">
+                                     {(activeSem.subjects || []).map((subj, idx) => (
+                                         <div key={idx} className="border border-[var(--border-default)] rounded-xl overflow-hidden">
+                                             <button
+                                                 onClick={() => toggleSubjectExpand(idx)}
+                                                 className="w-full flex items-center justify-between p-3 hover:bg-[var(--bg-tertiary)] transition-colors text-left"
+                                             >
+                                                 <div>
+                                                     <span className="text-sm font-bold text-[var(--text-primary)]">{subj.name}</span>
+                                                     {subj.code && <span className="text-xs text-[var(--text-tertiary)] ml-2">({subj.code})</span>}
+                                                     <span className="text-xs text-green-600 ml-2">{subj.units?.length || 0} units</span>
+                                                 </div>
+                                                 {expandedSubjects[idx] ? <FaChevronUp size={12} className="text-[var(--text-tertiary)]" /> : <FaChevronDown size={12} className="text-[var(--text-tertiary)]" />}
+                                             </button>
+                                             {expandedSubjects[idx] && (
+                                                 <div className="px-3 pb-3 space-y-2">
+                                                     {(subj.units || []).map((unit, ui) => (
+                                                         <div key={ui} className="bg-[var(--bg-tertiary)] rounded-lg p-2.5">
+                                                             <div className="text-xs font-bold text-[var(--text-secondary)] mb-1">
+                                                                 Unit {unit.unitNumber}: {unit.title}
+                                                             </div>
+                                                             <div className="flex flex-wrap gap-1">
+                                                                 {(unit.topics || []).map((topic, ti) => (
+                                                                     <span key={ti} className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">
+                                                                         {topic}
+                                                                     </span>
+                                                                 ))}
+                                                             </div>
+                                                         </div>
+                                                     ))}
+                                                 </div>
+                                             )}
+                                         </div>
+                                     ))}
+                                 </div>
+                             );
+                         })()}
+                     </div>
+                 )}
+
+                 {/* No syllabus state */}
+                 {syllabusSemesters.length === 0 && !syllabusUploading && (
+                     <div className="text-center p-6 bg-[var(--bg-tertiary)] rounded-xl border border-dashed border-[var(--border-default)]">
+                         <FaCloudArrowUp size={32} className="mx-auto text-[var(--text-tertiary)] mb-3" />
+                         <p className="text-sm font-bold text-[var(--text-primary)] mb-1">Upload your university syllabus</p>
+                         <p className="text-xs text-[var(--text-secondary)] mb-4">
+                             PDF or image of your syllabus. AI extracts subjects & topics — shared with all students of your university for accurate lecture matching.
+                         </p>
+                         <Button variant="primary" size="sm" onClick={() => syllabusFileRef.current?.click()}>
+                             <FaCloudArrowUp className="mr-1" /> Choose File
+                         </Button>
+                     </div>
+                 )}
+             </Card>
           </>
         )}
 

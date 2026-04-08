@@ -57,7 +57,7 @@ const TestimonialsSection = () => {
         lineHeight: 1, top: '-10%', left: '5%', fontFamily: 'Georgia, serif'
       }}>66</div>
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px', position: 'relative', zIndex: 10 }}>
+      <div className="section-container" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px', position: 'relative', zIndex: 10 }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <motion.div {...fadeUp}>
@@ -84,6 +84,7 @@ const TestimonialsSection = () => {
         {/* Carousel */}
         <div ref={constraintsRef} style={{ overflow: 'hidden', cursor: 'grab' }}>
           <motion.div
+            className="testimonials-carousel"
             drag="x"
             dragConstraints={constraintsRef}
             style={{ display: 'flex', gap: 24, paddingBottom: 8 }}

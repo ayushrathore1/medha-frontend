@@ -12,7 +12,7 @@ const CTASection = ({ totalStudents }) => {
       <div className="grain" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
       <div className="line-grid" style={{ position: 'absolute', inset: 0, zIndex: 0, opacity: 0.5 }} />
 
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 32px', textAlign: 'center', position: 'relative', zIndex: 10 }}>
+      <div className="section-container" style={{ maxWidth: 800, margin: '0 auto', padding: '0 32px', textAlign: 'center', position: 'relative', zIndex: 10 }}>
         <motion.div {...fadeUp}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -37,7 +37,7 @@ const CTASection = ({ totalStudents }) => {
           Join <span style={{ color: '#F59E0B', fontWeight: 700 }}>{totalStudents}</span> students already using MEDHA
         </motion.p>
 
-        <motion.div {...fadeUp} style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 40 }}>
+        <motion.div {...fadeUp} className="cta-buttons" style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 40 }}>
           <Link to="/register" className="btn-shine" style={{
             background: '#7DC67A', color: '#1A1A2E', padding: '16px 32px',
             borderRadius: 12, fontWeight: 700, fontSize: 16, border: 'none',

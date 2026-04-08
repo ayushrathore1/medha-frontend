@@ -35,7 +35,7 @@ const IdentitySection = ({ stats }) => {
         pointerEvents: 'none', zIndex: 0, opacity: 0.4
       }} />
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px', display: 'flex', alignItems: 'center', gap: 80, position: 'relative', zIndex: 10 }}>
+      <div className="identity-layout section-container" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px', display: 'flex', alignItems: 'center', gap: 80, position: 'relative', zIndex: 10 }}>
         {/* LEFT */}
         <div style={{ flex: 1 }}>
           <motion.div {...fadeUp}>
@@ -66,16 +66,16 @@ const IdentitySection = ({ stats }) => {
           </motion.p>
 
           {/* Stats Row */}
-          <motion.div {...fadeUp} style={{ display: 'flex', alignItems: 'center', gap: 32, marginTop: 40 }}>
+          <motion.div {...fadeUp} className="identity-stats-row" style={{ display: 'flex', alignItems: 'center', gap: 32, marginTop: 40 }}>
             {[
               { value: stats.totalStudents, label: 'STUDENTS', color: '#7DC67A', live: true },
               { value: '250+', label: 'TOPICS COVERED', color: '#1A1A2E', live: false },
               { value: '10', label: 'YEARS OF PYQs', color: '#F59E0B', live: false },
             ].map((stat, i) => (
               <React.Fragment key={i}>
-                {i > 0 && <div style={{ width: 1, height: 60, background: '#E8E4DC' }} />}
+                {i > 0 && <div className="identity-stats-separator" style={{ width: 1, height: 60, background: '#E8E4DC' }} />}
                 <div>
-                  <div style={{ fontSize: 48, fontWeight: 800, color: stat.color, letterSpacing: '-0.04em', lineHeight: 1 }}>
+                  <div className="stat-number" style={{ fontSize: 48, fontWeight: 800, color: stat.color, letterSpacing: '-0.04em', lineHeight: 1 }}>
                     {stat.live ? <CountUp target={stat.value} /> : stat.value}
                   </div>
                   <div style={{ fontSize: 11, fontWeight: 600, color: '#9A9A9A', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>

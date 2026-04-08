@@ -52,7 +52,7 @@ const FeaturesSection = () => {
       <div className="dot-grid" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ position: 'absolute', right: '-2%', bottom: '-5%', fontSize: 300, fontWeight: 900, color: 'rgba(26,26,46,0.025)', lineHeight: 1, pointerEvents: 'none', userSelect: 'none' }}>4</div>
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px', position: 'relative', zIndex: 10 }}>
+      <div className="section-container" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px', position: 'relative', zIndex: 10 }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <motion.div {...fadeUp}>
@@ -95,7 +95,7 @@ const FeaturesSection = () => {
         </motion.div>
 
         {/* Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(filteredFeatures.length, 4)}, 1fr)`, gap: 24, alignItems: 'end' }}>
+        <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(filteredFeatures.length, 4)}, 1fr)`, gap: 24, alignItems: 'end' }}>
           {filteredFeatures.map((feat, i) => (
             <motion.div
               key={feat.title}

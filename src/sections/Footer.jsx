@@ -6,9 +6,9 @@ const Footer = () => {
     <footer style={{ background: '#F2EDE4', position: 'relative', overflow: 'hidden' }}>
       <div className="hatch" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, opacity: 0.3 }} />
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 32px 32px', position: 'relative', zIndex: 10 }}>
+      <div className="section-container" style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 32px 32px', position: 'relative', zIndex: 10 }}>
         {/* 4-column layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 48, marginBottom: 48 }}>
+        <div className="footer-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 48, marginBottom: 48 }}>
           {/* Brand */}
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: '#1A1A2E', letterSpacing: '-0.03em', marginBottom: 16 }}>
@@ -60,7 +60,7 @@ const Footer = () => {
           <div>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#1A1A2E', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 16 }}>Stay Updated</div>
             <p style={{ fontSize: 14, color: '#6B6B6B', lineHeight: 1.5, marginBottom: 12 }}>Get exam tips and updates straight to your inbox.</p>
-            <div style={{ display: 'flex', borderRadius: 10, overflow: 'hidden', border: '1px solid #E8E4DC' }}>
+            <div className="footer-newsletter-input" style={{ display: 'flex', borderRadius: 10, overflow: 'hidden', border: '1px solid #E8E4DC' }}>
               <input
                 placeholder="your@email.com"
                 style={{
@@ -78,7 +78,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom bar */}
-        <div style={{
+        <div className="footer-bottom" style={{
           borderTop: '1px solid #E8E4DC', paddingTop: 24,
           display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>

@@ -33,10 +33,8 @@ const getBaseNavItems = (userUniversity) => {
 
   const items = [
     { path: "/dashboard", label: "Dashboard", isFree: false },
-    { path: "/visualizations", label: "Visualizations", isFree: true, isUSP: true },
     { path: "/notes", label: "Notes Community", isFree: true },
     { path: "/exams", label: examLabel, isFree: true },
-    { path: "/chat", label: "Ask AI", isFree: true },
     { path: "/recommendations", label: "Recommendations", isFree: false },
   ];
 
@@ -307,28 +305,7 @@ const Navbar = ({ user, onLogout }) => {
           {/* Right side elements for logged-in users */}
           {user && (
             <>
-              {/* AI Chat Button */}
-              <button
-                onClick={() => openChatbot()}
-                className="relative ml-2 p-2 rounded-full hover:bg-[var(--bg-tertiary)] transition-colors"
-                title="Ask Medha AI"
-              >
-                <FaComments className="text-xl text-[var(--text-secondary)] hover:text-[var(--action-primary)]" />
-              </button>
 
-              {/* Notification Bell */}
-              <NavLink
-                to="/notifications"
-                className="relative ml-2 p-2 rounded-full hover:bg-[var(--bg-tertiary)] transition-colors"
-                title="Notifications"
-              >
-                <FaBell className="text-xl text-[var(--text-secondary)] hover:text-[var(--action-primary)]" />
-                {unreadNotifications > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded-full min-w-[16px] text-center">
-                    {unreadNotifications > 99 ? "99+" : unreadNotifications}
-                  </span>
-                )}
-              </NavLink>
 
               {/* Profile avatar */}
               <button

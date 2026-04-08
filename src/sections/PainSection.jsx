@@ -26,6 +26,7 @@ const PainSection = () => {
 
   return (
     <section style={{ background: '#1A1A2E', position: 'relative', overflow: 'hidden', padding: '96px 0' }}>
+
       {/* BG — Line grid */}
       <div className="line-grid" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }} />
 
@@ -41,7 +42,7 @@ const PainSection = () => {
       <div className="blob blob-purple" style={{ width: 400, height: 400, left: -80, bottom: -80, position: 'absolute', opacity: 0.08 }} />
 
       {/* Content */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px', position: 'relative', zIndex: 10 }}>
+      <div className="section-container" style={{ maxWidth: 1100, margin: '0 auto', padding: '0 32px', position: 'relative', zIndex: 10 }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 64 }}>
           <motion.div {...fadeUp}>
@@ -70,7 +71,7 @@ const PainSection = () => {
         </div>
 
         {/* Cards Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+        <div className="pain-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
           {cards.map((card, i) => (
             <motion.div
               key={i}
@@ -96,7 +97,7 @@ const PainSection = () => {
               }}
             >
               {/* CSS Illustrations */}
-              <div style={{ height: 180, position: 'relative', marginBottom: 32 }}>
+              <div className="pain-card-illustration" style={{ height: 180, position: 'relative', marginBottom: 32 }}>
                 {/* Top ambient glow */}
                 <div style={{
                   position: 'absolute', top: -20, left: '50%', transform: 'translateX(-50%)',

@@ -12,7 +12,6 @@ import Loader from "./components/Common/Loader";
 const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 
 
-const Notifications = React.lazy(() => import("./pages/Notifications"));
 const Profile = React.lazy(() => import("./pages/Profile"));
 const Login = React.lazy(() => import("./pages/Login"));
 const Register = React.lazy(() => import("./pages/Register"));
@@ -22,18 +21,15 @@ const NotFound = React.lazy(() => import("./pages/NotFound"));
 const Welcome = React.lazy(() => import("./pages/Welcome"));
 const WelcomeDark = React.lazy(() => import("./pages/WelcomeDark"));
 const LandingPage = React.lazy(() => import("./pages/LandingPage"));
-const ChatbotPage = React.lazy(() => import("./pages/ChatbotPage"));
 const Notes = React.lazy(() => import("./pages/Notes"));
 const ForgotPassword = React.lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = React.lazy(() => import("./pages/ResetPassword"));
 const RTUExams = React.lazy(() => import("./pages/RTUExams"));
-const VisualizeConcepts = React.lazy(() => import("./components/RTUExams/VisualizeConcepts"));
 const ExamsPage = React.lazy(() => import("./pages/ExamsPage"));
 const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
 const TeamDashboard = React.lazy(() => import("./pages/TeamDashboard"));
 const JoinTeam = React.lazy(() => import("./pages/JoinTeam"));
 const PersonalizationSetup = React.lazy(() => import("./pages/PersonalizationSetup"));
-const VisualizationPage = React.lazy(() => import("./pages/VisualizationPage"));
 const PublicProfile = React.lazy(() => import("./pages/PublicProfile"));
 const MedhaRecommendations = React.lazy(() => import("./pages/MedhaRecommendations"));
 
@@ -100,27 +96,7 @@ const AppContent = () => {
                     <PageTransition><RTUExams /></PageTransition>
                   }
                 />
-                <Route
-                  path="/visualizations"
-                  element={
-                    <PageTransition><VisualizeConcepts /></PageTransition>
-                  }
-                />
-                <Route
-                  path="/chat"
-                  element={
-                    <PageTransition><ChatbotPage /></PageTransition>
-                  }
-                />
-                {/* Shareable visualization URLs */}
-                <Route
-                  path="/visualize/:animationId"
-                  element={<VisualizationPage />}
-                />
-                <Route
-                  path="/visualize/:animationId/:step"
-                  element={<VisualizationPage />}
-                />
+
                 <Route
                   path="/dashboard"
                   element={
@@ -131,14 +107,7 @@ const AppContent = () => {
                 />
 
 
-                <Route
-                  path="/notifications"
-                  element={
-                    <ProtectedRoute>
-                      <PageTransition><Notifications /></PageTransition>
-                    </ProtectedRoute>
-                  }
-                />
+
                 <Route
                   path="/admin"
                   element={
