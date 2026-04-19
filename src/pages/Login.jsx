@@ -404,6 +404,9 @@ const Login = () => {
         @media (max-width: 768px) {
           .auth-grid { grid-template-columns: 1fr !important; }
           .auth-left { display: none !important; }
+          .auth-mobile-logo { display: flex !important; align-items: center; gap: 4px; }
+          .auth-form-panel { padding: 24px 16px !important; }
+          .auth-form-card { padding: 24px !important; }
         }
         .btn-shine { position: relative; overflow: hidden; }
         .btn-shine::after {
@@ -431,7 +434,7 @@ const Login = () => {
 
       {/* RIGHT — Form */}
       <div
-        className="auth-grid"
+        className="auth-grid auth-form-panel"
         style={{
           background: "#F2EDE4",
           padding: "60px 48px",
@@ -471,6 +474,7 @@ const Login = () => {
             width: "100%",
             margin: "0 auto",
           }}
+          className="auth-form-card"
         >
           {/* Mobile logo */}
           <div

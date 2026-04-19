@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import YearSelector from "../components/RTUExams/YearSelector";
 import UnitWeightageBar from "../components/RTUExams/UnitWeightageBar";
+import SubjectTabCards from "../components/RTUExams/SubjectTabCards";
 import {
   FaArrowLeft,
   FaLayerGroup,
@@ -21,6 +22,16 @@ import {
 import { useTour } from "../context/TourContext";
 import useAuthGuard from "../hooks/useAuthGuard";
 
+// 4th semester subjects (hardcoded — no backend API endpoint yet)
+const SEM_4_SUBJECTS = [
+  { name: "Discrete Mathematics Structure" },
+  { name: "Technical Communication" },
+  { name: "Microprocessor & Interfaces" },
+  { name: "Database Management System" },
+  { name: "Theory Of Computation" },
+  { name: "Data Communication & Computer Networks" },
+];
+
 const RTUExams = () => {
   const { isGuestMode } = useTour();
   const { requireAuth } = useAuthGuard();
@@ -28,6 +39,7 @@ const RTUExams = () => {
   
   
   const [viewState, setViewState] = useState("semesters");
+  const [selectedSem, setSelectedSem] = useState(null);
   const [subjects, setSubjects] = useState(
     isGuestMode
       ? [
@@ -126,19 +138,65 @@ const RTUExams = () => {
   const [weightageLoading, setWeightageLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false); // For admin image upload capability
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // ── Sync URL → State on mount / URL change ──
   useEffect(() => {
-    // Skip API calls if in guest mode (tour)
     if (isGuestMode) return;
 
-    // Always fetch subjects for everyone (free feature)
-    fetchSubjects();
+    const paramSem = searchParams.get("sem");
+    const paramSubject = searchParams.get("subject");
+    const paramYear = searchParams.get("year");
+    const paramView = searchParams.get("view");
 
-    // Only check admin status if logged in
-    const token = localStorage.getItem("token");
-    if (token) {
-      checkAdminStatus();
+    if (paramSubject && paramYear) {
+      // Deepest: unit weightage
+      const yr = parseInt(paramYear, 10);
+      setSelectedSubject({ name: paramSubject });
+      if (paramSem) setSelectedSem(parseInt(paramSem, 10));
+      setSelectedYear(yr);
+      setViewState("unitWeightage");
+      setLoading(false);
+      fetchUnitWeightage(paramSubject, yr);
+    } else if (paramSubject && paramView === "pyq") {
+      // Year selection for a subject
+      setSelectedSubject({ name: paramSubject });
+      if (paramSem) setSelectedSem(parseInt(paramSem, 10));
+      setViewState("years");
+      setLoading(false);
+      fetchAvailableYears(paramSubject);
+    } else if (paramSubject && paramSem) {
+      // Tab cards (subject resources)
+      const sem = parseInt(paramSem, 10);
+      setSelectedSem(sem);
+      setSelectedSubject({ name: paramSubject });
+      setViewState("tabCards");
+      fetchSubjects(sem);
+    } else if (paramSem) {
+      // Subjects list for a semester
+      const sem = parseInt(paramSem, 10);
+      setSelectedSem(sem);
+      setViewState("subjects");
+      fetchSubjects(sem);
+    } else {
+      // Default: semesters
+      setViewState("semesters");
+      setLoading(false);
     }
-  }, [isGuestMode]);
+
+    const token = localStorage.getItem("token");
+    if (token) checkAdminStatus();
+  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Helper: update URL params without full re-render ──
+  const syncUrl = (params) => {
+    const p = new URLSearchParams();
+    if (params.sem) p.set("sem", params.sem);
+    if (params.subject) p.set("subject", params.subject);
+    if (params.view) p.set("view", params.view);
+    if (params.year) p.set("year", params.year);
+    setSearchParams(p, { replace: true });
+  };
 
   const checkAdminStatus = async () => {
     try {
@@ -155,15 +213,19 @@ const RTUExams = () => {
     }
   };
 
-  const fetchSubjects = async () => {
+  const fetchSubjects = async (sem = 3) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-      const headers = { Authorization: `Bearer ${token}` };
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
-
-      const res = await axios.get(`${baseUrl}/api/rtu/3rd-sem`, { headers });
-      setSubjects(res.data.topics);
+      if (sem === 4) {
+        // 4th sem uses hardcoded subjects (no backend endpoint yet)
+        setSubjects(SEM_4_SUBJECTS);
+      } else {
+        const token = localStorage.getItem("token");
+        const headers = { Authorization: `Bearer ${token}` };
+        const baseUrl = import.meta.env.VITE_BACKEND_URL;
+        const res = await axios.get(`${baseUrl}/api/rtu/3rd-sem`, { headers });
+        setSubjects(res.data.topics);
+      }
     } catch (error) {
       console.error("Error fetching RTU subjects:", error);
       if (error.response && error.response.status === 401) {
@@ -221,18 +283,29 @@ const RTUExams = () => {
   };
 
   const handleSubjectClick = async (subject) => {
-    setSelectedSubject(subject);
+    if (selectedSubject?.name === subject.name && viewState === "tabCards") {
+      setSelectedSubject(null);
+      setViewState("subjects");
+      syncUrl({ sem: selectedSem });
+    } else {
+      setSelectedSubject(subject);
+      setViewState("tabCards");
+      syncUrl({ sem: selectedSem, subject: subject.name });
+    }
+  };
+
+  const handlePYQClick = async () => {
     setViewState("years");
-    // Skip API call in guest mode - we already have dummy years
-    if (!isGuestMode) {
-      await fetchAvailableYears(subject.name);
+    syncUrl({ sem: selectedSem, subject: selectedSubject?.name, view: "pyq" });
+    if (!isGuestMode && selectedSubject) {
+      await fetchAvailableYears(selectedSubject.name);
     }
   };
 
   const handleYearSelect = async (year) => {
     setSelectedYear(year);
     setViewState("unitWeightage");
-    // Skip API call in guest mode - we already have dummy weightage data
+    syncUrl({ sem: selectedSem, subject: selectedSubject?.name, year });
     if (!isGuestMode) {
       await fetchUnitWeightage(selectedSubject.name, year);
     }
@@ -243,12 +316,27 @@ const RTUExams = () => {
       setViewState("years");
       setSelectedYear(null);
       setUnitWeightageData(null);
+      syncUrl({ sem: selectedSem, subject: selectedSubject?.name, view: "pyq" });
     } else if (viewState === "years") {
+      // If deep-linked (no semester context), go straight to semesters
+      if (!selectedSem) {
+        setViewState("semesters");
+        setSelectedSubject(null);
+        setAvailableYears([]);
+        syncUrl({});
+      } else {
+        setViewState("tabCards");
+        setAvailableYears([]);
+        syncUrl({ sem: selectedSem, subject: selectedSubject?.name });
+      }
+    } else if (viewState === "tabCards") {
       setViewState("subjects");
       setSelectedSubject(null);
-      setAvailableYears([]);
+      syncUrl({ sem: selectedSem });
     } else if (viewState === "subjects") {
       setViewState("semesters");
+      setSelectedSem(null);
+      syncUrl({});
     }
   };
 
@@ -270,12 +358,21 @@ const RTUExams = () => {
     }
   };
 
+  const getSemLabel = (sem) => {
+    if (sem === 1) return "1st";
+    if (sem === 2) return "2nd";
+    if (sem === 3) return "3rd";
+    return `${sem}th`;
+  };
+
   const getHeaderTitle = () => {
     switch (viewState) {
       case "semesters":
         return "The Archives";
       case "subjects":
-        return "3rd Semester";
+        return `${getSemLabel(selectedSem)} Semester`;
+      case "tabCards":
+        return selectedSubject?.name || "Subject Resources";
       case "years":
         return selectedSubject?.name || "Select Year";
       case "unitWeightage":
@@ -290,7 +387,9 @@ const RTUExams = () => {
       case "semesters":
         return "Access previous year papers and smart analysis.";
       case "subjects":
-        return "Choose a subject to explore exam patterns.";
+        return "Choose a subject to explore resources.";
+      case "tabCards":
+        return "Choose a resource type to explore.";
       case "years":
         return "Pick an academic year to verify trends.";
       case "unitWeightage":
@@ -303,12 +402,12 @@ const RTUExams = () => {
   if (loading && subjects.length === 0) return <Loader fullScreen />;
 
   return (
-    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-transparent">
+    <div className="min-h-screen w-full px-3 py-6 sm:px-8 sm:py-8 bg-transparent">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex flex-col items-center text-center relative mb-12">
+        <div className="flex flex-col items-center text-center mb-6 sm:mb-12">
           {viewState !== "semesters" && (
-            <div className="absolute left-0 top-0">
+            <div className="w-full flex justify-start mb-4">
               <Button
                 onClick={handleBack}
                 variant="ghost"
@@ -327,10 +426,10 @@ const RTUExams = () => {
             className="max-w-2xl"
             data-tour="rtu-exams"
           >
-            <h1 className="text-4xl md:text-5xl font-black text-[var(--text-primary)] tracking-tight mb-3">
+            <h1 className="text-3xl md:text-5xl font-black text-[var(--text-primary)] tracking-tight mb-3">
               {getHeaderTitle()}
             </h1>
-            <p className="text-lg text-[var(--text-secondary)] font-medium">
+            <p className="text-base md:text-lg text-[var(--text-secondary)] font-medium">
               {getHeaderSubtitle()}
             </p>
           </motion.div>
@@ -351,8 +450,7 @@ const RTUExams = () => {
                 transition={{ duration: 0.15 }}
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
               >
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => {
-                    const isActive = sem === 3;
+                  {[3, 4].map((sem) => {
                     return (
                     <motion.div
                       key={sem}
@@ -360,50 +458,35 @@ const RTUExams = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: sem * 0.02, duration: 0.15 }}
                         data-tour={sem === 3 ? "rtu-semester" : undefined}
-                        onClick={
-                          isActive ? () => setViewState("subjects") : undefined
-                        }
-                        className={isActive ? "cursor-pointer group" : ""}
+                        onClick={() => {
+                            setSelectedSem(sem);
+                            if (!isGuestMode) fetchSubjects(sem);
+                            setViewState("subjects");
+                            syncUrl({ sem });
+                        }}
+                        className="cursor-pointer group"
                       >
                         <Card
-                          className={`w-full flex flex-col items-center p-8 gap-3 transition-all bg-[var(--bg-secondary)] border-[var(--border-default)] ${
-                            isActive
-                              ? "hover:border-[var(--action-primary)] hover:shadow-xl hover:-translate-y-1"
-                              : "opacity-70 cursor-not-allowed"
-                          }`}
+                          className="w-full flex flex-col items-center p-8 gap-3 transition-all bg-[var(--bg-secondary)] border-[var(--border-default)] hover:border-[var(--action-primary)] hover:shadow-xl hover:-translate-y-1"
                         >
                           <div
-                            className={`p-4 rounded-full transition-colors ${
-                              isActive
-                                ? "bg-[var(--action-primary)]/10 text-[var(--action-primary)] group-hover:bg-[var(--action-primary)] group-hover:text-white"
-                                : "bg-[var(--bg-tertiary)] text-[var(--text-tertiary)]"
-                            }`}
+                            className="p-4 rounded-full transition-colors bg-[var(--action-primary)]/10 text-[var(--action-primary)] group-hover:bg-[var(--action-primary)] group-hover:text-white"
                           >
                             <FaBuildingColumns size={32} />
                           </div>
                           <h2
-                            className={`text-xl font-bold whitespace-nowrap ${isActive ? "text-[var(--text-primary)]" : "text-[var(--text-tertiary)]"}`}
+                            className="text-xl font-bold whitespace-nowrap text-[var(--text-primary)]"
                           >
-                            {sem === 1
-                              ? "1st"
-                              : sem === 2
-                                ? "2nd"
-                                : sem === 3
-                                  ? "3rd"
-                                  : `${sem}th`}{" "}
+                            {sem === 3 ? "3rd" : `${sem}th`}{" "}
                             Semester
                           </h2>
                           <p className="text-[var(--text-tertiary)] font-medium text-sm text-center">
                             Computer Science & Engineering
                           </p>
                           <div
-                            className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide transition-colors ${
-                              isActive
-                                ? "bg-[var(--bg-tertiary)] text-[var(--text-secondary)] group-hover:bg-[var(--action-primary)]/10 group-hover:text-[var(--action-primary)]"
-                                : "bg-[var(--color-warning-bg)]/10 text-[var(--color-warning-text)]"
-                            }`}
+                            className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide transition-colors bg-[var(--bg-tertiary)] text-[var(--text-secondary)] group-hover:bg-[var(--action-primary)]/10 group-hover:text-[var(--action-primary)]"
                           >
-                            {isActive ? "Click to Open" : "Coming Soon"}
+                            Click to Open
                           </div>
                         </Card>
                       </motion.div>
@@ -413,7 +496,7 @@ const RTUExams = () => {
               )}
 
               {/* Subjects View */}
-              {viewState === "subjects" && (
+              {(viewState === "subjects" || viewState === "tabCards") && (
                 <motion.div
                   data-tour="rtu-subjects"
                   key="subjects"
@@ -421,82 +504,118 @@ const RTUExams = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.15 }}
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                 >
-                  {subjects.map((subject, idx) => (
-                    <motion.div
-                      key={subject._id || subject.name}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.02, duration: 0.15 }}
-                    >
-                      <Card
-                        onClick={() => handleSubjectClick(subject)}
-                        className="cursor-pointer group h-full flex flex-col justify-between hover:border-[var(--action-primary)] hover:shadow-lg transition-all bg-[var(--bg-secondary)] border-[var(--border-default)]"
-                      >
-                        <div>
-                          <div className="flex justify-between items-start mb-4">
-                            <div className="p-2.5 bg-[var(--action-primary)]/10 text-[var(--action-primary)] rounded-xl">
-                              <FaBook size={20} />
-                            </div>
-                            {subject.viewed === subject.total &&
-                              subject.total > 0 && (
-                                <FaCircleCheck
-                                  className="text-emerald-500"
-                                  title="Completed"
-                                />
-                              )}
-                          </div>
-                          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 line-clamp-2 leading-tight group-hover:text-[var(--action-primary)] transition-colors">
-                            {subject.name}
-                          </h3>
-
-                          {[
-                            "Advanced Engineering Mathematics",
-                            "Data Structures and Algorithms",
-                            "Object Oriented Programming",
-                            "Digital Electronics",
-                            "Software Engineering",
-                            "Technical Communication",
-                            "Managerial Economics and Financial Accounting",
-                          ].includes(subject.name) && (
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--action-primary)]/10 text-[var(--action-primary)] rounded-lg text-xs font-bold border border-[var(--action-primary)]/20 mb-4">
-                              <FaChartBar /> Includes Analysis
-                            </div>
-                          )}
-                        </div>
-
-                        <div
-                          className="pt-4 mt-2 border-t border-[var(--border-default)] flex gap-2"
-                          onClick={(e) => e.stopPropagation()}
+                  {/* Subject Cards — horizontal scroll when a subject is selected */}
+                  <div
+                    className={viewState === "tabCards"
+                      ? "flex gap-4 overflow-x-auto pb-4 scrollbar-thin"
+                      : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    }
+                    style={viewState === "tabCards" ? { scrollSnapType: "x mandatory" } : {}}
+                  >
+                    {subjects.map((subject, idx) => {
+                      const isSelected = selectedSubject?.name === subject.name && viewState === "tabCards";
+                      return (
+                        <motion.div
+                          key={subject._id || subject.name}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.02, duration: 0.15 }}
+                          style={viewState === "tabCards" ? { scrollSnapAlign: "start", minWidth: 200, maxWidth: 220, flexShrink: 0 } : {}}
                         >
-                          {["easy", "medium", "hard"].map((d) => (
-                            <button
-                              key={d}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                requireAuth(
-                                  () => handleDifficultyChange(subject.name, d),
-                                  "Voting Difficulty"
-                                );
-                              }}
-                              className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
-                                subject.difficulty === d
-                                  ? d === "easy"
-                                    ? "bg-[var(--color-success-bg)]/20 text-[var(--color-success-text)]"
-                                    : d === "medium"
-                                      ? "bg-[var(--color-warning-bg)]/20 text-[var(--color-warning-text)]"
-                                      : "bg-[var(--color-danger-bg)]/20 text-[var(--color-danger-text)]"
-                                  : "bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)]/80"
-                              }`}
-                            >
-                              {d}
-                            </button>
-                          ))}
-                        </div>
-                      </Card>
-                    </motion.div>
-                  ))}
+                          <Card
+                            onClick={() => handleSubjectClick(subject)}
+                            className={`cursor-pointer group h-full flex flex-col justify-between transition-all bg-[var(--bg-secondary)] ${
+                              isSelected
+                                ? "border-2 border-[#3b82f6] shadow-lg shadow-blue-100"
+                                : "border-[var(--border-default)] hover:border-[var(--action-primary)] hover:shadow-lg"
+                            }`}
+                          >
+                            <div>
+                              <div className="flex justify-between items-start mb-4">
+                                <div className={`p-2.5 rounded-xl ${
+                                  isSelected
+                                    ? "bg-[#3b82f6]/10 text-[#3b82f6]"
+                                    : "bg-[var(--action-primary)]/10 text-[var(--action-primary)]"
+                                }`}>
+                                  <FaBook size={20} />
+                                </div>
+                                {subject.viewed === subject.total &&
+                                  subject.total > 0 && (
+                                    <FaCircleCheck
+                                      className="text-emerald-500"
+                                      title="Completed"
+                                    />
+                                  )}
+                              </div>
+                              <h3 className={`text-xl font-bold mb-2 line-clamp-2 leading-tight transition-colors ${
+                                isSelected
+                                  ? "text-[#3b82f6]"
+                                  : "text-[var(--text-primary)] group-hover:text-[var(--action-primary)]"
+                              }`}>
+                                {subject.name}
+                              </h3>
+
+                              {viewState !== "tabCards" && [
+                                "Advanced Engineering Mathematics",
+                                "Data Structures and Algorithms",
+                                "Object Oriented Programming",
+                                "Digital Electronics",
+                                "Software Engineering",
+                                "Technical Communication",
+                                "Managerial Economics and Financial Accounting",
+                              ].includes(subject.name) && (
+                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--action-primary)]/10 text-[var(--action-primary)] rounded-lg text-xs font-bold border border-[var(--action-primary)]/20 mb-4">
+                                  <FaChartBar /> Includes Analysis
+                                </div>
+                              )}
+                            </div>
+
+                            {viewState !== "tabCards" && (
+                              <div
+                                className="pt-4 mt-2 border-t border-[var(--border-default)] flex gap-2"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {["easy", "medium", "hard"].map((d) => (
+                                  <button
+                                    key={d}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      requireAuth(
+                                        () => handleDifficultyChange(subject.name, d),
+                                        "Voting Difficulty"
+                                      );
+                                    }}
+                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
+                                      subject.difficulty === d
+                                        ? d === "easy"
+                                          ? "bg-[var(--color-success-bg)]/20 text-[var(--color-success-text)]"
+                                          : d === "medium"
+                                            ? "bg-[var(--color-warning-bg)]/20 text-[var(--color-warning-text)]"
+                                            : "bg-[var(--color-danger-bg)]/20 text-[var(--color-danger-text)]"
+                                        : "bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)]/80"
+                                    }`}
+                                  >
+                                    {d}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </Card>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Tab Cards — shown below selected subject */}
+                  <AnimatePresence>
+                    {viewState === "tabCards" && selectedSubject && (
+                      <SubjectTabCards
+                        subjectName={selectedSubject.name}
+                        onPYQClick={handlePYQClick}
+                      />
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
 

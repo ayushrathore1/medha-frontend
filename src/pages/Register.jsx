@@ -485,6 +485,8 @@ const Register = () => {
           .auth-grid-outer { grid-template-columns: 1fr !important; }
           .auth-left { display: none !important; }
           .auth-mobile-logo { display: block !important; }
+          .auth-form-panel-reg { padding: 24px 16px !important; }
+          .auth-form-card-reg { padding: 24px !important; }
         }
         .btn-shine { position: relative; overflow: hidden; }
         .btn-shine::after {
@@ -510,6 +512,7 @@ const Register = () => {
 
       {/* RIGHT */}
       <div
+        className="auth-form-panel-reg"
         style={{
           background: "#F2EDE4",
           padding: "40px 48px",
@@ -549,6 +552,7 @@ const Register = () => {
             width: "100%",
             margin: "0 auto",
           }}
+          className="auth-form-card-reg"
         >
           {/* Mobile logo */}
           <div className="auth-mobile-logo" style={{ display: "none", marginBottom: 16 }}>

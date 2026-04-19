@@ -265,10 +265,10 @@ const Messages = () => {
       className="min-h-screen pt-20 px-2 sm:px-4 pb-4"
       style={{ backgroundColor: "var(--bg-primary)" }}
     >
-      <div className="max-w-6xl mx-auto h-[calc(100vh-6rem)]">
+      <div className="max-w-6xl mx-auto" style={{ height: "calc(100dvh - 6rem)" }}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent">
             Messages
           </h1>
           
@@ -296,7 +296,7 @@ const Messages = () => {
           style={{ 
             backgroundColor: "var(--bg-secondary)", 
             borderColor: "var(--accent-secondary)",
-            height: "calc(100vh - 10rem)"
+            height: "calc(100dvh - 10rem)"
           }}
         >
           {/* Left Panel - Conversation List */}

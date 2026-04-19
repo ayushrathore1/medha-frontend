@@ -1,149 +1,203 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaFire, FaPlus, FaFolderOpen } from "react-icons/fa6";
-
-import Loader from "../components/Common/Loader";
-import SubjectManager from "../components/Dashboard/SubjectManager";
-import TodoList from "../components/Dashboard/TodoList";
-import DailyQuoteWidget from "../components/Dashboard/DailyQuoteWidget";
+import { FaBuildingColumns, FaLock } from "react-icons/fa6";
 
 import { useTour } from "../context/TourContext";
 import { AuthContext } from "../AuthContext";
-import { useContext } from "react";
+import "../styles/responsive-pages.css";
+
+const SEMESTERS = [
+  {
+    sem: 3,
+    label: "3rd Semester",
+    active: true,
+    description: "CS / AIDS · RTU",
+    color: "#7DC67A",
+    subjects: 7,
+  },
+  {
+    sem: 4,
+    label: "4th Semester",
+    active: true,
+    description: "CS / AIDS · RTU",
+    color: "#8B5CF6",
+    subjects: 6,
+  },
+];
 
 const Dashboard = () => {
   const { isGuestMode } = useTour();
   const { user } = useContext(AuthContext);
-  const [stats, setStats] = useState({
-    streak: isGuestMode ? 12 : 0,
-    cardsLearned: isGuestMode ? 142 : 0,
-    // accuracy removed
-    reviewList: isGuestMode ? [
-      { _id: '1', name: 'Photosynthesis', difficulty: 'medium' },
-      { _id: '2', name: 'Quantum Mechanics', difficulty: 'hard' }
-    ] : [],
-    notesCreated: isGuestMode ? 8 : 0,
-  });
-  const [loading, setLoading] = useState(!isGuestMode);
+  const navigate = useNavigate();
+
   const [greeting, setGreeting] = useState("Good Morning");
-
-
-
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12) setGreeting("Good Morning");
     else if (hour < 18) setGreeting("Good Afternoon");
     else setGreeting("Good Evening");
-
-    fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const headers = { Authorization: `Bearer ${token}` };
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
-
-      const [statsRes] = await Promise.all([
-        axios.get(`${baseUrl}/api/dashboard/stats`, { headers }),
-      ]);
-      
-      setStats(statsRes.data);
-
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setLoading(false);
-    }
+  const handleSemClick = (sem) => {
+    if (!sem.active) return;
+    navigate(`/semester/${sem.sem}`);
   };
-
-
-
-  if (loading) return <Loader fullScreen />;
-
-  const quickActions = [
-    { label: "New Note", icon: <FaPlus />, to: "/notes", color: "text-[var(--action-primary)]", bg: "bg-[var(--action-primary)]/10" },
-    { label: "Archive", icon: <FaFolderOpen />, to: "/rtu-exams", color: "text-[var(--color-success-text)]", bg: "bg-[var(--color-success-bg)]" },
-  ];
 
   return (
     <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-transparent">
-      <div className="max-w-7xl mx-auto space-y-8">
-        
-        {/* Daily Inspirational Quote */}
-        <DailyQuoteWidget />
-        
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tight mb-2">
-              {greeting}, {isGuestMode ? "Alex" : (user?.name || "Student")}! <span className="inline-block animate-wave origin-bottom-right">👋</span>
-            </h1>
-            <p className="text-lg text-[var(--text-secondary)] font-medium">
-              Let's make today productive.
-            </p>
-          </motion.div>
-
-          {/* Quick Stats Grid (Compact) */}
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="flex gap-4"
-          >
-            <div 
-              data-tour="streak-card"
-              className="flex items-center gap-3 px-5 py-3 bg-[var(--bg-secondary)] rounded-2xl shadow-sm border border-[var(--border-default)]"
-            >
-              <div className="p-2 bg-[var(--color-warning-bg)] text-[var(--color-warning-text)] rounded-lg">
-                <FaFire size={20} />
-              </div>
-              <div>
-                <div className="text-xl font-bold text-[var(--text-primary)]">{stats.streak}</div>
-                <div className="text-xs font-bold text-[var(--text-tertiary)] uppercase tracking-wider">Day Streak</div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Quick Actions Bar */}
-        <div 
-          data-tour="quick-actions"
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
         >
-          {quickActions.map((action, idx) => (
-            <Link key={idx} to={action.to}>
-              <motion.div
-                whileHover={{ y: -5 }}
-                className="flex items-center gap-4 p-4 bg-[var(--bg-secondary)] rounded-2xl shadow-sm border border-[var(--border-default)] hover:shadow-md transition-all cursor-pointer"
+          <h1 className="text-3xl md:text-4xl font-black text-[var(--text-primary)] tracking-tight mb-2">
+            {greeting},{" "}
+            {isGuestMode ? "Alex" : user?.name || "Student"}!{" "}
+            <span className="inline-block animate-wave origin-bottom-right">
+              👋
+            </span>
+          </h1>
+          <p className="text-base md:text-lg text-[var(--text-secondary)] font-medium">
+            Choose your semester to get started.
+          </p>
+        </motion.div>
+
+        {/* Semester Cards */}
+        <div className="dashboard-sem-grid">
+          {SEMESTERS.map((sem, idx) => (
+            <motion.div
+              key={sem.sem}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.12, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+              whileHover={
+                sem.active
+                  ? {
+                      y: -8,
+                      boxShadow: `0 20px 50px ${sem.color}25`,
+                      borderColor: sem.color,
+                    }
+                  : {}
+              }
+              whileTap={sem.active ? { scale: 0.97 } : {}}
+              onClick={() => handleSemClick(sem)}
+              className="sem-card"
+              style={{
+                position: "relative",
+                background: "var(--bg-tertiary)",
+                border: "1.5px solid var(--border-default)",
+                borderRadius: 28,
+                padding: "40px 32px",
+                cursor: sem.active ? "pointer" : "not-allowed",
+                transition: "all 0.3s ease",
+                opacity: sem.active ? 1 : 0.55,
+                textAlign: "center",
+                overflow: "hidden",
+              }}
+            >
+              {/* Background glow */}
+              {sem.active && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: -40,
+                    right: -40,
+                    width: 160,
+                    height: 160,
+                    borderRadius: "50%",
+                    background: `${sem.color}08`,
+                    filter: "blur(40px)",
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
+
+              {/* Icon */}
+              <div
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: 22,
+                  background: sem.active
+                    ? `linear-gradient(135deg, ${sem.color}, ${sem.color}cc)`
+                    : "var(--bg-secondary)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 20px",
+                  boxShadow: sem.active
+                    ? `0 8px 24px ${sem.color}30`
+                    : "none",
+                  position: "relative",
+                  zIndex: 1,
+                }}
               >
-                <div className={`p-3 rounded-xl ${action.bg} ${action.color}`}>
-                  {action.icon}
-                </div>
-                <span className="font-bold text-[var(--text-primary)]">{action.label}</span>
-              </motion.div>
-            </Link>
+                {sem.active ? (
+                  <FaBuildingColumns size={30} style={{ color: "#fff" }} />
+                ) : (
+                  <FaLock size={24} style={{ color: "var(--text-tertiary)" }} />
+                )}
+              </div>
+
+              <h2
+                style={{
+                  fontSize: 24,
+                  fontWeight: 800,
+                  color: "var(--text-primary)",
+                  margin: "0 0 8px",
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              >
+                {sem.label}
+              </h2>
+
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: "var(--text-tertiary)",
+                  margin: "0 0 16px",
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              >
+                {sem.description}
+              </p>
+
+              {/* CTA pill */}
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "8px 20px",
+                  borderRadius: 100,
+                  background: sem.active
+                    ? `${sem.color}12`
+                    : "var(--bg-secondary)",
+                  color: sem.active ? sem.color : "var(--text-tertiary)",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              >
+                {sem.active ? (
+                  <>
+                    {sem.subjects} Subjects · Explore →
+                  </>
+                ) : (
+                  "Coming Soon"
+                )}
+              </div>
+            </motion.div>
           ))}
         </div>
-
-        <div className="space-y-8">
-          {/* Todo List + Subject Manager */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div data-tour="daily-plan" className="h-full">
-              <TodoList />
-            </div>
-            <div data-tour="manage-subjects" className="h-full">
-              <SubjectManager />
-            </div>
-          </div>
-        </div>
       </div>
-
     </div>
   );
 };

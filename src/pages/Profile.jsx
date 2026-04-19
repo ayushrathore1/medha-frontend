@@ -518,7 +518,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen w-full px-4 py-8 sm:px-8 bg-transparent">
+    <div className="min-h-screen w-full px-3 py-6 sm:px-8 sm:py-8 bg-transparent">
       <div className="max-w-4xl mx-auto space-y-6">
         
         {isEditing ? (
@@ -713,7 +713,7 @@ const Profile = () => {
                     <FaTrash className="text-xl" />
                     <h3 className="text-lg font-bold">Danger Zone</h3>
                 </div>
-                <div className="flex items-center justify-between p-4 border border-red-200/50 rounded-xl bg-red-500/5">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border border-red-200/50 rounded-xl bg-red-500/5 gap-3">
                     <div>
                         <h4 className="font-bold text-[var(--text-primary)]">Delete Account</h4>
                         <p className="text-sm text-[var(--text-secondary)]">Permanently remove your account</p>
@@ -755,7 +755,7 @@ const Profile = () => {
 
                          {/* Name & Info */}
                          <div className="space-y-1 text-center sm:text-left">
-                             <h1 className="text-3xl font-black text-[var(--text-primary)] flex items-center gap-2 justify-center sm:justify-start">
+                             <h1 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)] flex items-center gap-2 justify-center sm:justify-start flex-wrap">
                                  {userData?.name}
                                  {userData?.role === 'admin' && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full border border-red-200 uppercase tracking-wide">Admin</span>}
                              </h1>
@@ -765,7 +765,7 @@ const Profile = () => {
                              </p>
                              
                              {/* Stats Row */}
-                             <div className="flex items-center gap-8 mt-4 justify-center sm:justify-start">
+                             <div className="flex items-center gap-3 sm:gap-6 mt-4 justify-center sm:justify-start flex-wrap">
                                  <div className="text-center sm:text-left">
                                      <div className="text-2xl font-bold text-[var(--text-primary)]">{stats.followers || 0}</div>
                                      <div className="text-xs font-bold uppercase text-[var(--text-tertiary)] tracking-wide">Followers</div>
@@ -883,7 +883,7 @@ const Profile = () => {
 
              {/* University Syllabus Section */}
              <Card className="bg-[var(--bg-secondary)] border border-[var(--border-default)]">
-                 <div className="flex items-center justify-between mb-4">
+                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
                      <div className="flex items-center gap-4">
                          <div className="p-3 bg-green-100 text-green-600 rounded-xl">
                              <FaBookOpen size={24} />
@@ -897,7 +897,7 @@ const Profile = () => {
                              </p>
                          </div>
                      </div>
-                     <div className="flex gap-2">
+                     <div className="flex gap-2 w-full sm:w-auto">
                          <input
                              type="file"
                              ref={syllabusFileRef}

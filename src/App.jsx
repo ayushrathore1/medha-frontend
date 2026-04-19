@@ -32,6 +32,10 @@ const JoinTeam = React.lazy(() => import("./pages/JoinTeam"));
 const PersonalizationSetup = React.lazy(() => import("./pages/PersonalizationSetup"));
 const PublicProfile = React.lazy(() => import("./pages/PublicProfile"));
 const MedhaRecommendations = React.lazy(() => import("./pages/MedhaRecommendations"));
+const SubjectYouTube = React.lazy(() => import("./pages/SubjectYouTube"));
+const SubjectNotes = React.lazy(() => import("./pages/SubjectNotes"));
+const SemesterSubjects = React.lazy(() => import("./pages/SemesterSubjects"));
+const SuggestPage = React.lazy(() => import("./pages/SuggestPage"));
 
 // Feature flag for Charcha (discussion forum)
 const CHARCHA_ENABLED = import.meta.env.VITE_ENABLE_CHARCHA === 'true';
@@ -91,9 +95,27 @@ const AppContent = () => {
                   }
                 />
                 <Route
+                  path="/suggest"
+                  element={
+                    <PageTransition><SuggestPage /></PageTransition>
+                  }
+                />
+                <Route
                   path="/rtu-exams"
                   element={
                     <PageTransition><RTUExams /></PageTransition>
+                  }
+                />
+                <Route
+                  path="/rtu-exams/subject/:subjectName/youtube"
+                  element={
+                    <PageTransition><SubjectYouTube /></PageTransition>
+                  }
+                />
+                <Route
+                  path="/rtu-exams/subject/:subjectName/notes"
+                  element={
+                    <PageTransition><SubjectNotes /></PageTransition>
                   }
                 />
 
@@ -102,6 +124,14 @@ const AppContent = () => {
                   element={
                     <ProtectedRoute>
                       <PageTransition><Dashboard /></PageTransition>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/semester/:semId"
+                  element={
+                    <ProtectedRoute>
+                      <PageTransition><SemesterSubjects /></PageTransition>
                     </ProtectedRoute>
                   }
                 />

@@ -91,6 +91,7 @@ const VideoCard = ({ video, index, isTopPick }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08 }}
+      className="rec-video-card"
       style={{
         background: isTopPick
           ? "linear-gradient(135deg, rgba(125,198,122,0.08), rgba(74,158,71,0.04))"
@@ -122,7 +123,7 @@ const VideoCard = ({ video, index, isTopPick }) => {
       )}
 
       {/* Thumbnail */}
-      <div style={{ flexShrink: 0, width: 180, position: "relative" }}>
+      <div className="rec-video-thumb" style={{ flexShrink: 0, width: 180, position: "relative" }}>
         <img
           src={video.thumbnail} alt={video.title}
           style={{ width: "100%", height: 100, objectFit: "cover", borderRadius: 10 }}
@@ -192,7 +193,7 @@ const VideoCard = ({ video, index, isTopPick }) => {
       </div>
 
       {/* Score */}
-      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
+      <div className="rec-score-col" style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
         <ScoreCircle score={video.aiScore || 0} />
         <span style={{ fontSize: 9, color: T.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>
           Relevance
@@ -385,9 +386,25 @@ export default function MedhaRecommendations() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @media (max-width: 640px) {
+          .rec-video-card { flex-direction: column !important; }
+          .rec-video-thumb { width: 100% !important; height: 180px !important; }
+          .rec-video-thumb img { height: 180px !important; }
+          .rec-header-title { font-size: 24px !important; }
+          .rec-container { padding: 0 4px !important; }
+          .rec-search-row { flex-direction: column !important; }
+          .rec-search-row button { width: 100% !important; }
+          .rec-selectors { grid-template-columns: 1fr !important; }
+          .rec-tab-row { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
+          .rec-tab-chips { flex-wrap: wrap !important; }
+          .rec-score-col { flex-direction: row !important; gap: 8px !important; }
+        }
+        @media (max-width: 768px) {
+          .rec-selectors { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 8px" }}>
+      <div className="rec-container" style={{ maxWidth: 900, margin: "0 auto", padding: "0 8px" }}>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -415,7 +432,7 @@ export default function MedhaRecommendations() {
               Syllabus Connected
             </div>
           )}
-          <h1 style={{
+          <h1 className="rec-header-title" style={{
             fontSize: 32, fontWeight: 800, color: T.text,
             letterSpacing: "-0.03em", marginBottom: 8,
           }}>
@@ -431,6 +448,7 @@ export default function MedhaRecommendations() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className="rec-selectors"
           style={{
             display: "grid",
             gridTemplateColumns: subjects.length > 0 ? "1fr 1fr" : "1fr",
@@ -473,6 +491,7 @@ export default function MedhaRecommendations() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
+          className="rec-search-row"
           style={{ display: "flex", gap: 10, marginBottom: 16 }}
         >
           <div style={{ flex: 1, position: "relative" }}>
@@ -597,8 +616,8 @@ export default function MedhaRecommendations() {
             )}
 
             {/* Tab filter + result count */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <div style={{ display: "flex", gap: 8 }}>
+            <div className="rec-tab-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 8, flexWrap: "wrap" }}>
+              <div className="rec-tab-chips" style={{ display: "flex", gap: 8 }}>
                 {[
                   { key: "all", label: "All", count: displayYT.length + displayGfg.length },
                   { key: "youtube", label: "YouTube", count: displayYT.length },

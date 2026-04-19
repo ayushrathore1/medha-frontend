@@ -21,15 +21,15 @@ const ChatbotPage = () => {
   }, [messages]);
 
   return (
-    <div className="min-h-screen pt-20 pb-4 px-4 sm:px-8 bg-[var(--bg-primary)] flex justify-center">
-      <div className="w-full max-w-4xl flex flex-col h-[calc(100vh-100px)]">
+    <div className="min-h-screen pt-20 pb-4 px-2 sm:px-4 md:px-8 bg-[var(--bg-primary)] flex justify-center">
+      <div className="w-full max-w-4xl flex flex-col" style={{ height: "calc(100dvh - 100px)" }}>
         
         {/* Header */}
         <div className="text-center mb-6">
           <motion.h1 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl font-black text-[var(--text-primary)] tracking-tight"
+            className="text-2xl sm:text-4xl font-black text-[var(--text-primary)] tracking-tight"
           >
             MEDHA <span className="text-[var(--action-primary)]">AI</span>
           </motion.h1>
@@ -44,10 +44,10 @@ const ChatbotPage = () => {
         </div>
 
         {/* Chat Container */}
-        <div className="flex-1 bg-white border border-[var(--border-default)] rounded-[2rem] shadow-xl overflow-hidden flex flex-col relative">
+        <div className="flex-1 bg-white border border-[var(--border-default)] rounded-2xl sm:rounded-[2rem] shadow-xl overflow-hidden flex flex-col relative">
           
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
             {messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--action-primary)] to-[var(--accent-secondary)] flex items-center justify-center text-white text-3xl font-black mb-6 shadow-lg shadow-[var(--action-primary)]/20">
@@ -66,7 +66,7 @@ const ChatbotPage = () => {
                   )}
                   
                   <div className={`
-                    max-w-[85%] px-5 py-4 text-[15px] leading-relaxed
+                    max-w-[90%] sm:max-w-[85%] px-4 sm:px-5 py-3 sm:py-4 text-[14px] sm:text-[15px] leading-relaxed
                     ${m.role === 'user' 
                       ? 'bg-[var(--text-primary)] text-white rounded-[1.5rem] rounded-tr-sm' 
                       : 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] rounded-[1.5rem] rounded-tl-sm border border-[var(--border-default)]'
@@ -109,7 +109,7 @@ const ChatbotPage = () => {
                 value={input}
                 onChange={handleInputChange}
                 placeholder="Message Medha AI..."
-                className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-default)] text-[var(--text-primary)] px-6 py-4 rounded-xl focus:outline-none focus:border-[var(--action-primary)] focus:ring-4 focus:ring-[var(--action-primary)]/10 transition-all font-medium"
+                className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-default)] text-[var(--text-primary)] px-4 sm:px-6 py-3 sm:py-4 rounded-xl focus:outline-none focus:border-[var(--action-primary)] focus:ring-4 focus:ring-[var(--action-primary)]/10 transition-all font-medium text-sm sm:text-base"
               />
               <button 
                 type="submit" 

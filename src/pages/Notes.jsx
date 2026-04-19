@@ -286,6 +286,7 @@ const NoteDetailModal = ({ note, onClose, getOwnerName, getSubjectName }) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
+        className="notes-modal-overlay"
         style={{
           position: "fixed",
           inset: 0,
@@ -303,6 +304,7 @@ const NoteDetailModal = ({ note, onClose, getOwnerName, getSubjectName }) => {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
+          className="notes-modal-container"
           style={{
             maxWidth: 900,
             width: "90vw",
@@ -316,12 +318,14 @@ const NoteDetailModal = ({ note, onClose, getOwnerName, getSubjectName }) => {
         >
           {/* Header */}
           <div
+            className="notes-modal-header"
             style={{
               padding: "20px 24px",
               borderBottom: "1px solid #E8E4DC",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
+              gap: 8,
             }}
           >
             <div>
@@ -342,11 +346,13 @@ const NoteDetailModal = ({ note, onClose, getOwnerName, getSubjectName }) => {
                 {subjectName}
               </div>
               <div
+                className="notes-modal-title-text"
                 style={{
                   fontSize: 20,
                   fontWeight: 700,
                   color: "#1A1A2E",
                   marginTop: 6,
+                  wordBreak: "break-word",
                 }}
               >
                 {note.title}
@@ -414,6 +420,7 @@ const NoteDetailModal = ({ note, onClose, getOwnerName, getSubjectName }) => {
 
           {/* Body — PDF viewer + sidebar */}
           <div
+            className="notes-modal-body-grid"
             style={{
               flex: 1,
               overflow: "hidden",
@@ -448,6 +455,7 @@ const NoteDetailModal = ({ note, onClose, getOwnerName, getSubjectName }) => {
 
             {/* Sidebar */}
             <div
+              className="notes-modal-sidebar"
               style={{
                 padding: 20,
                 borderLeft: "1px solid #E8E4DC",
@@ -575,6 +583,7 @@ const UploadWizard = ({ isOpen, onClose, onUpload, uploading }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
+      className="notes-upload-overlay"
       style={{
         position: "fixed",
         inset: 0,
@@ -591,13 +600,14 @@ const UploadWizard = ({ isOpen, onClose, onUpload, uploading }) => {
         initial={{ scale: 0.95, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         onClick={(e) => e.stopPropagation()}
+        className="notes-upload-card"
         style={{
           maxWidth: 560,
           width: "100%",
           background: "white",
           borderRadius: 20,
           padding: 32,
-          maxHeight: "90vh",
+          maxHeight: "95vh",
           overflowY: "auto",
         }}
       >
@@ -1087,10 +1097,24 @@ const Notes = () => {
           transform:skewX(-20deg); transition:left 400ms ease;
         }
         .btn-shine:hover::after { left:160%; }
-        @media (max-width: 768px) {
+        @media (max-width: 640px) {
           .notes-grid { grid-template-columns: 1fr !important; }
-          .modal-body-grid { grid-template-columns: 1fr !important; }
-          .modal-sidebar { display: none !important; }
+          .notes-header-title { font-size: 26px !important; }
+          .notes-main-container { padding: 16px 12px !important; }
+          .notes-filter-bar { padding: 14px !important; }
+          .notes-modal-overlay { padding: 8px !important; }
+          .notes-modal-container { width: 100vw !important; border-radius: 12px !important; max-height: 95vh !important; }
+          .notes-modal-header { padding: 14px 16px !important; }
+          .notes-modal-title-text { font-size: 16px !important; }
+          .notes-modal-body-grid { grid-template-columns: 1fr !important; min-height: 300px !important; }
+          .notes-modal-sidebar { border-left: none !important; border-top: 1px solid #E8E4DC !important; padding: 16px !important; }
+          .notes-upload-overlay { padding: 8px !important; }
+          .notes-upload-card { border-radius: 16px !important; padding: 20px !important; max-height: 95vh !important; }
+        }
+        @media (min-width: 641px) and (max-width: 768px) {
+          .notes-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .notes-modal-body-grid { grid-template-columns: 1fr !important; }
+          .notes-modal-sidebar { border-left: none !important; border-top: 1px solid #E8E4DC !important; }
         }
         @media (min-width: 769px) and (max-width: 1024px) {
           .notes-grid { grid-template-columns: repeat(2, 1fr) !important; }
@@ -1131,11 +1155,11 @@ const Notes = () => {
         )}
       </AnimatePresence>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", position: "relative", zIndex: 1 }}>
+      <div className="notes-main-container" style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", position: "relative", zIndex: 1 }}>
         {/* ── HEADER ── */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
           <div>
-            <h1 style={{ fontSize: 36, fontWeight: 800, color: "#1A1A2E", letterSpacing: "-0.03em", margin: 0 }}>
+            <h1 className="notes-header-title" style={{ fontSize: 36, fontWeight: 800, color: "#1A1A2E", letterSpacing: "-0.03em", margin: 0 }}>
               Notes Community
             </h1>
             <p style={{ fontSize: 15, color: "#6B6B6B", marginTop: 4 }}>
@@ -1212,6 +1236,7 @@ const Notes = () => {
 
         {/* ── SMART FIND BAR ── */}
         <div
+          className="notes-filter-bar"
           style={{
             background: "white",
             borderRadius: 16,

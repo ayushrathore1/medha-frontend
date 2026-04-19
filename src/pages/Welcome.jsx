@@ -116,7 +116,7 @@ const Welcome = () => {
                 </span>
               </motion.div>
 
-              <h1 className="text-6xl md:text-7xl lg:text-8xl font-black mb-8 leading-[1.1] tracking-tight text-[var(--text-primary)]">
+              <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-8 leading-[1.1] tracking-tight text-[var(--text-primary)]">
                 Conquer <br className="hidden lg:block"/>
                 <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-lg">
                   The Chaos.
@@ -343,12 +343,12 @@ const Welcome = () => {
 
       {/* Final CTA */}
       <section className="py-24 px-4">
-        <div className="max-w-5xl mx-auto bg-[var(--bg-tertiary)] border border-white/10 rounded-[3rem] p-12 md:p-24 text-center relative overflow-hidden shadow-2xl">
+        <div className="max-w-5xl mx-auto bg-[var(--bg-tertiary)] border border-white/10 rounded-2xl sm:rounded-[3rem] p-8 sm:p-12 md:p-24 text-center relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[var(--action-primary)]/20 blur-[120px] rounded-full"></div>
           
           <div className="relative z-10">
-            <h2 className="text-4xl md:text-6xl font-black text-[var(--text-primary)] mb-8">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl font-black text-[var(--text-primary)] mb-8">
               Your GPA is Waiting.
             </h2>
             <p className="text-xl text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto">
