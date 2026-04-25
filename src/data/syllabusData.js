@@ -15,6 +15,7 @@ const SYLLABUS_DATA = {
       unitNumber: 1,
       title: "Introduction",
       topics: ["Objective, scope and outcome of the course"],
+      pyqImportance: null, // Not examined separately
       videos: [
         {
           videoId: "wGLTV8MgLlA",
@@ -88,6 +89,13 @@ const SYLLABUS_DATA = {
           channelTitle: "Dr.Gajendra Purohit",
         },
       ],
+      pyqImportance: {
+        avgMarks: 23.3,
+        percentage: 23.8,
+        label: "Highest",
+        yearsAnalyzed: [2022, 2023, 2025],
+        breakdown: { 2022: 26, 2023: 22, 2025: 22 },
+      },
     },
     {
       unitNumber: 3,
@@ -156,6 +164,13 @@ const SYLLABUS_DATA = {
           channelTitle: "Dr.Gajendra Purohit",
         },
       ],
+      pyqImportance: {
+        avgMarks: 19.3,
+        percentage: 19.7,
+        label: "High",
+        yearsAnalyzed: [2022, 2023, 2025],
+        breakdown: { 2022: 22, 2023: 18, 2025: 18 },
+      },
     },
     {
       unitNumber: 4,
@@ -203,6 +218,13 @@ const SYLLABUS_DATA = {
           channelTitle: "Dr.Gajendra Purohit",
         },
       ],
+      pyqImportance: {
+        avgMarks: 18.7,
+        percentage: 19.1,
+        label: "High",
+        yearsAnalyzed: [2022, 2023, 2025],
+        breakdown: { 2022: 16, 2023: 18, 2025: 22 },
+      },
     },
     {
       unitNumber: 5,
@@ -219,6 +241,13 @@ const SYLLABUS_DATA = {
       ],
       // No videos from this playlist — Algebraic Structures is not covered
       videos: [],
+      pyqImportance: {
+        avgMarks: 18.7,
+        percentage: 19.1,
+        label: "High",
+        yearsAnalyzed: [2022, 2023, 2025],
+        breakdown: { 2022: 16, 2023: 22, 2025: 18 },
+      },
     },
     {
       unitNumber: 6,
@@ -300,6 +329,13 @@ const SYLLABUS_DATA = {
           channelTitle: "Dr.Gajendra Purohit",
         },
       ],
+      pyqImportance: {
+        avgMarks: 18,
+        percentage: 18.4,
+        label: "Medium",
+        yearsAnalyzed: [2022, 2023, 2025],
+        breakdown: { 2022: 18, 2023: 18, 2025: 18 },
+      },
     },
   ],
 

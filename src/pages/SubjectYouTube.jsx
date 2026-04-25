@@ -27,6 +27,11 @@ const SubjectYouTube = () => {
   const [unitLoading, setUnitLoading] = useState({}); // { unitNumber: true/false }
   const [searchingAll, setSearchingAll] = useState(false);
 
+  // Track whether this subject has hardcoded data
+  const hasHardcodedData = (SYLLABUS_DATA[decodedName] || []).some(
+    (u) => u.videos && u.videos.length > 0
+  );
+
   // Fetch units from backend, fall back to hardcoded syllabus data
   useEffect(() => {
     const fetchUnits = async () => {
@@ -77,7 +82,8 @@ const SubjectYouTube = () => {
   // Search videos for a specific unit (only if no pre-assigned videos exist)
   const searchUnitVideos = useCallback(
     async (unitNumber, unitTitle) => {
-      if (unitVideos[unitNumber]?.length > 0) return; // Already have videos (pre-assigned or fetched)
+      if (unitVideos[unitNumber]?.length > 0) return; // Already have videos
+      if (!hasHardcodedData) return; // Skip AI search for subjects without hardcoded data
 
       setUnitLoading((prev) => ({ ...prev, [unitNumber]: true }));
       try {
@@ -177,7 +183,7 @@ const SubjectYouTube = () => {
             </p>
 
             {/* Find All button */}
-            {units.length > 0 && (
+            {units.length > 0 && hasHardcodedData && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -230,6 +236,7 @@ const SubjectYouTube = () => {
                 videos={unitVideos[unit.unitNumber] || []}
                 loading={unitLoading[unit.unitNumber] || false}
                 playlistUrl={unit.youtubePlaylistUrl}
+                pyqImportance={unit.pyqImportance || null}
                 isExpanded={expandedUnit === unit.unitNumber}
                 onExpand={() =>
                   handleExpand(unit.unitNumber, unit.title)

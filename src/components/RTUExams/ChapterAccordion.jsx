@@ -11,6 +11,7 @@ const ChapterAccordion = ({
   videos = [],
   loading = false,
   playlistUrl,
+  pyqImportance,
   onExpand,
   isExpanded: controlledIsExpanded,
 }) => {
@@ -68,17 +69,55 @@ const ChapterAccordion = ({
 
         {/* Title & topic count */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h3
-            style={{
-              fontSize: 15,
-              fontWeight: 700,
-              color: "var(--text-primary)",
-              margin: 0,
-              lineHeight: 1.4,
-            }}
-          >
-            {title}
-          </h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <h3
+              style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: "var(--text-primary)",
+                margin: 0,
+                lineHeight: 1.4,
+              }}
+            >
+              {title}
+            </h3>
+            {pyqImportance && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "2px 8px",
+                  borderRadius: 6,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: "0.02em",
+                  background:
+                    pyqImportance.label === "Highest"
+                      ? "rgba(239, 68, 68, 0.1)"
+                      : pyqImportance.label === "High"
+                        ? "rgba(245, 158, 11, 0.1)"
+                        : "rgba(59, 130, 246, 0.1)",
+                  color:
+                    pyqImportance.label === "Highest"
+                      ? "#dc2626"
+                      : pyqImportance.label === "High"
+                        ? "#d97706"
+                        : "#2563eb",
+                  border: `1px solid ${
+                    pyqImportance.label === "Highest"
+                      ? "rgba(239, 68, 68, 0.2)"
+                      : pyqImportance.label === "High"
+                        ? "rgba(245, 158, 11, 0.2)"
+                        : "rgba(59, 130, 246, 0.2)"
+                  }`,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                🔥 {pyqImportance.label} · ~{Math.round(pyqImportance.avgMarks)} marks avg
+              </span>
+            )}
+          </div>
           <p
             style={{
               fontSize: 12,
@@ -142,6 +181,92 @@ const ChapterAccordion = ({
             style={{ overflow: "hidden" }}
           >
             <div className="chapter-content">
+              {/* PYQ Importance breakdown */}
+              {pyqImportance && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    marginBottom: 16,
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    background:
+                      pyqImportance.label === "Highest"
+                        ? "rgba(239, 68, 68, 0.04)"
+                        : pyqImportance.label === "High"
+                          ? "rgba(245, 158, 11, 0.04)"
+                          : "rgba(59, 130, 246, 0.04)",
+                    border: `1px solid ${
+                      pyqImportance.label === "Highest"
+                        ? "rgba(239, 68, 68, 0.12)"
+                        : pyqImportance.label === "High"
+                          ? "rgba(245, 158, 11, 0.12)"
+                          : "rgba(59, 130, 246, 0.12)"
+                    }`,
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "var(--text-tertiary)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                      marginBottom: 8,
+                    }}
+                  >
+                    📊 PYQ Analysis ({pyqImportance.yearsAnalyzed.join(", ")})
+                  </p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                    <div style={{ flex: 1, minWidth: 120 }}>
+                      <div
+                        style={{
+                          height: 6,
+                          borderRadius: 3,
+                          background: "var(--bg-secondary)",
+                          overflow: "hidden",
+                          marginBottom: 6,
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: "100%",
+                            width: `${Math.min(pyqImportance.percentage * 2.5, 100)}%`,
+                            borderRadius: 3,
+                            background:
+                              pyqImportance.label === "Highest"
+                                ? "linear-gradient(90deg, #ef4444, #f87171)"
+                                : pyqImportance.label === "High"
+                                  ? "linear-gradient(90deg, #f59e0b, #fbbf24)"
+                                  : "linear-gradient(90deg, #3b82f6, #60a5fa)",
+                            transition: "width 0.5s ease",
+                          }}
+                        />
+                      </div>
+                      <p style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 600, margin: 0 }}>
+                        Avg <strong>{pyqImportance.avgMarks}</strong> marks / 98 ({pyqImportance.percentage}%)
+                      </p>
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      {pyqImportance.yearsAnalyzed.map((yr) => (
+                        <span
+                          key={yr}
+                          style={{
+                            padding: "2px 7px",
+                            borderRadius: 5,
+                            fontSize: 10,
+                            fontWeight: 600,
+                            background: "var(--bg-secondary)",
+                            color: "var(--text-secondary)",
+                          }}
+                        >
+                          '{String(yr).slice(2)}: {pyqImportance.breakdown[yr]}m
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Topics list */}
               <div style={{ marginTop: 14, marginBottom: 16 }}>
                 <p

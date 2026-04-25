@@ -19,6 +19,7 @@ import api from "../api/api";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
 import SYLLABUS_DATA from "../data/syllabusData";
+import { FaCloudArrowUp } from "react-icons/fa6";
 import "../styles/responsive-pages.css";
 
 // 4th semester subjects (hardcoded — no backend data yet)
@@ -366,21 +367,9 @@ const YTPreviewCard = ({ subjectName }) => {
       return () => { cancelled = true; };
     }
 
-    // Fallback: AI search for subjects without hardcoded data
-    const doFetch = async () => {
-      try {
-        const res = await api.post("/recommendations/search", {
-          topic: subjectName,
-          subject: subjectName,
-        });
-        if (!cancelled) setVideos((res.data?.data?.youtube || []).slice(0, 3));
-      } catch {
-        if (!cancelled) setVideos([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    doFetch();
+    // No hardcoded videos — skip AI search, show coming soon
+    if (!cancelled) setVideos([]);
+    if (!cancelled) setLoading(false);
     return () => { cancelled = true; };
   }, [subjectName]);
 
@@ -458,8 +447,9 @@ const YTPreviewCard = ({ subjectName }) => {
           ))}
         </div>
       ) : (
-        <div className="resource-empty" style={{ background: "var(--bg-secondary)", color: "var(--text-tertiary)", fontSize: 12, fontWeight: 500 }}>
-          No previews yet
+        <div className="resource-empty" style={{ background: "var(--bg-secondary)", color: "var(--text-tertiary)", fontSize: 12, fontWeight: 600, gap: 6 }}>
+          <FaYoutube size={14} style={{ opacity: 0.5 }} />
+          Coming Soon
         </div>
       )}
     </ResourceCard>
@@ -535,8 +525,25 @@ const NotesPreviewCard = ({ subjectName }) => {
           ))}
         </div>
       ) : (
-        <div className="resource-empty" style={{ background: "var(--bg-secondary)", color: "var(--text-tertiary)", fontSize: 12, fontWeight: 500 }}>
-          No notes uploaded yet
+        <div
+          onClick={(e) => { e.stopPropagation(); navigate("/notes"); }}
+          className="resource-empty"
+          style={{
+            background: "rgba(139, 92, 246, 0.05)",
+            border: "1.5px dashed rgba(139, 92, 246, 0.2)",
+            borderRadius: 12,
+            color: "#8B5CF6",
+            fontSize: 12,
+            fontWeight: 700,
+            gap: 6,
+            cursor: "pointer",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(139,92,246,0.1)"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.35)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(139,92,246,0.05)"; e.currentTarget.style.borderColor = "rgba(139,92,246,0.2)"; }}
+        >
+          <FaCloudArrowUp size={16} />
+          Upload Notes
         </div>
       )}
     </ResourceCard>

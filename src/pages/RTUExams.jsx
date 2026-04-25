@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Card from "../components/Common/Card";
 import Button from "../components/Common/Button";
 import Loader from "../components/Common/Loader";
-import YearSelector from "../components/RTUExams/YearSelector";
+import MultiYearToggle from "../components/RTUExams/MultiYearToggle";
 import UnitWeightageBar from "../components/RTUExams/UnitWeightageBar";
+import AIPredictionPanel from "../components/RTUExams/AIPredictionPanel";
 import SubjectTabCards from "../components/RTUExams/SubjectTabCards";
 import {
   FaArrowLeft,
@@ -16,6 +16,7 @@ import {
   FaEnvelope,
   FaBuildingColumns,
   FaBook,
+  FaWandMagicSparkles,
 } from "react-icons/fa6";
 
 
@@ -73,6 +74,7 @@ const RTUExams = () => {
     isGuestMode ? [2024, 2023, 2022] : []
   );
   const [selectedYear, setSelectedYear] = useState(isGuestMode ? 2024 : null);
+  const [selectedYears, setSelectedYears] = useState(isGuestMode ? [2024, 2023, 2022] : []);
   const [unitWeightageData, setUnitWeightageData] = useState(
     isGuestMode
       ? {
@@ -138,6 +140,14 @@ const RTUExams = () => {
   const [weightageLoading, setWeightageLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false); // For admin image upload capability
 
+  // Multi-year + AI state
+  const [multiYearData, setMultiYearData] = useState(null);
+  const [aiPrediction, setAiPrediction] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState(null);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const [showWeightageView, setShowWeightageView] = useState(false);
+
   const [searchParams, setSearchParams] = useSearchParams();
 
   // ── Sync URL → State on mount / URL change ──
@@ -159,19 +169,20 @@ const RTUExams = () => {
       setLoading(false);
       fetchUnitWeightage(paramSubject, yr);
     } else if (paramSubject && paramView === "pyq") {
-      // Year selection for a subject
+      // Multi-year analysis view
       setSelectedSubject({ name: paramSubject });
       if (paramSem) setSelectedSem(parseInt(paramSem, 10));
-      setViewState("years");
+      setViewState("multiYear");
       setLoading(false);
       fetchAvailableYears(paramSubject);
     } else if (paramSubject && paramSem) {
-      // Tab cards (subject resources)
+      // Direct subject link → go to analysis
       const sem = parseInt(paramSem, 10);
       setSelectedSem(sem);
       setSelectedSubject({ name: paramSubject });
-      setViewState("tabCards");
+      setViewState("multiYear");
       fetchSubjects(sem);
+      fetchAvailableYears(paramSubject);
     } else if (paramSem) {
       // Subjects list for a semester
       const sem = parseInt(paramSem, 10);
@@ -282,25 +293,88 @@ const RTUExams = () => {
     }
   };
 
+  const fetchMultiYearWeightage = async (subjectName, years) => {
+    try {
+      setWeightageLoading(true);
+      const token = localStorage.getItem("token");
+      const headers = { Authorization: `Bearer ${token}` };
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+      const res = await axios.get(
+        `${baseUrl}/api/rtu/subjects/${encodeURIComponent(subjectName)}/multi-year-weightage?years=${years.join(",")}`,
+        { headers }
+      );
+
+      if (res.data.success) {
+        setMultiYearData(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching multi-year weightage:", error);
+      setMultiYearData(null);
+    } finally {
+      setWeightageLoading(false);
+    }
+  };
+
+  const fetchAiPrediction = async (subjectName, years) => {
+    try {
+      setAiLoading(true);
+      setAiError(null);
+      setShowAiPanel(true);
+      const token = localStorage.getItem("token");
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+      const res = await axios.post(
+        `${baseUrl}/api/rtu/subjects/${encodeURIComponent(subjectName)}/ai-predict-topics`,
+        { years },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.data.success) {
+        setAiPrediction(res.data);
+      } else {
+        setAiError(res.data.message || "Prediction failed");
+      }
+    } catch (error) {
+      const msg = error.response?.data?.message || "AI prediction failed. Try again later.";
+      setAiError(msg);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleSubjectClick = async (subject) => {
-    if (selectedSubject?.name === subject.name && viewState === "tabCards") {
-      setSelectedSubject(null);
-      setViewState("subjects");
-      syncUrl({ sem: selectedSem });
-    } else {
-      setSelectedSubject(subject);
-      setViewState("tabCards");
-      syncUrl({ sem: selectedSem, subject: subject.name });
+    setSelectedSubject(subject);
+    setViewState("multiYear");
+    syncUrl({ sem: selectedSem, subject: subject.name, view: "pyq" });
+    // Reset AI state
+    setShowAiPanel(false);
+    setAiPrediction(null);
+    setAiError(null);
+    if (!isGuestMode) {
+      await fetchAvailableYears(subject.name);
     }
   };
 
   const handlePYQClick = async () => {
-    setViewState("years");
+    setViewState("multiYear");
     syncUrl({ sem: selectedSem, subject: selectedSubject?.name, view: "pyq" });
+    // Reset AI state when entering analysis
+    setShowAiPanel(false);
+    setAiPrediction(null);
+    setAiError(null);
     if (!isGuestMode && selectedSubject) {
       await fetchAvailableYears(selectedSubject.name);
     }
   };
+
+  // Auto-select all years + fetch multi-year data when availableYears changes
+  useEffect(() => {
+    if (availableYears.length > 0 && viewState === "multiYear" && selectedSubject && !isGuestMode) {
+      setSelectedYears(availableYears);
+      fetchMultiYearWeightage(selectedSubject.name, availableYears);
+    }
+  }, [availableYears]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleYearSelect = async (year) => {
     setSelectedYear(year);
@@ -311,28 +385,56 @@ const RTUExams = () => {
     }
   };
 
+  const handleYearToggle = async (yearOrAll, soloMode) => {
+    if (yearOrAll === "all") {
+      setSelectedYears([...availableYears]);
+      if (!isGuestMode && selectedSubject) {
+        await fetchMultiYearWeightage(selectedSubject.name, availableYears);
+      }
+      return;
+    }
+    if (soloMode) {
+      // Solo select one year
+      setSelectedYears([yearOrAll]);
+      if (!isGuestMode && selectedSubject) {
+        await fetchMultiYearWeightage(selectedSubject.name, [yearOrAll]);
+      }
+      return;
+    }
+    setSelectedYears((prev) => {
+      const isSelected = prev.includes(yearOrAll);
+      let next;
+      if (isSelected && prev.length > 1) {
+        next = prev.filter((y) => y !== yearOrAll);
+      } else if (!isSelected) {
+        next = [...prev, yearOrAll].sort();
+      } else {
+        return prev; // Can't deselect the last one
+      }
+      if (!isGuestMode && selectedSubject) {
+        fetchMultiYearWeightage(selectedSubject.name, next);
+      }
+      return next;
+    });
+  };
+
   const handleBack = () => {
     if (viewState === "unitWeightage") {
-      setViewState("years");
+      setViewState("multiYear");
       setSelectedYear(null);
       setUnitWeightageData(null);
       syncUrl({ sem: selectedSem, subject: selectedSubject?.name, view: "pyq" });
-    } else if (viewState === "years") {
-      // If deep-linked (no semester context), go straight to semesters
-      if (!selectedSem) {
-        setViewState("semesters");
-        setSelectedSubject(null);
-        setAvailableYears([]);
-        syncUrl({});
-      } else {
-        setViewState("tabCards");
-        setAvailableYears([]);
-        syncUrl({ sem: selectedSem, subject: selectedSubject?.name });
-      }
-    } else if (viewState === "tabCards") {
+    } else if (viewState === "multiYear") {
       setViewState("subjects");
       setSelectedSubject(null);
+      setAvailableYears([]);
+      setSelectedYears([]);
+      setMultiYearData(null);
+      setShowAiPanel(false);
+      setShowWeightageView(false);
       syncUrl({ sem: selectedSem });
+      // Always re-fetch subjects to ensure list is populated
+      if (selectedSem) fetchSubjects(selectedSem);
     } else if (viewState === "subjects") {
       setViewState("semesters");
       setSelectedSem(null);
@@ -371,10 +473,8 @@ const RTUExams = () => {
         return "The Archives";
       case "subjects":
         return `${getSemLabel(selectedSem)} Semester`;
-      case "tabCards":
-        return selectedSubject?.name || "Subject Resources";
-      case "years":
-        return selectedSubject?.name || "Select Year";
+      case "multiYear":
+        return selectedSubject?.name || "PYQ Analysis";
       case "unitWeightage":
         return `${selectedSubject?.name} (${selectedYear})`;
       default:
@@ -387,11 +487,9 @@ const RTUExams = () => {
       case "semesters":
         return "Access previous year papers and smart analysis.";
       case "subjects":
-        return "Choose a subject to explore resources.";
-      case "tabCards":
-        return "Choose a resource type to explore.";
-      case "years":
-        return "Pick an academic year to verify trends.";
+        return "Choose a subject to explore.";
+      case "multiYear":
+        return "Toggle years to compare analysis across papers.";
       case "unitWeightage":
         return `Analysis based on ${unitWeightageData?.totalPaperMarks || 98} marks paper`;
       default:
@@ -448,55 +546,55 @@ const RTUExams = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.15 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+                className="dashboard-sem-grid"
               >
-                  {[3, 4].map((sem) => {
-                    return (
+                  {[
+                    { sem: 3, label: "3rd Semester", color: "#7DC67A", subjects: 7 },
+                    { sem: 4, label: "4th Semester", color: "#8B5CF6", subjects: 6 },
+                  ].map((s, idx) => (
                     <motion.div
-                      key={sem}
-                      initial={{ opacity: 0, y: 10 }}
+                      key={s.sem}
+                      initial={{ opacity: 0, y: 24 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: sem * 0.02, duration: 0.15 }}
-                        data-tour={sem === 3 ? "rtu-semester" : undefined}
-                        onClick={() => {
-                            setSelectedSem(sem);
-                            if (!isGuestMode) fetchSubjects(sem);
-                            setViewState("subjects");
-                            syncUrl({ sem });
-                        }}
-                        className="cursor-pointer group"
-                      >
-                        <Card
-                          className="w-full flex flex-col items-center p-8 gap-3 transition-all bg-[var(--bg-secondary)] border-[var(--border-default)] hover:border-[var(--action-primary)] hover:shadow-xl hover:-translate-y-1"
-                        >
-                          <div
-                            className="p-4 rounded-full transition-colors bg-[var(--action-primary)]/10 text-[var(--action-primary)] group-hover:bg-[var(--action-primary)] group-hover:text-white"
-                          >
-                            <FaBuildingColumns size={32} />
-                          </div>
-                          <h2
-                            className="text-xl font-bold whitespace-nowrap text-[var(--text-primary)]"
-                          >
-                            {sem === 3 ? "3rd" : `${sem}th`}{" "}
-                            Semester
-                          </h2>
-                          <p className="text-[var(--text-tertiary)] font-medium text-sm text-center">
-                            Computer Science & Engineering
-                          </p>
-                          <div
-                            className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide transition-colors bg-[var(--bg-tertiary)] text-[var(--text-secondary)] group-hover:bg-[var(--action-primary)]/10 group-hover:text-[var(--action-primary)]"
-                          >
-                            Click to Open
-                          </div>
-                        </Card>
-                      </motion.div>
-                    );
-                  })}
+                      transition={{ delay: idx * 0.12, duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                      whileHover={{ y: -8, boxShadow: `0 20px 50px ${s.color}25`, borderColor: s.color }}
+                      whileTap={{ scale: 0.97 }}
+                      data-tour={s.sem === 3 ? "rtu-semester" : undefined}
+                      onClick={() => {
+                        setSelectedSem(s.sem);
+                        if (!isGuestMode) fetchSubjects(s.sem);
+                        setViewState("subjects");
+                        syncUrl({ sem: s.sem });
+                      }}
+                      className="sem-card"
+                      style={{
+                        position: "relative",
+                        background: "var(--bg-tertiary)",
+                        border: "1.5px solid var(--border-default)",
+                        borderRadius: 28,
+                        padding: "40px 32px",
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        textAlign: "center",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div style={{ position: "absolute", top: -40, right: -40, width: 160, height: 160, borderRadius: "50%", background: `${s.color}08`, filter: "blur(40px)", pointerEvents: "none" }} />
+                      <div style={{ width: 72, height: 72, borderRadius: 22, background: `linear-gradient(135deg, ${s.color}, ${s.color}cc)`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", boxShadow: `0 8px 24px ${s.color}30`, position: "relative", zIndex: 1 }}>
+                        <FaBuildingColumns size={30} style={{ color: "#fff" }} />
+                      </div>
+                      <h2 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 8px", position: "relative", zIndex: 1 }}>{s.label}</h2>
+                      <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-tertiary)", margin: "0 0 16px", position: "relative", zIndex: 1 }}>CS / AIDS · RTU</p>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 20px", borderRadius: 100, background: `${s.color}12`, color: s.color, fontSize: 13, fontWeight: 700, position: "relative", zIndex: 1 }}>
+                        {s.subjects} Subjects · Explore →
+                      </div>
+                    </motion.div>
+                  ))}
                 </motion.div>
               )}
 
               {/* Subjects View */}
-              {(viewState === "subjects" || viewState === "tabCards") && (
+              {viewState === "subjects" && (
                 <motion.div
                   data-tour="rtu-subjects"
                   key="subjects"
@@ -505,140 +603,357 @@ const RTUExams = () => {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.15 }}
                 >
-                  {/* Subject Cards — horizontal scroll when a subject is selected */}
-                  <div
-                    className={viewState === "tabCards"
-                      ? "flex gap-4 overflow-x-auto pb-4 scrollbar-thin"
-                      : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                    }
-                    style={viewState === "tabCards" ? { scrollSnapType: "x mandatory" } : {}}
-                  >
+                  {/* Subject Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {subjects.map((subject, idx) => {
-                      const isSelected = selectedSubject?.name === subject.name && viewState === "tabCards";
+                      const subjectColor = "#7DC67A";
+                      const hasAnalysis = [
+                        "Advanced Engineering Mathematics",
+                        "Data Structures and Algorithms",
+                        "Object Oriented Programming",
+                        "Digital Electronics",
+                        "Software Engineering",
+                        "Technical Communication",
+                        "Managerial Economics and Financial Accounting",
+                        "Theory Of Computation",
+                        "Microprocessor & Interfaces",
+                        "Database Management System",
+                        "Data Communication & Computer Networks",
+                        "Discrete Mathematics Structure",
+                      ].includes(subject.name);
+
                       return (
                         <motion.div
                           key={subject._id || subject.name}
-                          initial={{ opacity: 0, y: 10 }}
+                          initial={{ opacity: 0, y: 16 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.02, duration: 0.15 }}
-                          style={viewState === "tabCards" ? { scrollSnapAlign: "start", minWidth: 200, maxWidth: 220, flexShrink: 0 } : {}}
+                          transition={{ delay: idx * 0.05, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                          whileHover={{ y: -6, boxShadow: `0 16px 40px ${subjectColor}20`, borderColor: subjectColor }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => handleSubjectClick(subject)}
+                          style={{
+                            position: "relative",
+                            background: "var(--bg-tertiary)",
+                            border: "1.5px solid var(--border-default)",
+                            borderRadius: 20,
+                            padding: "28px 24px",
+                            cursor: "pointer",
+                            transition: "all 0.3s ease",
+                            overflow: "hidden",
+                          }}
                         >
-                          <Card
-                            onClick={() => handleSubjectClick(subject)}
-                            className={`cursor-pointer group h-full flex flex-col justify-between transition-all bg-[var(--bg-secondary)] ${
-                              isSelected
-                                ? "border-2 border-[#3b82f6] shadow-lg shadow-blue-100"
-                                : "border-[var(--border-default)] hover:border-[var(--action-primary)] hover:shadow-lg"
-                            }`}
-                          >
-                            <div>
-                              <div className="flex justify-between items-start mb-4">
-                                <div className={`p-2.5 rounded-xl ${
-                                  isSelected
-                                    ? "bg-[#3b82f6]/10 text-[#3b82f6]"
-                                    : "bg-[var(--action-primary)]/10 text-[var(--action-primary)]"
-                                }`}>
-                                  <FaBook size={20} />
-                                </div>
-                                {subject.viewed === subject.total &&
-                                  subject.total > 0 && (
-                                    <FaCircleCheck
-                                      className="text-emerald-500"
-                                      title="Completed"
-                                    />
-                                  )}
-                              </div>
-                              <h3 className={`text-xl font-bold mb-2 line-clamp-2 leading-tight transition-colors ${
-                                isSelected
-                                  ? "text-[#3b82f6]"
-                                  : "text-[var(--text-primary)] group-hover:text-[var(--action-primary)]"
-                              }`}>
-                                {subject.name}
-                              </h3>
+                          {/* Background glow */}
+                          <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: `${subjectColor}06`, filter: "blur(30px)", pointerEvents: "none" }} />
 
-                              {viewState !== "tabCards" && [
-                                "Advanced Engineering Mathematics",
-                                "Data Structures and Algorithms",
-                                "Object Oriented Programming",
-                                "Digital Electronics",
-                                "Software Engineering",
-                                "Technical Communication",
-                                "Managerial Economics and Financial Accounting",
-                              ].includes(subject.name) && (
-                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--action-primary)]/10 text-[var(--action-primary)] rounded-lg text-xs font-bold border border-[var(--action-primary)]/20 mb-4">
-                                  <FaChartBar /> Includes Analysis
-                                </div>
-                              )}
+                          <div style={{ position: "relative", zIndex: 1 }}>
+                            {/* Icon */}
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                              <div style={{
+                                width: 52, height: 52, borderRadius: 16,
+                                background: "rgba(125, 198, 122, 0.1)",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                              }}>
+                                <FaBook size={22} style={{ color: "var(--action-primary)" }} />
+                              </div>
                             </div>
 
-                            {viewState !== "tabCards" && (
-                              <div
-                                className="pt-4 mt-2 border-t border-[var(--border-default)] flex gap-2"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {["easy", "medium", "hard"].map((d) => (
-                                  <button
-                                    key={d}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      requireAuth(
-                                        () => handleDifficultyChange(subject.name, d),
-                                        "Voting Difficulty"
-                                      );
-                                    }}
-                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
-                                      subject.difficulty === d
-                                        ? d === "easy"
-                                          ? "bg-[var(--color-success-bg)]/20 text-[var(--color-success-text)]"
-                                          : d === "medium"
-                                            ? "bg-[var(--color-warning-bg)]/20 text-[var(--color-warning-text)]"
-                                            : "bg-[var(--color-danger-bg)]/20 text-[var(--color-danger-text)]"
-                                        : "bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)]/80"
-                                    }`}
-                                  >
-                                    {d}
-                                  </button>
-                                ))}
+                            {/* Title */}
+                            <h3 style={{
+                              fontSize: 20, fontWeight: 700,
+                              color: "var(--text-primary)",
+                              margin: "0 0 8px", lineHeight: 1.3,
+                            }}>
+                              {subject.name}
+                            </h3>
+
+                            {/* Analysis badge */}
+                            {hasAnalysis && (
+                              <div style={{
+                                display: "inline-flex", alignItems: "center", gap: 5,
+                                padding: "4px 10px", borderRadius: 8,
+                                background: "rgba(125,198,122,0.08)",
+                                border: "1px solid rgba(125,198,122,0.15)",
+                                fontSize: 11, fontWeight: 700,
+                                color: "var(--action-primary)",
+                              }}>
+                                <FaChartBar size={10} /> Includes Analysis
                               </div>
                             )}
-                          </Card>
+                          </div>
                         </motion.div>
                       );
                     })}
                   </div>
-
-                  {/* Tab Cards — shown below selected subject */}
-                  <AnimatePresence>
-                    {viewState === "tabCards" && selectedSubject && (
-                      <SubjectTabCards
-                        subjectName={selectedSubject.name}
-                        onPYQClick={handlePYQClick}
-                      />
-                    )}
-                  </AnimatePresence>
                 </motion.div>
               )}
 
-              {/* Years View */}
-              {viewState === "years" && (
+              {/* Multi-Year Analysis View */}
+              {viewState === "multiYear" && (
                 <motion.div
                   data-tour="rtu-years"
-                  key="years"
+                  key="multiYear"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                 >
-                  <YearSelector
-                    years={availableYears}
-                    selectedYear={selectedYear}
-                    onYearSelect={handleYearSelect}
-                    loading={yearsLoading}
-                  />
+                  {/* Year toggle pills + AI button */}
+                  <div className="flex flex-col items-center gap-4 mb-6">
+                    <MultiYearToggle
+                      years={availableYears}
+                      selectedYears={selectedYears}
+                      onToggleYear={handleYearToggle}
+                      loading={yearsLoading}
+                    />
+
+                    {availableYears.length > 0 && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          if (!showAiPanel) {
+                            requireAuth(
+                              () => fetchAiPrediction(selectedSubject.name, selectedYears.length > 0 ? selectedYears : availableYears),
+                              "AI Prediction"
+                            );
+                          } else {
+                            setShowAiPanel(false);
+                          }
+                        }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "10px 24px",
+                          borderRadius: 100,
+                          background: showAiPanel
+                            ? "rgba(125,198,122,0.12)"
+                            : "linear-gradient(135deg, #7DC67A, #5bb358)",
+                          color: showAiPanel ? "var(--action-primary)" : "#fff",
+                          border: showAiPanel
+                            ? "2px solid var(--action-primary)"
+                            : "2px solid transparent",
+                          fontSize: 14,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          fontFamily: "inherit",
+                          boxShadow: showAiPanel
+                            ? "none"
+                            : "0 6px 24px rgba(125,198,122,0.3)",
+                          transition: "all 0.3s ease",
+                        }}
+                      >
+                        <FaWandMagicSparkles size={16} />
+                        {showAiPanel ? "Hide AI Prediction" : "AI Predict Important Topics"}
+                      </motion.button>
+                    )}
+                  </div>
+
+                  {/* AI Prediction Panel */}
+                  {showAiPanel && (
+                    <div className="max-w-4xl mx-auto">
+                      <AIPredictionPanel
+                        predictions={aiPrediction?.predictions}
+                        yearsAnalyzed={aiPrediction?.yearsAnalyzed}
+                        loading={aiLoading}
+                        error={aiError}
+                        cached={aiPrediction?.cached}
+                        onClose={() => setShowAiPanel(false)}
+                        onRetry={() => fetchAiPrediction(selectedSubject.name, selectedYears.length > 0 ? selectedYears : availableYears)}
+                      />
+                    </div>
+                  )}
+
+                  {/* Multi-year aggregated analysis */}
+                  {weightageLoading ? (
+                    <div className="flex justify-center py-20">
+                      <Loader />
+                    </div>
+                  ) : multiYearData ? (
+                    <div className="max-w-4xl mx-auto">
+                      {/* View toggle: Questions vs Importance */}
+                      <div style={{
+                        display: "flex", justifyContent: "center", gap: 8, marginBottom: 20,
+                      }}>
+                        <button
+                          onClick={() => setShowWeightageView(false)}
+                          style={{
+                            padding: "10px 24px", borderRadius: 14,
+                            fontSize: 14, fontWeight: 700, fontFamily: "inherit",
+                            cursor: "pointer", transition: "all 0.2s",
+                            border: !showWeightageView ? "2px solid var(--action-primary)" : "2px solid var(--border-default)",
+                            background: !showWeightageView ? "rgba(125,198,122,0.1)" : "var(--bg-secondary)",
+                            color: !showWeightageView ? "var(--action-primary)" : "var(--text-tertiary)",
+                          }}
+                        >
+                          📝 Question Papers
+                        </button>
+                        <button
+                          onClick={() => setShowWeightageView(true)}
+                          style={{
+                            padding: "10px 24px", borderRadius: 14,
+                            fontSize: 14, fontWeight: 700, fontFamily: "inherit",
+                            cursor: "pointer", transition: "all 0.2s",
+                            border: showWeightageView ? "2px solid var(--action-primary)" : "2px solid var(--border-default)",
+                            background: showWeightageView ? "rgba(125,198,122,0.1)" : "var(--bg-secondary)",
+                            color: showWeightageView ? "var(--action-primary)" : "var(--text-tertiary)",
+                          }}
+                        >
+                          📊 Unit Importance
+                        </button>
+                      </div>
+
+                      <AnimatePresence mode="wait">
+                        {!showWeightageView ? (
+                          /* ── Questions View: per-year paper buttons ── */
+                          <motion.div
+                            key="questionsView"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 10 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <div
+                              className="bg-[var(--bg-secondary)] rounded-2xl p-6 mb-6 shadow-md border-2 border-[var(--action-primary)]/20 relative overflow-hidden"
+                            >
+                              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--action-primary)]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
+                              <h3 className="text-xl font-bold text-[var(--text-primary)] relative z-10">
+                                Question Paper Analysis
+                              </h3>
+                              <p className="text-[var(--text-secondary)] text-sm relative z-10 mt-1">
+                                Select a year to view unit-wise questions and their marks breakdown.
+                              </p>
+                            </div>
+
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+                              {multiYearData.years.sort().map((year, idx) => (
+                                <motion.button
+                                  key={year}
+                                  initial={{ opacity: 0, y: 12 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: idx * 0.08, duration: 0.4 }}
+                                  whileHover={{ y: -4, boxShadow: "0 8px 24px rgba(125,198,122,0.15)" }}
+                                  whileTap={{ scale: 0.97 }}
+                                  onClick={() => handleYearSelect(year)}
+                                  style={{
+                                    padding: "24px 20px", borderRadius: 20,
+                                    background: "var(--bg-secondary)",
+                                    border: "1.5px solid var(--border-default)",
+                                    cursor: "pointer", fontFamily: "inherit",
+                                    textAlign: "left",
+                                    transition: "all 0.3s ease",
+                                  }}
+                                >
+                                  <div style={{ fontSize: 28, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>
+                                    {year}
+                                  </div>
+                                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-tertiary)" }}>
+                                    View questions & marks →
+                                  </div>
+                                </motion.button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        ) : (
+                          /* ── Importance View: aggregated unit bars ── */
+                          <motion.div
+                            key="weightageView"
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <div
+                              data-tour="rtu-weightage"
+                              className="bg-[var(--bg-secondary)] rounded-2xl p-6 mb-8 shadow-md border-2 border-[var(--action-primary)]/20 relative overflow-hidden"
+                            >
+                              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--action-primary)]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
+                              <h3 className="text-xl font-bold text-[var(--text-primary)] relative z-10">
+                                Multi-Year Unit Weightage
+                              </h3>
+                              <p className="text-[var(--text-secondary)] text-sm relative z-10 mt-1">
+                                Aggregated from {multiYearData.years.join(", ")} papers — sorted by average marks.
+                              </p>
+                            </div>
+
+                            {multiYearData.aggregatedUnits.map((unit, index) => {
+                              const barColors = ["#7DC67A", "#8B5CF6", "#3b82f6", "#f59e0b", "#ef4444", "#06b6d4"];
+                              return (
+                                <motion.div
+                                  key={unit.unitSerial}
+                                  initial={{ opacity: 0, y: 12 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: index * 0.08, duration: 0.4 }}
+                                  style={{
+                                    background: "var(--bg-secondary)",
+                                    borderRadius: 20,
+                                    padding: "20px 24px",
+                                    marginBottom: 12,
+                                    border: "1.5px solid var(--border-default)",
+                                  }}
+                                >
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                                    <div>
+                                      <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-tertiary)", marginRight: 8 }}>
+                                        Unit {unit.unitSerial}
+                                      </span>
+                                      <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
+                                        {unit.unitName}
+                                      </span>
+                                    </div>
+                                    <span style={{
+                                      fontSize: 16, fontWeight: 900,
+                                      color: "var(--action-primary)",
+                                      background: "rgba(125,198,122,0.1)",
+                                      padding: "4px 12px", borderRadius: 8,
+                                    }}>
+                                      Avg: {unit.averageMarks}
+                                    </span>
+                                  </div>
+
+                                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                                    {Object.entries(unit.perYear).sort(([a], [b]) => a - b).map(([year, marks], i) => (
+                                      <div key={year} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-tertiary)", width: 40, textAlign: "right" }}>
+                                          {year}
+                                        </span>
+                                        <div style={{ flex: 1, height: 22, borderRadius: 6, background: "var(--bg-tertiary)", overflow: "hidden", position: "relative" }}>
+                                          <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${(marks / (multiYearData.totalPaperMarks || 98)) * 100}%` }}
+                                            transition={{ delay: index * 0.08 + i * 0.05, duration: 0.6, ease: "easeOut" }}
+                                            style={{
+                                              height: "100%",
+                                              borderRadius: 6,
+                                              background: `${barColors[i % barColors.length]}`,
+                                              opacity: 0.8,
+                                            }}
+                                          />
+                                        </div>
+                                        <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", width: 30, textAlign: "right" }}>
+                                          {marks}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  ) : !yearsLoading && availableYears.length > 0 && (
+                    <div className="text-center py-12">
+                      <p className="text-[var(--text-tertiary)] font-medium">
+                        Select years above to see the combined analysis
+                      </p>
+                    </div>
+                  )}
                 </motion.div>
               )}
 
-              {/* Unit Weightage View */}
+              {/* Unit Weightage View (single year detail) */}
               {viewState === "unitWeightage" && (
                 <motion.div
                   key="unitWeightage"
@@ -722,7 +1037,7 @@ const RTUExams = () => {
                 Missing analysis for your year?
               </p>
               <button
-                onClick={() => navigate("/messages")}
+                onClick={() => navigate("/suggest")}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--action-primary)] to-[var(--action-hover)] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
               >
                 <FaEnvelope className="text-xl" />
@@ -736,3 +1051,4 @@ const RTUExams = () => {
 };
 
 export default RTUExams;
+
