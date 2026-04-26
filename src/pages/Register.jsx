@@ -464,9 +464,7 @@ const Register = () => {
     }
   };
 
-  const handleGoogleSignup = () => {
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`;
-  };
+
 
   const firstName = formData.name.split(" ")[0] || "there";
 
@@ -481,12 +479,16 @@ const Register = () => {
       }}
     >
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
           .auth-grid-outer { grid-template-columns: 1fr !important; }
           .auth-left { display: none !important; }
           .auth-mobile-logo { display: block !important; }
-          .auth-form-panel-reg { padding: 24px 16px !important; }
-          .auth-form-card-reg { padding: 24px !important; }
+          .auth-form-panel-reg { padding: 24px 16px !important; min-height: 100vh !important; }
+          .auth-form-card-reg { padding: 28px 20px !important; max-width: 100% !important; }
+        }
+        @media (max-width: 480px) {
+          .auth-form-panel-reg { padding: 16px 12px !important; }
+          .auth-form-card-reg { padding: 24px 16px !important; border-radius: 16px !important; }
         }
         .btn-shine { position: relative; overflow: hidden; }
         .btn-shine::after {
@@ -1112,79 +1114,7 @@ const Register = () => {
                 )}
               </AnimatePresence>
 
-              {/* OR + Google */}
-              {step === 1 && (
-                <>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      margin: "20px 0",
-                    }}
-                  >
-                    <div
-                      style={{ flex: 1, height: 1, background: "#E8E4DC" }}
-                    />
-                    <span
-                      style={{
-                        fontSize: 12,
-                        color: "#9A9A9A",
-                        fontWeight: 500,
-                      }}
-                    >
-                      OR
-                    </span>
-                    <div
-                      style={{ flex: 1, height: 1, background: "#E8E4DC" }}
-                    />
-                  </div>
 
-                  <button
-                    onClick={handleGoogleSignup}
-                    type="button"
-                    style={{
-                      width: "100%",
-                      padding: 14,
-                      background: "white",
-                      border: "1.5px solid #E8E4DC",
-                      borderRadius: 12,
-                      fontSize: 15,
-                      fontWeight: 500,
-                      color: "#1A1A2E",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 12,
-                      transition: "all 200ms",
-                      fontFamily: "'DM Sans', sans-serif",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#7DC67A";
-                      e.currentTarget.style.background = "#F9F6F1";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#E8E4DC";
-                      e.currentTarget.style.background = "white";
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 700,
-                        background:
-                          "linear-gradient(135deg, #4285F4, #34A853, #FBBC04, #EA4335)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                      }}
-                    >
-                      G
-                    </span>
-                    Continue with Google
-                  </button>
-                </>
-              )}
 
               {/* Terms */}
               <p
