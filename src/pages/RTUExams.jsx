@@ -146,7 +146,8 @@ const RTUExams = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState(null);
   const [showAiPanel, setShowAiPanel] = useState(false);
-  const [showWeightageView, setShowWeightageView] = useState(false);
+  const [activeTab, setActiveTab] = useState("questions"); // 'questions' | 'importance' | 'repeated' | 'topics'
+  const [expandedTopic, setExpandedTopic] = useState(null); // index of expanded topic card
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -431,7 +432,7 @@ const RTUExams = () => {
       setSelectedYears([]);
       setMultiYearData(null);
       setShowAiPanel(false);
-      setShowWeightageView(false);
+      setActiveTab("questions");
       syncUrl({ sem: selectedSem });
       // Always re-fetch subjects to ensure list is populated
       if (selectedSem) fetchSubjects(selectedSem);
@@ -771,41 +772,36 @@ const RTUExams = () => {
                     </div>
                   ) : multiYearData ? (
                     <div className="max-w-4xl mx-auto">
-                      {/* View toggle: Questions vs Importance */}
+                      {/* 4-Tab strip */}
                       <div style={{
-                        display: "flex", justifyContent: "center", gap: 8, marginBottom: 20,
+                        display: "flex", justifyContent: "center", gap: 6, marginBottom: 20,
+                        flexWrap: "wrap",
                       }}>
-                        <button
-                          onClick={() => setShowWeightageView(false)}
-                          style={{
-                            padding: "10px 24px", borderRadius: 14,
-                            fontSize: 14, fontWeight: 700, fontFamily: "inherit",
-                            cursor: "pointer", transition: "all 0.2s",
-                            border: !showWeightageView ? "2px solid var(--action-primary)" : "2px solid var(--border-default)",
-                            background: !showWeightageView ? "rgba(125,198,122,0.1)" : "var(--bg-secondary)",
-                            color: !showWeightageView ? "var(--action-primary)" : "var(--text-tertiary)",
-                          }}
-                        >
-                          📝 Question Papers
-                        </button>
-                        <button
-                          onClick={() => setShowWeightageView(true)}
-                          style={{
-                            padding: "10px 24px", borderRadius: 14,
-                            fontSize: 14, fontWeight: 700, fontFamily: "inherit",
-                            cursor: "pointer", transition: "all 0.2s",
-                            border: showWeightageView ? "2px solid var(--action-primary)" : "2px solid var(--border-default)",
-                            background: showWeightageView ? "rgba(125,198,122,0.1)" : "var(--bg-secondary)",
-                            color: showWeightageView ? "var(--action-primary)" : "var(--text-tertiary)",
-                          }}
-                        >
-                          📊 Unit Importance
-                        </button>
+                        {[
+                          { key: "questions", icon: "📝", label: "Papers" },
+                          { key: "importance", icon: "📊", label: "Importance" },
+                          { key: "repeated", icon: "🔁", label: "Repeated Q's" },
+                          { key: "topics", icon: "📌", label: "Top Topics" },
+                        ].map((tab) => (
+                          <button
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key)}
+                            style={{
+                              padding: "10px 20px", borderRadius: 14,
+                              fontSize: 13, fontWeight: 700, fontFamily: "inherit",
+                              cursor: "pointer", transition: "all 0.2s",
+                              border: activeTab === tab.key ? "2px solid var(--action-primary)" : "2px solid var(--border-default)",
+                              background: activeTab === tab.key ? "rgba(125,198,122,0.1)" : "var(--bg-secondary)",
+                              color: activeTab === tab.key ? "var(--action-primary)" : "var(--text-tertiary)",
+                            }}
+                          >
+                            {tab.icon} {tab.label}
+                          </button>
+                        ))}
                       </div>
 
                       <AnimatePresence mode="wait">
-                        {!showWeightageView ? (
-                          /* ── Questions View: per-year paper buttons ── */
+                        {activeTab === "questions" && (
                           <motion.div
                             key="questionsView"
                             initial={{ opacity: 0, x: -10 }}
@@ -813,18 +809,11 @@ const RTUExams = () => {
                             exit={{ opacity: 0, x: 10 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <div
-                              className="bg-[var(--bg-secondary)] rounded-2xl p-6 mb-6 shadow-md border-2 border-[var(--action-primary)]/20 relative overflow-hidden"
-                            >
+                            <div className="bg-[var(--bg-secondary)] rounded-2xl p-6 mb-6 shadow-md border-2 border-[var(--action-primary)]/20 relative overflow-hidden">
                               <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--action-primary)]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
-                              <h3 className="text-xl font-bold text-[var(--text-primary)] relative z-10">
-                                Question Paper Analysis
-                              </h3>
-                              <p className="text-[var(--text-secondary)] text-sm relative z-10 mt-1">
-                                Select a year to view unit-wise questions and their marks breakdown.
-                              </p>
+                              <h3 className="text-xl font-bold text-[var(--text-primary)] relative z-10">Question Paper Analysis</h3>
+                              <p className="text-[var(--text-secondary)] text-sm relative z-10 mt-1">Select a year to view unit-wise questions and their marks breakdown.</p>
                             </div>
-
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
                               {multiYearData.years.sort().map((year, idx) => (
                                 <motion.button
@@ -835,110 +824,167 @@ const RTUExams = () => {
                                   whileHover={{ y: -4, boxShadow: "0 8px 24px rgba(125,198,122,0.15)" }}
                                   whileTap={{ scale: 0.97 }}
                                   onClick={() => handleYearSelect(year)}
-                                  style={{
-                                    padding: "24px 20px", borderRadius: 20,
-                                    background: "var(--bg-secondary)",
-                                    border: "1.5px solid var(--border-default)",
-                                    cursor: "pointer", fontFamily: "inherit",
-                                    textAlign: "left",
-                                    transition: "all 0.3s ease",
-                                  }}
+                                  style={{ padding: "24px 20px", borderRadius: 20, background: "var(--bg-secondary)", border: "1.5px solid var(--border-default)", cursor: "pointer", fontFamily: "inherit", textAlign: "left", transition: "all 0.3s ease" }}
                                 >
-                                  <div style={{ fontSize: 28, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>
-                                    {year}
-                                  </div>
-                                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-tertiary)" }}>
-                                    View questions & marks →
-                                  </div>
+                                  <div style={{ fontSize: 28, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>{year}</div>
+                                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-tertiary)" }}>View questions & marks →</div>
                                 </motion.button>
                               ))}
                             </div>
                           </motion.div>
-                        ) : (
-                          /* ── Importance View: aggregated unit bars ── */
-                          <motion.div
-                            key="weightageView"
-                            initial={{ opacity: 0, x: 10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -10 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <div
-                              data-tour="rtu-weightage"
-                              className="bg-[var(--bg-secondary)] rounded-2xl p-6 mb-8 shadow-md border-2 border-[var(--action-primary)]/20 relative overflow-hidden"
-                            >
-                              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--action-primary)]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
-                              <h3 className="text-xl font-bold text-[var(--text-primary)] relative z-10">
-                                Multi-Year Unit Weightage
-                              </h3>
-                              <p className="text-[var(--text-secondary)] text-sm relative z-10 mt-1">
-                                Aggregated from {multiYearData.years.join(", ")} papers — sorted by average marks.
-                              </p>
-                            </div>
+                        )}
 
+                        {activeTab === "importance" && (
+                          <motion.div key="weightageView" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}>
+                            <div data-tour="rtu-weightage" className="bg-[var(--bg-secondary)] rounded-2xl p-6 mb-8 shadow-md border-2 border-[var(--action-primary)]/20 relative overflow-hidden">
+                              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--action-primary)]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
+                              <h3 className="text-xl font-bold text-[var(--text-primary)] relative z-10">Multi-Year Unit Weightage</h3>
+                              <p className="text-[var(--text-secondary)] text-sm relative z-10 mt-1">Aggregated from {multiYearData.years.join(", ")} papers — sorted by average marks.</p>
+                            </div>
                             {multiYearData.aggregatedUnits.map((unit, index) => {
                               const barColors = ["#7DC67A", "#8B5CF6", "#3b82f6", "#f59e0b", "#ef4444", "#06b6d4"];
                               return (
-                                <motion.div
-                                  key={unit.unitSerial}
-                                  initial={{ opacity: 0, y: 12 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: index * 0.08, duration: 0.4 }}
-                                  style={{
-                                    background: "var(--bg-secondary)",
-                                    borderRadius: 20,
-                                    padding: "20px 24px",
-                                    marginBottom: 12,
-                                    border: "1.5px solid var(--border-default)",
-                                  }}
-                                >
+                                <motion.div key={unit.unitSerial} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.08, duration: 0.4 }} style={{ background: "var(--bg-secondary)", borderRadius: 20, padding: "20px 24px", marginBottom: 12, border: "1.5px solid var(--border-default)" }}>
                                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                                     <div>
-                                      <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-tertiary)", marginRight: 8 }}>
-                                        Unit {unit.unitSerial}
-                                      </span>
-                                      <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
-                                        {unit.unitName}
-                                      </span>
+                                      <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-tertiary)", marginRight: 8 }}>Unit {unit.unitSerial}</span>
+                                      <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{unit.unitName}</span>
                                     </div>
-                                    <span style={{
-                                      fontSize: 16, fontWeight: 900,
-                                      color: "var(--action-primary)",
-                                      background: "rgba(125,198,122,0.1)",
-                                      padding: "4px 12px", borderRadius: 8,
-                                    }}>
-                                      Avg: {unit.averageMarks}
-                                    </span>
+                                    <span style={{ fontSize: 16, fontWeight: 900, color: "var(--action-primary)", background: "rgba(125,198,122,0.1)", padding: "4px 12px", borderRadius: 8 }}>Avg: {unit.averageMarks}</span>
                                   </div>
-
                                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                                     {Object.entries(unit.perYear).sort(([a], [b]) => a - b).map(([year, marks], i) => (
                                       <div key={year} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-tertiary)", width: 40, textAlign: "right" }}>
-                                          {year}
-                                        </span>
+                                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-tertiary)", width: 40, textAlign: "right" }}>{year}</span>
                                         <div style={{ flex: 1, height: 22, borderRadius: 6, background: "var(--bg-tertiary)", overflow: "hidden", position: "relative" }}>
-                                          <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${(marks / (multiYearData.totalPaperMarks || 98)) * 100}%` }}
-                                            transition={{ delay: index * 0.08 + i * 0.05, duration: 0.6, ease: "easeOut" }}
-                                            style={{
-                                              height: "100%",
-                                              borderRadius: 6,
-                                              background: `${barColors[i % barColors.length]}`,
-                                              opacity: 0.8,
-                                            }}
-                                          />
+                                          <motion.div initial={{ width: 0 }} animate={{ width: `${(marks / (multiYearData.totalPaperMarks || 98)) * 100}%` }} transition={{ delay: index * 0.08 + i * 0.05, duration: 0.6, ease: "easeOut" }} style={{ height: "100%", borderRadius: 6, background: `${barColors[i % barColors.length]}`, opacity: 0.8 }} />
                                         </div>
-                                        <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", width: 30, textAlign: "right" }}>
-                                          {marks}
-                                        </span>
+                                        <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", width: 30, textAlign: "right" }}>{marks}</span>
                                       </div>
                                     ))}
                                   </div>
                                 </motion.div>
                               );
                             })}
+                          </motion.div>
+                        )}
+
+                        {activeTab === "repeated" && (
+                          <motion.div key="repeatedView" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}>
+                            <div className="bg-[var(--bg-secondary)] rounded-2xl p-6 mb-6 shadow-md border-2 border-[var(--action-primary)]/20 relative overflow-hidden">
+                              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--action-primary)]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
+                              <h3 className="text-xl font-bold text-[var(--text-primary)] relative z-10">🔁 Most Repeated Questions</h3>
+                              <p className="text-[var(--text-secondary)] text-sm relative z-10 mt-1">Questions that appeared in multiple years — high chance of being asked again.</p>
+                            </div>
+                            {multiYearData.repeatedQuestions && multiYearData.repeatedQuestions.length > 0 ? (
+                              multiYearData.repeatedQuestions.map((q, idx) => (
+                                <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.06, duration: 0.4 }}
+                                  style={{ background: "var(--bg-secondary)", borderRadius: 20, padding: "20px 24px", marginBottom: 12, border: "1.5px solid var(--border-default)" }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+                                    <span style={{ padding: "4px 12px", borderRadius: 100, fontSize: 12, fontWeight: 800, background: q.count >= 3 ? "rgba(239,68,68,0.1)" : "rgba(245,158,11,0.1)", color: q.count >= 3 ? "#ef4444" : "#f59e0b", border: `1px solid ${q.count >= 3 ? "rgba(239,68,68,0.2)" : "rgba(245,158,11,0.2)"}` }}>
+                                      {"🔥".repeat(Math.min(q.count, 4))} Asked {q.count}x
+                                    </span>
+                                    <span style={{ padding: "4px 10px", borderRadius: 100, fontSize: 11, fontWeight: 700, background: "rgba(125,198,122,0.08)", color: "var(--action-primary)", border: "1px solid rgba(125,198,122,0.15)" }}>
+                                      Unit {q.unitSerial} · {q.unitName}
+                                    </span>
+                                    <span style={{ padding: "4px 10px", borderRadius: 100, fontSize: 11, fontWeight: 700, background: "rgba(139,92,246,0.08)", color: "#8B5CF6", border: "1px solid rgba(139,92,246,0.15)" }}>
+                                      ~{q.avgMarks} marks
+                                    </span>
+                                  </div>
+                                  <p style={{ fontSize: 14, fontWeight: 500, color: "var(--text-primary)", lineHeight: 1.6, margin: "0 0 10px" }}>{q.text}</p>
+                                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                    {q.years.map((yr) => (
+                                      <span key={yr} style={{ padding: "3px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--bg-tertiary)", color: "var(--text-secondary)" }}>{yr}</span>
+                                    ))}
+                                  </div>
+                                </motion.div>
+                              ))
+                            ) : (
+                              <div style={{ textAlign: "center", padding: 40, color: "var(--text-tertiary)", fontSize: 15, fontWeight: 600 }}>
+                                No repeated questions found across the selected years.<br /><span style={{ fontSize: 13 }}>Try selecting more years above.</span>
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+
+                        {activeTab === "topics" && (
+                          <motion.div key="topicsView" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}>
+                            <div className="bg-[var(--bg-secondary)] rounded-2xl p-6 mb-6 shadow-md border-2 border-[var(--action-primary)]/20 relative overflow-hidden">
+                              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--action-primary)]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
+                              <h3 className="text-xl font-bold text-[var(--text-primary)] relative z-10">📌 Most Tested Topics</h3>
+                              <p className="text-[var(--text-secondary)] text-sm relative z-10 mt-1">Topics ranked by how frequently they appear across {multiYearData.years.join(", ")} papers.</p>
+                            </div>
+                            {multiYearData.topTopics && multiYearData.topTopics.length > 0 ? (
+                              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                {multiYearData.topTopics.map((t, idx) => {
+                                  const heat = t.count >= 4 ? 3 : t.count >= 3 ? 2 : 1;
+                                  const heatColor = heat >= 3 ? "#ef4444" : heat >= 2 ? "#f59e0b" : "#7DC67A";
+                                  const isExpanded = expandedTopic === idx;
+                                  return (
+                                    <motion.div key={idx} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05, duration: 0.4 }}
+                                      style={{ background: "var(--bg-secondary)", borderRadius: 20, border: "1.5px solid var(--border-default)", position: "relative", overflow: "hidden" }}>
+                                      <div style={{ position: "absolute", top: 0, left: 0, width: 4, height: "100%", background: heatColor, borderRadius: "4px 0 0 4px" }} />
+                                      {/* Clickable header */}
+                                      <div
+                                        onClick={() => setExpandedTopic(isExpanded ? null : idx)}
+                                        style={{ padding: "20px 24px", cursor: "pointer", userSelect: "none" }}
+                                      >
+                                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                                          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3, flex: 1 }}>{t.topic}</div>
+                                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                            <span style={{ padding: "4px 10px", borderRadius: 100, fontSize: 12, fontWeight: 800, background: `${heatColor}15`, color: heatColor, border: `1px solid ${heatColor}30`, whiteSpace: "nowrap" }}>
+                                              {"🔥".repeat(heat)} {t.count}x
+                                            </span>
+                                            <span style={{ fontSize: 16, color: "var(--text-tertiary)", transition: "transform 0.2s", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
+                                          </div>
+                                        </div>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                                          <span style={{ padding: "3px 10px", borderRadius: 8, fontSize: 11, fontWeight: 700, background: "rgba(125,198,122,0.08)", color: "var(--action-primary)", border: "1px solid rgba(125,198,122,0.15)" }}>
+                                            Unit {t.unitSerial} · {t.unitName}
+                                          </span>
+                                          <span style={{ padding: "3px 10px", borderRadius: 8, fontSize: 11, fontWeight: 700, background: "rgba(139,92,246,0.08)", color: "#8B5CF6" }}>
+                                            {t.totalMarks} total marks
+                                          </span>
+                                          {t.years.map((yr) => (
+                                            <span key={yr} style={{ padding: "2px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: "var(--bg-tertiary)", color: "var(--text-secondary)" }}>{yr}</span>
+                                          ))}
+                                          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-tertiary)", marginLeft: 4 }}>
+                                            {isExpanded ? "Hide" : "View"} {t.questions?.length || 0} questions →
+                                          </span>
+                                        </div>
+                                      </div>
+                                      {/* Expandable questions */}
+                                      <AnimatePresence>
+                                        {isExpanded && t.questions && (
+                                          <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: "auto", opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.25 }}
+                                            style={{ overflow: "hidden" }}
+                                          >
+                                            <div style={{ padding: "0 24px 20px", borderTop: "1px solid var(--border-default)" }}>
+                                              {t.questions.map((q, qi) => (
+                                                <div key={qi} style={{ padding: "12px 0", borderBottom: qi < t.questions.length - 1 ? "1px dashed var(--border-default)" : "none" }}>
+                                                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                                                    <span style={{ padding: "2px 10px", borderRadius: 8, fontSize: 11, fontWeight: 800, background: "var(--bg-tertiary)", color: "var(--text-secondary)" }}>{q.year}</span>
+                                                    <span style={{ padding: "2px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, background: "rgba(139,92,246,0.08)", color: "#8B5CF6" }}>{q.marks} marks</span>
+                                                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-tertiary)" }}>{q.qCode}</span>
+                                                  </div>
+                                                  <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)", lineHeight: 1.5, margin: 0 }}>{q.text}</p>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </motion.div>
+                                        )}
+                                      </AnimatePresence>
+                                    </motion.div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div style={{ textAlign: "center", padding: 40, color: "var(--text-tertiary)", fontSize: 15, fontWeight: 600 }}>No topic analysis available for the selected years.</div>
+                            )}
                           </motion.div>
                         )}
                       </AnimatePresence>

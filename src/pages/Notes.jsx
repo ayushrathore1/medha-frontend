@@ -6,6 +6,15 @@ import { useTour } from "../context/TourContext";
 
 const API_BASE = `${import.meta.env.VITE_BACKEND_URL}`;
 
+/* ── Resolve file URLs (local disk vs Cloudinary) ── */
+const resolveFileUrl = (url) => {
+  if (!url) return "";
+  // Cloudinary URLs are already absolute
+  if (url.startsWith("http")) return url;
+  // Local file paths need the backend base URL prepended
+  return `${API_BASE}${url}`;
+};
+
 /* ── Subject Color Map ──────────────────────────────────────── */
 const SUBJECT_MAP = {
   OOPs:  { bg:"#E8D2BF", tagBg:"#FFF3E8", tagColor:"#C04A00", tagBorder:"rgba(192,74,0,0.2)" },
@@ -372,7 +381,7 @@ const NoteDetailModal = ({ note, onClose, getOwnerName, getSubjectName }) => {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {note.fileUrl && (
                 <a
-                  href={note.fileUrl}
+                  href={resolveFileUrl(note.fileUrl)}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -429,14 +438,80 @@ const NoteDetailModal = ({ note, onClose, getOwnerName, getSubjectName }) => {
               minHeight: 400,
             }}
           >
-            {/* PDF viewer */}
-            <div style={{ overflow: "auto" }}>
+            {/* Download-focused view (preview disabled for quality) */}
+            <div style={{ overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
               {note.fileUrl ? (
-                <iframe
-                  src={note.fileUrl + "#toolbar=0"}
-                  style={{ width: "100%", height: "100%", border: "none", minHeight: 500 }}
-                  title="Note PDF"
-                />
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 20,
+                    padding: 40,
+                    textAlign: "center",
+                    height: "100%",
+                    minHeight: 400,
+                  }}
+                >
+                  {/* Big document icon */}
+                  <div
+                    style={{
+                      width: 100,
+                      height: 120,
+                      background: "white",
+                      borderRadius: "4px 16px 8px 8px",
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.10)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 48,
+                      border: "2px solid #E8E4DC",
+                    }}
+                  >
+                    📄
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A2E", marginBottom: 6 }}>
+                      {note.originalName || note.title}
+                    </div>
+                    <div style={{ fontSize: 13, color: "#9A9A9A" }}>
+                      Download to view in full quality
+                    </div>
+                  </div>
+
+                  <a
+                    href={resolveFileUrl(note.fileUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      background: "linear-gradient(135deg, #7DC67A, #4A9E47)",
+                      color: "white",
+                      borderRadius: 14,
+                      padding: "14px 32px",
+                      fontSize: 16,
+                      fontWeight: 700,
+                      textDecoration: "none",
+                      boxShadow: "0 4px 16px rgba(125,198,122,0.3)",
+                      transition: "transform 200ms, box-shadow 200ms",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow = "0 6px 24px rgba(125,198,122,0.4)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "0 4px 16px rgba(125,198,122,0.3)";
+                    }}
+                  >
+                    ⬇ Download {note.fileType === "application/pdf" ? "PDF" : "File"}
+                  </a>
+                </div>
               ) : (
                 <div
                   style={{
@@ -817,7 +892,7 @@ const UploadWizard = ({ isOpen, onClose, onUpload, uploading }) => {
                   </span>
                 )}
                 <div style={{ fontSize: 12, color: "#9A9A9A", marginTop: 12 }}>
-                  PDF, JPG, PNG · Max 10MB
+                  PDF, JPG, PNG · No size limit
                 </div>
                 <input
                   ref={fileRef}
