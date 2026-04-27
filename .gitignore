@@ -60,3 +60,8 @@ coverage/
 build_log*.txt
 new_year_email.html
 *.tmp
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
