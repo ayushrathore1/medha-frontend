@@ -48,4 +48,26 @@ export const createNote = async ({ title, content, subject }) => {
   return res.data.note;
 };
 
+// Search Engine API
+export const searchDatabase = async (params, signal) => {
+  const res = await api.get("/search", { params, signal });
+  return res.data;
+};
+
+export const fetchSearchSuggestions = async (q, signal) => {
+  const res = await api.get("/search/suggestions", { params: { q }, signal });
+  return res.data;
+};
+
+export const fetchPopularSearches = async () => {
+  const res = await api.get("/search/popular");
+  return res.data;
+};
+
+export const logSearchQuery = async (data) => {
+  const res = await api.post("/search/history", data);
+  return res.data;
+};
+
 export default api;
+

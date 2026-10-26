@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   FaArrowLeft,
@@ -17,12 +17,14 @@ import "../styles/responsive-pages.css";
 
 const SubjectNotes = () => {
   const { subjectName } = useParams();
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get("search") || searchParams.get("type") || "";
   const navigate = useNavigate();
   const decodedName = decodeURIComponent(subjectName);
 
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
 
   useEffect(() => {
     const fetchNotes = async () => {

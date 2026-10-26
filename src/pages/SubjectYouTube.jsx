@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   FaArrowLeft,
@@ -17,6 +17,8 @@ import "../styles/responsive-pages.css";
 
 const SubjectYouTube = () => {
   const { subjectName } = useParams();
+  const [searchParams] = useSearchParams();
+  const targetUnitParam = searchParams.get("unit");
   const navigate = useNavigate();
   const decodedName = decodeURIComponent(subjectName);
 
@@ -74,10 +76,16 @@ const SubjectYouTube = () => {
         }
       } finally {
         setLoading(false);
+        if (targetUnitParam) {
+          const uNum = parseInt(targetUnitParam, 10);
+          if (!isNaN(uNum)) {
+            setExpandedUnit(uNum);
+          }
+        }
       }
     };
     fetchUnits();
-  }, [decodedName]);
+  }, [decodedName, targetUnitParam]);
 
   // Search videos for a specific unit (only if no pre-assigned videos exist)
   const searchUnitVideos = useCallback(

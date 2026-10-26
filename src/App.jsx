@@ -37,6 +37,7 @@ const SubjectNotes = React.lazy(() => import("./pages/SubjectNotes"));
 const SemesterSubjects = React.lazy(() => import("./pages/SemesterSubjects"));
 const SuggestPage = React.lazy(() => import("./pages/SuggestPage"));
 const GoogleAuthSuccess = React.lazy(() => import("./pages/GoogleAuthSuccess"));
+const SearchEngine = React.lazy(() => import("./pages/SearchEngine"));
 
 // Feature flag for Charcha (discussion forum)
 const CHARCHA_ENABLED = import.meta.env.VITE_ENABLE_CHARCHA === 'true';
@@ -80,6 +81,7 @@ const AppContent = () => {
                 <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
                 <Route path="/verify-email" element={<PageTransition><EmailVerification /></PageTransition>} />
                 <Route path="/auth/google/success" element={<PageTransition><GoogleAuthSuccess /></PageTransition>} />
+                <Route path="/search" element={<PageTransition><SearchEngine /></PageTransition>} />
 
                 {/* Protected routes */}
                 <Route
