@@ -1,125 +1,71 @@
-import React, { useRef } from 'react';
-import { motion } from 'framer-motion';
-import { fadeUp } from '../lib/motionPresets';
+import React from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { ArrowUpRight, MessageCircle, Sparkles, UsersRound } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const testimonials = [
+const communityPillars = [
   {
-    quote: '"I had 3 days before my DBMS exam. MEDHA showed me exactly which topics repeat every year. Got 42/50 on the ones I focused on."',
-    name: 'Rahul Sharma',
-    role: 'CSE, 3rd Year',
-    initials: 'RS',
-    gradient: ['#7DC67A', '#4A9E47'],
+    Icon: MessageCircle,
+    number: '01',
+    title: 'Ask without overthinking.',
+    copy: 'Use Charcha for doubts, explanations and the small questions that block a whole study session.',
+    tone: 'violet',
   },
   {
-    quote: '"The AI notes literally saved me. Uploaded a blurry photo of my register and got clean, formatted notes in 2 minutes."',
-    name: 'Priya Meena',
-    role: 'ECE, 4th Year',
-    initials: 'PM',
-    gradient: ['#F59E0B', '#D97706'],
+    Icon: Sparkles,
+    number: '02',
+    title: 'Share something useful.',
+    copy: 'Upload the notes you made, help another student, and earn AURA when your work is downloaded.',
+    tone: 'green',
   },
   {
-    quote: '"I used to panic the night before exams. Now I just open MEDHA and follow the priority map. It\'s like having a topper friend 24/7."',
-    name: 'Ankit Kumar',
-    role: 'ME, 2nd Year',
-    initials: 'AK',
-    gradient: ['#8B5CF6', '#6D28D9'],
-  },
-  {
-    quote: '"The PYQ analysis is insane. 3 topics actually came exactly as predicted. Never studying without MEDHA again."',
-    name: 'Deepika Patel',
-    role: 'CSE, 3rd Year',
-    initials: 'DP',
-    gradient: ['#EF4444', '#DC2626'],
-  },
-  {
-    quote: '"Started using it at 1 AM, covered 4 units by 7 AM. The AI breaks down everything so simply you actually understand."',
-    name: 'Vikram Singh',
-    role: 'Civil, 4th Year',
-    initials: 'VS',
-    gradient: ['#3B82F6', '#2563EB'],
+    Icon: UsersRound,
+    number: '03',
+    title: 'Build knowledge together.',
+    copy: 'Find resources from peers, discuss topics and make helpful material easier to discover.',
+    tone: 'amber',
   },
 ];
 
 const TestimonialsSection = () => {
-  const constraintsRef = useRef(null);
+  const reduceMotion = useReducedMotion();
 
   return (
-    <section style={{ background: '#1A1A2E', padding: '96px 0', position: 'relative', overflow: 'hidden' }}>
-      {/* BG */}
-      <div className="line-grid" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
-      <div className="blob blob-green" style={{ width: 400, height: 400, left: -80, top: -80, position: 'absolute' }} />
-      <div className="blob blob-purple" style={{ width: 350, height: 350, right: -60, bottom: -60, position: 'absolute', opacity: 0.08 }} />
-
-      {/* Giant quotation mark */}
-      <div style={{
-        position: 'absolute', userSelect: 'none', pointerEvents: 'none', zIndex: 0,
-        fontSize: 400, fontWeight: 900, color: 'rgba(255,255,255,0.015)',
-        lineHeight: 1, top: '-10%', left: '5%', fontFamily: 'Georgia, serif'
-      }}>66</div>
-
-      <div className="section-container" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px', position: 'relative', zIndex: 10 }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <motion.div {...fadeUp}>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'rgba(125,198,122,0.15)', border: '1px solid rgba(125,198,122,0.3)',
-              borderRadius: 999, padding: '6px 16px',
-              fontSize: 11, fontWeight: 600, color: '#7DC67A',
-              textTransform: 'uppercase', letterSpacing: '0.1em'
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#7DC67A' }} />
-              TESTIMONIALS
-            </span>
-          </motion.div>
-
-          <motion.h2 {...fadeUp} style={{
-            fontSize: 'clamp(40px, 4.5vw, 56px)', fontWeight: 800,
-            color: 'white', lineHeight: 1.1, letterSpacing: '-0.03em', marginTop: 20
-          }}>
-            What students say<span style={{ color: '#F59E0B' }}>.</span>
-          </motion.h2>
+    <section className="md-section md-community" id="community">
+      <div className="md-section-shell">
+        <div className="md-community-banner">
+          <div className="md-community-banner-glow" aria-hidden="true" />
+          <div className="md-community-banner-copy">
+            <span className="md-kicker"><i /> BETTER TOGETHER</span>
+            <h2>Knowledge gets better<br /><span>when it moves around.</span></h2>
+            <p>MEDHA is not just somewhere to download a PDF. It is a loop: find material, learn the concept, share what worked, and help the next student.</p>
+            <Link to="/register" className="md-button md-button-primary">Join the learning loop <ArrowUpRight size={16} /></Link>
+          </div>
+          <div className="md-community-visual" aria-label="Illustration of students sharing academic resources">
+            <div className="md-community-node md-node-one"><span>🦊</span><b>Doubt solved</b></div>
+            <div className="md-community-node md-node-two"><span>🐼</span><b>Notes shared</b></div>
+            <div className="md-community-node md-node-three"><span>🦉</span><b>AURA earned</b></div>
+            <div className="md-community-center"><UsersRound size={28} /><strong>CHARCHA</strong><small>Learn together</small></div>
+            <span className="md-community-orbit md-community-orbit-one" />
+            <span className="md-community-orbit md-community-orbit-two" />
+          </div>
         </div>
 
-        {/* Carousel */}
-        <div ref={constraintsRef} style={{ overflow: 'hidden', cursor: 'grab' }}>
-          <motion.div
-            className="testimonials-carousel"
-            drag="x"
-            dragConstraints={constraintsRef}
-            style={{ display: 'flex', gap: 24, paddingBottom: 8 }}
-          >
-            {testimonials.map((t, i) => (
-              <motion.div
-                key={i}
-                initial={{ y: 40, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-                style={{
-                  minWidth: 320, maxWidth: 340, flexShrink: 0,
-                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: 20, padding: 32
-                }}
-              >
-                <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: 500, lineHeight: 1.7, marginBottom: 24, fontStyle: 'italic' }}>
-                  {t.quote}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{
-                    width: 40, height: 40, borderRadius: '50%',
-                    background: `linear-gradient(135deg, ${t.gradient[0]}, ${t.gradient[1]})`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 13, fontWeight: 700, color: 'white'
-                  }}>{t.initials}</div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: 'white' }}>{t.name}</div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#7DC67A' }}>{t.role}</div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+        <div className="md-community-pillars">
+          {communityPillars.map((pillar, index) => (
+            <motion.article
+              className={'md-community-pillar md-pillar-' + pillar.tone}
+              key={pillar.number}
+              initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.45, delay: index * 0.1 }}
+            >
+              <div><span>{pillar.number}</span><pillar.Icon size={18} /></div>
+              <h3>{pillar.title}</h3>
+              <p>{pillar.copy}</p>
+            </motion.article>
+          ))}
         </div>
       </div>
     </section>
