@@ -1,5 +1,4 @@
 import React from 'react';
-import '../styles/globals.css';
 import '../styles/LandingPage.css';
 import { useLiveStats } from '../hooks/useLiveStats';
 
