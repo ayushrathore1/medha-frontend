@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
-  ArrowUpRight, BadgeCheck, BookOpen, BrainCircuit, FileCheck2,
-  FileText, Flame, GraduationCap, Search, Sparkles, Youtube
+  ArrowUpRight, BadgeCheck, BookOpen, BrainCircuit, FileText,
+  Flame, Search, Sparkles, Youtube
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
