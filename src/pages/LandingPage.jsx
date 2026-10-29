@@ -1,13 +1,8 @@
 import React from 'react';
-
-// Styles
 import '../styles/globals.css';
 import '../styles/LandingPage.css';
-
-// Hook
 import { useLiveStats } from '../hooks/useLiveStats';
 
-// Components
 import LandingNavbar from '../components/LandingNavbar';
 import HeroSection from '../sections/HeroSection';
 import PainSection from '../sections/PainSection';
@@ -23,16 +18,18 @@ const LandingPage = () => {
   const stats = useLiveStats();
 
   return (
-    <div className="landing-page">
+    <div className="landing-page md-landing">
       <LandingNavbar studentsOnline={stats.studentsOnline} />
-      <HeroSection totalStudents={stats.totalStudents} />
-      <PainSection />
-      <IdentitySection stats={stats} />
-      <FeaturesSection />
-      <WhySection stats={stats} />
-      <SubjectsSection />
-      <TestimonialsSection />
-      <CTASection totalStudents={stats.totalStudents} />
+      <main>
+        <HeroSection totalStudents={stats.totalStudents} />
+        <PainSection />
+        <IdentitySection stats={stats} />
+        <FeaturesSection />
+        <WhySection />
+        <SubjectsSection />
+        <TestimonialsSection />
+        <CTASection totalStudents={stats.totalStudents} />
+      </main>
       <Footer />
     </div>
   );
